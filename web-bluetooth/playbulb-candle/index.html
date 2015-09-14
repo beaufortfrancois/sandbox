@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLAYBULB Candle</title>
+    <style>input, button { margin: 4px }</style>
+  </head>
+  <body>
+    <button id="requestDevice">request Device</button>
+    <br/>
+    <button id="getDeviceName">get Device Name</button>
+    <br/>
+    <input id="colorPicker" type="color">
+    <input id="colorEffectPicker" type="color">
+    <br/>
+    <button id="turnOff">turn Off</button>
+    <br/>
+    <button id="getBatteryLevel">get Battery Level</button>
+
+    <script src="playbulbCandle.js"></script>
+    <script>
+
+document.querySelector('#requestDevice').addEventListener('click', function() {
+  playbulbCandle.requestDevice().then(device => { console.log(device); })
+});
+
+document.querySelector('#getDeviceName').addEventListener('click', function() {
+  playbulbCandle.getDeviceName().then(name => { console.log('Device name is ' + name); })
+});
+
+document.querySelector('#turnOff').addEventListener('click', function() {
+  playbulbCandle.turnOff().then(() => { console.log('Turned off'); })
+});
+
+document.querySelector('#colorPicker').addEventListener('change', function() {
+  var rgb = this.value.substr(1);
+  playbulbCandle.setColor(rgb).then(() => { console.log('changed to ' + rgb); })
+});
+
+document.querySelector('#colorEffectPicker').addEventListener('change', function() {
+  var rgb = this.value.substr(1);
+  playbulbCandle.setColorWithEffect(rgb).then(() => { console.log('changed to ' + rgb); })
+});
+
+document.querySelector('#getBatteryLevel').addEventListener('click', function() {
+  playbulbCandle.getBatteryLevel().then(batteryLevel => { console.log(batteryLevel); })
+});
+
+    </script>
+  </body>
+</html>
