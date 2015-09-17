@@ -19,6 +19,9 @@ class MiBand {
     });
   }
   _writeCharacteristicValue(uuid, value) {
+    if (this._debug) {
+      console.debug(value);
+    }
     return this.service.getCharacteristic(uuid).then(c => c.writeValue(value))
   }
   _computeCRC(data) {
