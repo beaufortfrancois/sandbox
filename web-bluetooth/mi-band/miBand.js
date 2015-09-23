@@ -25,22 +25,16 @@ class MiBand {
     return this.service.getCharacteristic(uuid).then(c => c.writeValue(value))
   }
   _computeCRC(data) {
-    let crc = 0x00;
-    let sum;
-
-    for (var i = 0; i < data.length; i++) {
-      let extract = data[i];
-      for (var j = 8; j != 0; j--) {
-        sum = ((crc & 0xff) ^ (extract & 0xff));
-        sum = ((sum & 0xff) & 0x01);
-        crc = ((crc & 0xff) >>> 1);
-        if (sum != 0) {
-          crc = ((crc & 0xff) ^ 0x8c);
-        }
-        extract = ((extract & 0xff) >>> 1);
+    let crc = 0;
+    for (var i = 0; i < data.length; ++i) {
+      crc ^= data[i];
+      for (var j = 0; j < 8; ++j) {
+        let odd = crc & 1;
+        crc = crc >> 1;
+        if (odd) crc ^= 140;
       }
     }
-    return (crc & 0xff);
+    return crc;
   }
   requestDevice() {
     return navigator.bluetooth.requestDevice({filters:[{services:[ 0xFEE0 ]}]})
@@ -158,8 +152,7 @@ class MiBand {
     userInfo.push(type);
     for (var i = 0; i < 10; i++) { /* Alias */ userInfo.push(0); }
     //userInfo.push(0, 0, 70, 114, 97, 110, 195, 167, 111, 105); // Alias
-
-    let crc = (this._computeCRC(userInfo) ^ parseInt(this.device.instanceID.substring(this.device.instanceID.length - 2), 16)) & 0xff;
+    let crc = (this._computeCRC(userInfo) ^ parseInt(this.device.instanceID.slice(-2), 16));
     userInfo.push(crc);
 
     return this._writeCharacteristicValue(0xFF04, new Uint8Array(userInfo));
