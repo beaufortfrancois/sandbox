@@ -6,10 +6,11 @@ class PlaybulbCandle {
     this.server = null;
     this.candleService = null;
     this.batteryService = null;
+    this.deviceInfoService = null;
     this._debug = true;
   }
   _readCharacteristicValue(service, uuid) {
-    return service.getCharacteristic(uuid).then(c => {console.log(c); return c.readValue()})
+    return service.getCharacteristic(uuid).then(c => { return c.readValue()})
     .then(buffer => {
       let data = new DataView(buffer);
       if (this._debug) {
@@ -20,22 +21,31 @@ class PlaybulbCandle {
     });
   }
   _writeCharacteristicValue(service, uuid, value) {
+    if (this._debug) {
+      console.debug(uuid, value);
+    }
     return service.getCharacteristic(uuid).then(c => c.writeValue(value))
+  }
+  _decodeString(data) {
+    let decoder = new TextDecoder('utf-8');
+    return decoder.decode(data);
   }
   requestDevice() {
     return navigator.bluetooth.requestDevice({filters:[{services:[ 0xFF02 ]}]})
     .then(device => {  this.device = device;   return device.connectGATT() })
-    .then(server => {  this.server = server;   return this.server.getPrimaryService(0xFF02) })
-    .then(candleService => { this.candleService = candleService; return this.server.getPrimaryService('battery_service') })
-    .then(batteryService => { this.batteryService = batteryService; return this.device });
+    .then(server => { this.server = server; return this.server.getPrimaryService(0xFF02) })
+    .then(candleService => { this.candleService = candleService; return this.server.getPrimaryService(0x180F) })
+    .then(batteryService => { this.batteryService = batteryService; return this.server.getPrimaryService(0x180A) })
+    .then(deviceInfoService => { this.deviceInfoService = deviceInfoService; return this.device });
   }
   getDeviceName() {
-    return this._readCharacteristicValue(this.candleService, 0x2A00)
-    .then(data => {
-      let decoder = new TextDecoder('utf-8');
-      let deviceName = decoder.decode(data);
-      return deviceName;
-    });
+    return this._readCharacteristicValue(this.candleService, 0xFFFF)
+    .then(this._decodeString)
+  }
+  setDeviceName(name) {
+    let encoder = new TextEncoder('utf-8');
+    let deviceName = encoder.encode(name);
+    return this._writeCharacteristicValue(this.candleService, 0xFFFF, deviceName);
   }
   setColor(rgb) {
     // rgb format is 00FF00.
@@ -62,6 +72,26 @@ class PlaybulbCandle {
       let batteryLevel = data.getUint8(0);
       return batteryLevel;
     });
+  }
+  getManufacturerName() {
+    return this._readCharacteristicValue(this.deviceInfoService, 0x2A25)
+    .then(this._decodeString);
+  }
+  getModelNumber() {
+    return this._readCharacteristicValue(this.deviceInfoService, 0x2A27)
+    .then(this._decodeString);
+  }
+  getSerialNumber() {
+    return this._readCharacteristicValue(this.deviceInfoService, 0x2A26)
+    .then(this._decodeString);
+  }
+  getHardwareRevision() {
+    return this._readCharacteristicValue(this.deviceInfoService, 0x2A29)
+    .then(this._decodeString);
+  }
+  getFirmwareRevision() {
+    return this._readCharacteristicValue(this.deviceInfoService, 0x2A50)
+    .then(this._decodeString);
   }
 }
 

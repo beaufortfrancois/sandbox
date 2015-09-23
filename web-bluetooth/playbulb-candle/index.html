@@ -3,12 +3,18 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PLAYBULB Candle</title>
-    <style>input, button { margin: 4px }</style>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+    <style>input, button { margin: 4px } body { margin: 0 auto; background-color: #333; max-width: 300px; } img { margin-top: 40px;  filter: blur(20px) grayscale(20%); }</style>
   </head>
   <body>
+    <canvas id="colorPicker" width=300 height=300></canvas>
+    <img2 src="color-wheel.png" width=300>
+    <br/>
     <button id="requestDevice">request Device</button>
     <br/>
     <button id="getDeviceName">get Device Name</button>
+    <input id="deviceName" type="text" placeholder="Enter a device name">
+    <button id="setDeviceName">set Device Name</button>
     <br/>
     <input id="colorPicker" type="color">
     <input id="colorEffectPicker" type="color">
@@ -16,9 +22,57 @@
     <button id="turnOff">turn Off</button>
     <br/>
     <button id="getBatteryLevel">get Battery Level</button>
+    <br/>
+    <button id="getManufacturerName">get Manufacturer Name</button>
+    <button id="getModelNumber">get Model Number</button>
+    <button id="getSerialNumber">get Serial Number</button>
+    <button id="getHardwareRevision">get Hardware Revision</button>
+    <button id="getFirmwareRevision">get Firmware Revision</button>
 
     <script src="playbulbCandle.js"></script>
     <script>
+      function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+      }
+      var img = new Image();
+      img.src = 'color-wheel.png';
+      img.onload = function() {
+        var img = this;
+        var padding = 0;
+        var canvas = document.getElementById('colorPicker');
+        var context = canvas.getContext('2d');
+
+        canvas.width = 300 * devicePixelRatio;
+        canvas.height = 300 * devicePixelRatio;
+        canvas.style.width = "300px";
+        canvas.style.height = "300px";
+
+        canvas.addEventListener('click', pickColor);
+        //canvas.addEventListener('mousemove', pickColor);
+
+        function pickColor(evt) {
+          var mousePos = getMousePos(canvas, evt);
+          var color = 'FFFFFF';
+
+          var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          var data = imageData.data;
+          var x = mousePos.x * devicePixelRatio;
+          var y = mousePos.y * devicePixelRatio;
+          var red = data[((canvas.width * y) + x) * 4];
+          var green = data[((canvas.width * y) + x) * 4 + 1];
+          var blue = data[((canvas.width * y) + x) * 4 + 2];
+          var rgb = red.toString(16) + green.toString(16) + blue.toString(16);
+
+          playbulbCandle.setColor(rgb).then(() => { console.log('Color changed to ' + rgb); })
+        };
+
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);
+      }
+
 
 document.querySelector('#requestDevice').addEventListener('click', function() {
   playbulbCandle.requestDevice().then(device => { console.log(device); })
@@ -28,22 +82,47 @@ document.querySelector('#getDeviceName').addEventListener('click', function() {
   playbulbCandle.getDeviceName().then(name => { console.log('Device name is ' + name); })
 });
 
+document.querySelector('#setDeviceName').addEventListener('click', function() {
+  var deviceName = document.querySelector('#deviceName').value;
+  playbulbCandle.setDeviceName(deviceName).then(() => { console.log('Name changed to ' + deviceName); })
+});
+
 document.querySelector('#turnOff').addEventListener('click', function() {
   playbulbCandle.turnOff().then(() => { console.log('Turned off'); })
 });
 
 document.querySelector('#colorPicker').addEventListener('change', function() {
   var rgb = this.value.substr(1);
-  playbulbCandle.setColor(rgb).then(() => { console.log('changed to ' + rgb); })
+  playbulbCandle.setColor(rgb).then(() => { console.log('Color changed to ' + rgb); })
 });
 
 document.querySelector('#colorEffectPicker').addEventListener('change', function() {
   var rgb = this.value.substr(1);
-  playbulbCandle.setColorWithEffect(rgb).then(() => { console.log('changed to ' + rgb); })
+  playbulbCandle.setColorWithEffect(rgb).then(() => { console.log('Color effect changed to ' + rgb); })
 });
 
 document.querySelector('#getBatteryLevel').addEventListener('click', function() {
   playbulbCandle.getBatteryLevel().then(batteryLevel => { console.log(batteryLevel); })
+});
+
+document.querySelector('#getManufacturerName').addEventListener('click', function() {
+  playbulbCandle.getManufacturerName().then(name => { console.log('Manufacturer name is ' + name); })
+});
+
+document.querySelector('#getModelNumber').addEventListener('click', function() {
+  playbulbCandle.getModelNumber().then(model => { console.log('Model number is ' + model); })
+});
+
+document.querySelector('#getSerialNumber').addEventListener('click', function() {
+  playbulbCandle.getSerialNumber().then(serial => { console.log('Serial number is ' + serial); })
+});
+
+document.querySelector('#getHardwareRevision').addEventListener('click', function() {
+  playbulbCandle.getHardwareRevision().then(hw => { console.log('Hardware revision is ' + hw); })
+});
+
+document.querySelector('#getFirmwareRevision').addEventListener('click', function() {
+  playbulbCandle.getFirmwareRevision().then(firmware => { console.log('Firmware revision is ' + firmware); })
 });
 
     </script>
