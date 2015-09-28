@@ -2,33 +2,93 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLAYBULB Candle</title>
+    <title>PLAYBULB Candle Demo</title>
     <link rel="icon" sizes="192x192" href="../favicon.png">
-    <style>input, button { margin: 4px } body { margin: 0 auto; background-color: #333; max-width: 300px; } img { margin-top: 40px;  filter: blur(20px) grayscale(20%); }</style>
+
+    <link rel="stylesheet" href="https://storage.googleapis.com/code.getmdl.io/1.0.4/material.green-light_green.min.css">
+    <script src="https://storage.googleapis.com/code.getmdl.io/1.0.4/material.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+
+    <style>
+      body {
+        margin: 0 auto;
+        background-color: #333;
+        max-width: 300px;
+        font-family: Roboto;
+        color: white;
+      }
+      canvas {
+        margin-top: 20px;
+        cursor: crosshair;
+      }
+      .off {
+        display: none;
+      }
+      #deviceName {
+        font-family: Roboto;
+        background: transparent;
+        border: 0;
+        color: rgb(255, 255, 255);
+        font-size: 24px;
+        letter-spacing: -.02em;
+        text-align: center;
+        width: 100%;
+        outline: none;
+        margin: 12px 0;
+      }
+      #deviceName:disabled {
+        margin-top: 340px;
+      }
+      #batteryLevel {
+        background-color: #222222;
+        margin: 12px 0;
+        padding: 12px;
+        color: rgb(169, 169, 169);
+        border-radius: 4px;
+      }
+      #requestDevice {
+        color: white;
+        background-color: #4CAF50;
+        width: 100%;
+        font-weight: bold;
+      }
+      #buttons {
+        background-color: #222222;
+        margin: 0 0 12px 0;
+        padding: 12px;
+        border-radius: 4px;
+        letter-spacing: -0.02em;
+      }
+    </style>
   </head>
   <body>
-    <canvas id="colorPicker" width=300 height=300></canvas>
-    <img2 src="color-wheel.png" width=300>
-    <br/>
-    <button id="requestDevice">request Device</button>
-    <br/>
-    <button id="getDeviceName">get Device Name</button>
-    <input id="deviceName" type="text" placeholder="Enter a device name">
-    <button id="setDeviceName">set Device Name</button>
-    <br/>
-    <input id="colorPicker" type="color">
-    <input id="colorEffectPicker" type="color">
-    <br/>
-    <button id="turnOff">turn Off</button>
-    <br/>
-    <button id="getBatteryLevel">get Battery Level</button>
-    <br/>
-    <button id="getManufacturerName">get Manufacturer Name</button>
-    <button id="getModelNumber">get Model Number</button>
-    <button id="getSerialNumber">get Serial Number</button>
-    <button id="getHardwareRevision">get Hardware Revision</button>
-    <button id="getFirmwareRevision">get Firmware Revision</button>
+    <canvas id="colorPicker" width=300 height=300 class="off"></canvas>
+    <input id="deviceName" value="PLAYBULB CANDLE DEMO" disabled>
+    <button id="requestDevice" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">CONNECT</button>
 
+    <div id="buttons" class="off">
+    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-1">
+      <input type="checkbox" id="switch-1" class="mdl-switch__input" />
+      <span class="mdl-switch__label">Candle Effect</span>
+    </label>
+
+    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-2">
+      <input type="checkbox" id="switch-2" class="mdl-switch__input" />
+      <span class="mdl-switch__label">Flashing</span>
+    </label>
+
+    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-3">
+      <input type="checkbox" id="switch-3" class="mdl-switch__input" />
+      <span class="mdl-switch__label">Pulse</span>
+    </label>
+
+    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-4">
+      <input type="checkbox" id="switch-4" class="mdl-switch__input" />
+      <span class="mdl-switch__label">Rainbow</span>
+    </label>
+    </div>
+    <div id="batteryLevel" class="off"></div>
     <script src="playbulbCandle.js"></script>
     <script>
       function getMousePos(canvas, evt) {
@@ -75,18 +135,34 @@
 
 
 document.querySelector('#requestDevice').addEventListener('click', function() {
-  playbulbCandle.requestDevice().then(device => { console.log(device); })
+  playbulbCandle.requestDevice()
+  .then(device => { 
+    console.log(device);
+    document.querySelector('#requestDevice').classList.add('off');
+    document.querySelector('canvas').classList.remove('off');
+    document.querySelector('#buttons').classList.remove('off');
+    document.querySelector('#batteryLevel').classList.remove('off');
+    return playbulbCandle.getDeviceName()
+    .then(deviceName => {
+      document.querySelector('#deviceName').disabled = false;
+      document.querySelector('#deviceName').value = deviceName;
+      return playbulbCandle.getBatteryLevel()
+      .then(batteryLevel => {
+        document.querySelector('#batteryLevel').textContent = 'Battery: ' + batteryLevel + '%';
+      });
+    });
+  })
 });
 
-document.querySelector('#getDeviceName').addEventListener('click', function() {
-  playbulbCandle.getDeviceName().then(name => { console.log('Device name is ' + name); })
+document.querySelector('#deviceName').addEventListener('input', function() {
+  var deviceName = this.value;
+  playbulbCandle.setDeviceName(deviceName)
+  .then(() => {
+    console.log('Name changed to ' + deviceName);
+  });
 });
 
-document.querySelector('#setDeviceName').addEventListener('click', function() {
-  var deviceName = document.querySelector('#deviceName').value;
-  playbulbCandle.setDeviceName(deviceName).then(() => { console.log('Name changed to ' + deviceName); })
-});
-
+/*
 document.querySelector('#turnOff').addEventListener('click', function() {
   playbulbCandle.turnOff().then(() => { console.log('Turned off'); })
 });
@@ -100,30 +176,7 @@ document.querySelector('#colorEffectPicker').addEventListener('change', function
   var rgb = this.value.substr(1);
   playbulbCandle.setColorWithEffect(rgb).then(() => { console.log('Color effect changed to ' + rgb); })
 });
-
-document.querySelector('#getBatteryLevel').addEventListener('click', function() {
-  playbulbCandle.getBatteryLevel().then(batteryLevel => { console.log(batteryLevel); })
-});
-
-document.querySelector('#getManufacturerName').addEventListener('click', function() {
-  playbulbCandle.getManufacturerName().then(name => { console.log('Manufacturer name is ' + name); })
-});
-
-document.querySelector('#getModelNumber').addEventListener('click', function() {
-  playbulbCandle.getModelNumber().then(model => { console.log('Model number is ' + model); })
-});
-
-document.querySelector('#getSerialNumber').addEventListener('click', function() {
-  playbulbCandle.getSerialNumber().then(serial => { console.log('Serial number is ' + serial); })
-});
-
-document.querySelector('#getHardwareRevision').addEventListener('click', function() {
-  playbulbCandle.getHardwareRevision().then(hw => { console.log('Hardware revision is ' + hw); })
-});
-
-document.querySelector('#getFirmwareRevision').addEventListener('click', function() {
-  playbulbCandle.getFirmwareRevision().then(firmware => { console.log('Firmware revision is ' + firmware); })
-});
+*/
 
     </script>
   </body>

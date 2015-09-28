@@ -7,8 +7,19 @@ class PlaybulbCandle {
     this.candleService = null;
     this.batteryService = null;
     this.deviceInfoService = null;
-    this._debug = true;
+    this._debug = false;
   }
+  requestDevice() {
+    return navigator.bluetooth.requestDevice({filters:[{services:[ 0xFF02 ]}]})
+    .then(device => {  this.device = device;   return device.connectGATT() })
+    .then(server => { this.server = server; return this.server.getPrimaryService(0xFF02) })
+    .then(candleService => { this.candleService = candleService; return this.server.getPrimaryService(0x180F) })
+    .then(batteryService => { this.batteryService = batteryService; return this.server.getPrimaryService(0x180A) })
+    .then(deviceInfoService => { this.deviceInfoService = deviceInfoService; return this.device });
+  }
+
+  /* Utils */
+
   _readCharacteristicValue(service, uuid) {
     return service.getCharacteristic(uuid).then(c => { return c.readValue()})
     .then(buffer => {
@@ -30,14 +41,9 @@ class PlaybulbCandle {
     let decoder = new TextDecoder('utf-8');
     return decoder.decode(data);
   }
-  requestDevice() {
-    return navigator.bluetooth.requestDevice({filters:[{services:[ 0xFF02 ]}]})
-    .then(device => {  this.device = device;   return device.connectGATT() })
-    .then(server => { this.server = server; return this.server.getPrimaryService(0xFF02) })
-    .then(candleService => { this.candleService = candleService; return this.server.getPrimaryService(0x180F) })
-    .then(batteryService => { this.batteryService = batteryService; return this.server.getPrimaryService(0x180A) })
-    .then(deviceInfoService => { this.deviceInfoService = deviceInfoService; return this.device });
-  }
+
+  /* Candle Service */
+
   getDeviceName() {
     return this._readCharacteristicValue(this.candleService, 0xFFFF)
     .then(this._decodeString)
@@ -66,13 +72,16 @@ class PlaybulbCandle {
   turnOff() {
     return this.setColor('000000');
   }
+
+  /* Battery Service */
+
   getBatteryLevel() {
     return this._readCharacteristicValue(this.batteryService, 'battery_level')
-    .then(data => {
-      let batteryLevel = data.getUint8(0);
-      return batteryLevel;
-    });
+    .then(data => data.getUint8(0));
   }
+
+  /* Device Info Service */
+
   getManufacturerName() {
     return this._readCharacteristicValue(this.deviceInfoService, 0x2A25)
     .then(this._decodeString);
