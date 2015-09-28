@@ -18,30 +18,6 @@ class PlaybulbCandle {
     .then(deviceInfoService => { this.deviceInfoService = deviceInfoService; return this.device });
   }
 
-  /* Utils */
-
-  _readCharacteristicValue(service, uuid) {
-    return service.getCharacteristic(uuid).then(c => { return c.readValue()})
-    .then(buffer => {
-      let data = new DataView(buffer);
-      if (this._debug) {
-        for (var i = 0, a = []; i < data.byteLength; i++) { a.push(data.getUint8(i)); }
-        console.debug(a);
-      }
-      return data;
-    });
-  }
-  _writeCharacteristicValue(service, uuid, value) {
-    if (this._debug) {
-      console.debug(uuid, value);
-    }
-    return service.getCharacteristic(uuid).then(c => c.writeValue(value))
-  }
-  _decodeString(data) {
-    let decoder = new TextDecoder('utf-8');
-    return decoder.decode(data);
-  }
-
   /* Candle Service */
 
   getDeviceName() {
@@ -101,6 +77,30 @@ class PlaybulbCandle {
   getFirmwareRevision() {
     return this._readCharacteristicValue(this.deviceInfoService, 0x2A50)
     .then(this._decodeString);
+  }
+
+  /* Utils */
+
+  _readCharacteristicValue(service, uuid) {
+    return service.getCharacteristic(uuid).then(c => { return c.readValue()})
+    .then(buffer => {
+      let data = new DataView(buffer);
+      if (this._debug) {
+        for (var i = 0, a = []; i < data.byteLength; i++) { a.push(data.getUint8(i)); }
+        console.debug(a);
+      }
+      return data;
+    });
+  }
+  _writeCharacteristicValue(service, uuid, value) {
+    if (this._debug) {
+      console.debug(uuid, value);
+    }
+    return service.getCharacteristic(uuid).then(c => c.writeValue(value))
+  }
+  _decodeString(data) {
+    let decoder = new TextDecoder('utf-8');
+    return decoder.decode(data);
   }
 }
 
