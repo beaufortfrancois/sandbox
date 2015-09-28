@@ -68,8 +68,8 @@
     <button id="requestDevice" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">CONNECT</button>
 
     <div id="buttons" class="off">
-    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-1">
-      <input type="checkbox" id="switch-1" class="mdl-switch__input" />
+    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="candleEffect">
+      <input type="checkbox" id="candleEffect" class="mdl-switch__input" />
       <span class="mdl-switch__label">Candle Effect</span>
     </label>
 
@@ -91,6 +91,10 @@
     <div id="batteryLevel" class="off"></div>
     <script src="playbulbCandle.js"></script>
     <script>
+      var lastColor = null;
+
+      var candleEffectSwitch = document.querySelector('#candleEffect');
+
       function getMousePos(canvas, evt) {
         var rect = canvas.getBoundingClientRect();
         return {
@@ -102,7 +106,6 @@
       img.src = 'color-wheel.png';
       img.onload = function() {
         var img = this;
-        var padding = 0;
         var canvas = document.getElementById('colorPicker');
         var context = canvas.getContext('2d');
 
@@ -112,7 +115,6 @@
         canvas.style.height = "300px";
 
         canvas.addEventListener('click', pickColor);
-        //canvas.addEventListener('mousemove', pickColor);
 
         function pickColor(evt) {
           var mousePos = getMousePos(canvas, evt);
@@ -127,12 +129,20 @@
           var blue = data[((canvas.width * y) + x) * 4 + 2];
           var rgb = red.toString(16) + green.toString(16) + blue.toString(16);
 
-          playbulbCandle.setColor(rgb).then(() => { console.log('Color changed to ' + rgb); })
+          if (candleEffectSwitch.checked) {
+            playbulbCandle.setColorWithEffect(rgb).then(onColorChanged);
+          } else {
+            playbulbCandle.setColor(rgb).then(onColorChanged);
+          }
         };
 
         context.drawImage(img, 0, 0, canvas.width, canvas.height);
       }
 
+function onColorChanged(rgb) {
+  console.log('Color changed to ' + rgb);
+  lastColor = rgb;
+}
 
 document.querySelector('#requestDevice').addEventListener('click', function() {
   playbulbCandle.requestDevice()
@@ -162,6 +172,13 @@ document.querySelector('#deviceName').addEventListener('input', function() {
   });
 });
 
+candleEffectSwitch.addEventListener('click', function() {
+  if (this.checked) {
+    playbulbCandle.setColorWithEffect(lastColor).then(onColorChanged);
+  } else {
+    playbulbCandle.setColor(lastColor).then(onColorChanged);
+  }
+});
 /*
 document.querySelector('#turnOff').addEventListener('click', function() {
   playbulbCandle.turnOff().then(() => { console.log('Turned off'); })

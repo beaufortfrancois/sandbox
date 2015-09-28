@@ -35,7 +35,8 @@ class PlaybulbCandle {
     let green = parseInt(rgb.substr(2, 2), 16);
     let blue = parseInt(rgb.substr(4, 2), 16);
     let color = [0x00, red, green, blue];
-    return this._writeCharacteristicValue(this.candleService, 0xFFFC, new Uint8Array(color));
+    return this._writeCharacteristicValue(this.candleService, 0xFFFC, new Uint8Array(color))
+    .then(() => rgb);
   }
   setColorWithEffect(rgb) {
     // rgb format is 00FF00.
@@ -43,7 +44,8 @@ class PlaybulbCandle {
     let green = parseInt(rgb.substr(2, 2), 16);
     let blue = parseInt(rgb.substr(4, 2), 16);
     let color = [0x00, red, green, blue, 0x04, 0x00, 0x01, 0x00];
-    return this._writeCharacteristicValue(this.candleService, 0xFFFB, new Uint8Array(color));
+    return this._writeCharacteristicValue(this.candleService, 0xFFFB, new Uint8Array(color))
+    .then(() => rgb);
   }
   turnOff() {
     return this.setColor('000000');
