@@ -173,6 +173,9 @@ document.querySelector('#deviceName').addEventListener('input', function() {
 });
 
 candleEffectSwitch.addEventListener('click', function() {
+  if (!lastColor) {
+    return;
+  }
   if (this.checked) {
     playbulbCandle.setColorWithEffect(lastColor).then(onColorChanged);
   } else {
