@@ -35,26 +35,37 @@ class PlaybulbCandle {
     let deviceName = this._encodeString(name);
     return this._writeCharacteristicValue('candle', 0xFFFF, deviceName);
   }
-  setColor(rgb) {
-    // rgb format is 00FF00.
-    let red = parseInt(rgb.substr(0, 2), 16);
-    let green = parseInt(rgb.substr(2, 2), 16);
-    let blue = parseInt(rgb.substr(4, 2), 16);
-    let color = [0x00, red, green, blue];
-    return this._writeCharacteristicValue('candle', 0xFFFC, new Uint8Array(color))
-    .then(() => rgb); // Returns color when fulfilled.
+  setColor(r, g, b) {
+    let data = [0x00, r, g, b];
+    return this._writeCharacteristicValue('candle', 0xFFFC, new Uint8Array(data))
+    .then(() => [r,g,b]); // Returns color when fulfilled.
   }
-  setColorWithEffect(rgb) {
-    // rgb format is 00FF00.
-    let red = parseInt(rgb.substr(0, 2), 16);
-    let green = parseInt(rgb.substr(2, 2), 16);
-    let blue = parseInt(rgb.substr(4, 2), 16);
-    let color = [0x00, red, green, blue, 0x04, 0x00, 0x01, 0x00];
-    return this._writeCharacteristicValue('candle', 0xFFFB, new Uint8Array(color))
-    .then(() => rgb); // Returns color when fulfilled.
+  setCandleEffectColor(r, g, b) {
+    let data = [0x00, r, g, b, 0x04, 0x00, 0x01, 0x00];
+    return this._writeCharacteristicValue('candle', 0xFFFB, new Uint8Array(data))
+    .then(() => [r,g,b]); // Returns color when fulfilled.
   }
-  turnOff() {
-    return this.setColor('000000');
+  setFlashingColor(r, g, b) {
+    let data = [0x00, r, g, b, 0x00, 0x00, 0x1F, 0x00];
+    return this._writeCharacteristicValue('candle', 0xFFFB, new Uint8Array(data))
+    .then(() => [r,g,b]); // Returns color when fulfilled.
+  }
+  setPulseColor(r, g, b) {
+    // We have to correct user color to make it look nice for real...
+    let newRed = Math.min(Math.round(r / 64) * 64, 255);
+    let newGreen = Math.min(Math.round(g / 64) * 64, 255);
+    let newBlue = Math.min(Math.round(b / 64) * 64, 255);
+    let data = [0x00, newRed, newGreen, newBlue, 0x01, 0x00, 0x09, 0x00];
+    return this._writeCharacteristicValue('candle', 0xFFFB, new Uint8Array(data))
+    .then(() => [r,g,b]); // Returns color when fulfilled.
+  }
+  setRainbow() {
+    let data = [0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, 0x00];
+    return this._writeCharacteristicValue('candle', 0xFFFB, new Uint8Array(data));
+  }
+  setRainbowFade() {
+    let data = [0x01, 0x00, 0x00, 0x00, 0x03, 0x00, 0x26, 0x00];
+    return this._writeCharacteristicValue('candle', 0xFFFB, new Uint8Array(data));
   }
 
   /* Battery Service */

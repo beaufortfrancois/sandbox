@@ -22,6 +22,10 @@
         margin-top: 20px;
         cursor: crosshair;
       }
+      label {
+        display: block !important;
+        height: 28px !important;
+      }
       .off {
         display: none;
       }
@@ -68,32 +72,42 @@
     <button id="requestDevice" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">CONNECT</button>
 
     <div id="buttons" class="off">
-    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="candleEffect">
-      <input type="checkbox" id="candleEffect" class="mdl-switch__input" />
-      <span class="mdl-switch__label">Candle Effect</span>
+    <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="noEffect">
+      <input type="radio" id="noEffect" name="effectSwitch" class="mdl-radio__button" checked/>
+      <span class="mdl-radio__label">No Effect</span>
     </label>
-
-    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-2">
-      <input type="checkbox" id="switch-2" class="mdl-switch__input" />
-      <span class="mdl-switch__label">Flashing</span>
+    <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="candleEffect">
+      <input type="radio" id="candleEffect" name="effectSwitch" class="mdl-radio__button"/>
+      <span class="mdl-radio__label">Candle Effect</span>
     </label>
-
-    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-3">
-      <input type="checkbox" id="switch-3" class="mdl-switch__input" />
-      <span class="mdl-switch__label">Pulse</span>
+    <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="flashing">
+      <input type="radio" id="flashing" name="effectSwitch" class="mdl-radio__button"/>
+      <span class="mdl-radio__label">Flashing</span>
     </label>
-
-    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-4">
-      <input type="checkbox" id="switch-4" class="mdl-switch__input" />
-      <span class="mdl-switch__label">Rainbow</span>
+    <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="pulse">
+      <input type="radio" id="pulse" name="effectSwitch" class="mdl-radio__button"/>
+      <span class="mdl-radio__label">Pulse</span>
+    </label>
+    <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="rainbow">
+      <input type="radio" id="rainbow" name="effectSwitch" class="mdl-radio__button"/>
+      <span class="mdl-radio__label">Rainbow</span>
+    </label>
+    <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="rainbowFade">
+      <input type="radio" id="rainbowFade" name="effectSwitch" class="mdl-radio__button"/>
+      <span class="mdl-radio__label">Rainbow Fade</span>
     </label>
     </div>
     <div id="batteryLevel" class="off"></div>
     <script src="playbulbCandle.js"></script>
     <script>
-      var lastColor = null;
+      var currentColor = [255, 255, 255]; // White by default.
 
+      var noEffectSwitch = document.querySelector('#noEffect');
       var candleEffectSwitch = document.querySelector('#candleEffect');
+      var flashingSwitch = document.querySelector('#flashing');
+      var pulseSwitch = document.querySelector('#pulse');
+      var rainbowSwitch = document.querySelector('#rainbow');
+      var rainbowFadeSwitch = document.querySelector('#rainbowFade');
 
       function getMousePos(canvas, evt) {
         var rect = canvas.getBoundingClientRect();
@@ -124,24 +138,24 @@
           var data = imageData.data;
           var x = mousePos.x * devicePixelRatio;
           var y = mousePos.y * devicePixelRatio;
-          var red = data[((canvas.width * y) + x) * 4];
-          var green = data[((canvas.width * y) + x) * 4 + 1];
-          var blue = data[((canvas.width * y) + x) * 4 + 2];
-          var rgb = red.toString(16) + green.toString(16) + blue.toString(16);
+          var r = data[((canvas.width * y) + x) * 4];
+          var g = data[((canvas.width * y) + x) * 4 + 1];
+          var b = data[((canvas.width * y) + x) * 4 + 2];
 
-          if (candleEffectSwitch.checked) {
-            playbulbCandle.setColorWithEffect(rgb).then(onColorChanged);
-          } else {
-            playbulbCandle.setColor(rgb).then(onColorChanged);
-          }
+          currentColor = [r,g,b];
+          changeColor();
         };
 
         context.drawImage(img, 0, 0, canvas.width, canvas.height);
       }
 
 function onColorChanged(rgb) {
-  console.log('Color changed to ' + rgb);
-  lastColor = rgb;
+  if (rgb) {
+    console.log('Color changed to ' + rgb);
+    currentColor = rgb;
+  } else {
+    console.log('Color changed');
+  }
 }
 
 document.querySelector('#requestDevice').addEventListener('click', function() {
@@ -172,31 +186,41 @@ document.querySelector('#deviceName').addEventListener('input', function() {
   });
 });
 
-candleEffectSwitch.addEventListener('click', function() {
-  if (!lastColor) {
-    return;
-  }
-  if (this.checked) {
-    playbulbCandle.setColorWithEffect(lastColor).then(onColorChanged);
-  } else {
-    playbulbCandle.setColor(lastColor).then(onColorChanged);
-  }
-});
-/*
-document.querySelector('#turnOff').addEventListener('click', function() {
-  playbulbCandle.turnOff().then(() => { console.log('Turned off'); })
-});
+noEffectSwitch.addEventListener('click', changeColor);
+candleEffectSwitch.addEventListener('click', changeColor);
+flashingSwitch.addEventListener('click', changeColor);
+pulseSwitch.addEventListener('click', changeColor);
+rainbowSwitch.addEventListener('click', changeColor);
+rainbowFadeSwitch.addEventListener('click', changeColor);
 
-document.querySelector('#colorPicker').addEventListener('change', function() {
-  var rgb = this.value.substr(1);
-  playbulbCandle.setColor(rgb).then(() => { console.log('Color changed to ' + rgb); })
-});
-
-document.querySelector('#colorEffectPicker').addEventListener('change', function() {
-  var rgb = this.value.substr(1);
-  playbulbCandle.setColorWithEffect(rgb).then(() => { console.log('Color effect changed to ' + rgb); })
-});
-*/
+function changeColor() {
+  var effect = document.querySelector('[name="effectSwitch"]:checked').id;
+  if (!effect.startsWith('rainbow')) {
+    var r = currentColor[0];
+    var g = currentColor[1];
+    var b = currentColor[2];
+  }
+  switch(effect) {
+    case 'noEffect':
+      playbulbCandle.setColor(r, g, b).then(onColorChanged);
+      break;
+    case 'candleEffect':
+      playbulbCandle.setCandleEffectColor(r, g, b).then(onColorChanged);
+      break;
+    case 'flashing':
+      playbulbCandle.setFlashingColor(r, g, b).then(onColorChanged);
+      break;
+    case 'pulse':
+      playbulbCandle.setPulseColor(r, g, b).then(onColorChanged);
+      break;
+    case 'rainbow':
+      playbulbCandle.setRainbow().then(onColorChanged);
+      break;
+    case 'rainbowFade':
+      playbulbCandle.setRainbowFade().then(onColorChanged);
+      break;
+  }
+}
 
     </script>
   </body>
