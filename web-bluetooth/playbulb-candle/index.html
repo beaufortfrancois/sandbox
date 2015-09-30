@@ -160,23 +160,31 @@ function onColorChanged(rgb) {
 
 document.querySelector('#requestDevice').addEventListener('click', function() {
   playbulbCandle.requestDevice()
-  .then(device => { 
+  .then(device => {
     console.log(device);
     document.querySelector('#requestDevice').classList.add('off');
     document.querySelector('canvas').classList.remove('off');
     document.querySelector('#buttons').classList.remove('off');
     document.querySelector('#batteryLevel').classList.remove('off');
-    return playbulbCandle.getDeviceName()
-    .then(deviceName => {
-      document.querySelector('#deviceName').disabled = false;
-      document.querySelector('#deviceName').value = deviceName;
-      return playbulbCandle.getBatteryLevel()
-      .then(batteryLevel => {
-        document.querySelector('#batteryLevel').textContent = 'Battery: ' + batteryLevel + '%';
-      });
-    });
+    return Promise.all([
+      playbulbCandle.getDeviceName().then(handleDeviceName),
+      playbulbCandle.getBatteryLevel().then(handleBatteryLevel),
+    ]);
   })
+  .catch(error => {
+    // TODO: Replace with toast when snackbar lands.
+    console.error('Argh!', error);
+  });
 });
+
+function handleDeviceName(deviceName) {
+  document.querySelector('#deviceName').disabled = false;
+  document.querySelector('#deviceName').value = deviceName;
+}
+
+function handleBatteryLevel(batteryLevel) {
+  document.querySelector('#batteryLevel').textContent = 'Battery: ' + batteryLevel + '%';
+}
 
 document.querySelector('#deviceName').addEventListener('input', function() {
   var deviceName = this.value;
