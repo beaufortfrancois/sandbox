@@ -1,21 +1,15 @@
 (() => {
   'use strict';
 
-  /* Bluetooth Service UUIDs */
+  /* Custom Bluetooth Service UUIDs */
 
   const JUGGGLOW_SERVICE_UUID = '624e957f-cb42-4cd6-bacc-84aeb898f69b';
-  const BATTERY_SERVICE_UUID = 'battery_service';
-  const HEALTH_THERMOMETER_SERVICE_UUID = 'health_thermometer';
 
-  /* Bluetooth Characteristic UUIDs */
+  /* Custom Bluetooth Characteristic UUIDs */
 
   const BALL_CONTROL_UUID = 'c75076c0-abbf-11e4-8053-0002a5d5c51b';
   const BALL_CONTROL_NOTIFICATION_UUID = 'f9136034-3b36-4286-8340-570ecd514d35';
   const BALL_EVENT_NOTIFICATION_UUID = 'd6d4ef6d-1cef-4aa2-9657-e373d6f697fb';
-
-  const BATTERY_LEVEL_UUID = 'battery_level';
-
-  const TEMPERATURE_MEASUREMENT_UUID = 'temperature_measurement';
 
   class Juggglow {
     constructor() {
@@ -40,11 +34,11 @@
               this._cacheCharacteristic(service, BALL_EVENT_NOTIFICATION_UUID),
             ])
           }),
-          server.getPrimaryService(BATTERY_SERVICE_UUID).then(service => {
-            return this._cacheCharacteristic(service, BATTERY_LEVEL_UUID);
+          server.getPrimaryService('battery_service').then(service => {
+            return this._cacheCharacteristic(service, 'battery_level');
           }),
-          server.getPrimaryService(HEALTH_THERMOMETER_SERVICE_UUID).then(service => {
-            return this._cacheCharacteristic(service, TEMPERATURE_MEASUREMENT_UUID);
+          server.getPrimaryService('health_thermometer').then(service => {
+            return this._cacheCharacteristic(service, 'temperature_measurement');
           }),
         ]);
       })
@@ -97,14 +91,14 @@
     /* Battery Service */
 
     getBatteryLevel() {
-      return this._readCharacteristicValue(BATTERY_LEVEL_UUID)
+      return this._readCharacteristicValue('battery_level')
       .then(data => data.getUint8(0));
     }
 
     /* Health Thermometer Service */
 
     getTemperature() {
-      return this._readCharacteristicValue(TEMPERATURE_MEASUREMENT_UUID)
+      return this._readCharacteristicValue('temperature_measurement')
       .then(data => data.getInt8(0));
     }
 

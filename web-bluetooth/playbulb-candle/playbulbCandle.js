@@ -4,26 +4,15 @@
   let encoder = new TextEncoder('utf-8');
   let decoder = new TextDecoder('utf-8');
 
-  /* Bluetooth Service UUIDs */
+  /* Custom Bluetooth Service UUIDs */
 
   const CANDLE_SERVICE_UUID = 0xFF02;
-  const BATTERY_SERVICE_UUID = 'battery_service';
-  const DEVICEINFO_SERVICE_UUID = 'device_information';
 
-  /* Bluetooth Characteristic UUIDs */
+  /* Custom Bluetooth Characteristic UUIDs */
 
   const CANDLE_DEVICE_NAME_UUID = 0xFFFF;
   const CANDLE_COLOR_UUID = 0xFFFC;
   const CANDLE_EFFECT_UUID = 0xFFFB;
-
-  const BATTERY_LEVEL_UUID = 0x2A19;
-
-  const SERIAL_NUMBER_UUID = 0x2A25;
-  const HARDWARE_REVISION_UUID = 0x2A27;
-  const FIRMWARE_REVISION_UUID = 0x2A26;
-  const SOFTWARE_REVISION_UUID = 0x2A28;
-  const MANUFACTURER_NAME_UUID = 0x2A29;
-  const PNP_ID_UUID = 0x2A50;
 
   class PlaybulbCandle {
     constructor() {
@@ -48,20 +37,20 @@
               this._cacheCharacteristic(service, CANDLE_EFFECT_UUID),
             ])
           }),
-          server.getPrimaryService(BATTERY_SERVICE_UUID).then(service => {
-            return this._cacheCharacteristic(service, BATTERY_LEVEL_UUID)
+          server.getPrimaryService('battery_service').then(service => {
+            return this._cacheCharacteristic(service, 'battery_level')
           }),
-          server.getPrimaryService(DEVICEINFO_SERVICE_UUID).then(service => {
+          server.getPrimaryService('device_information').then(service => {
             // TODO: Remove resolve when device_information service is actually
             // available in Chrome OS. http://crbug.com/532930
             return Promise.resolve();
             return Promise.all([
-              this._cacheCharacteristic(service, SERIAL_NUMBER_UUID),
-              this._cacheCharacteristic(service, HARDWARE_REVISION_UUID),
-              this._cacheCharacteristic(service, FIRMWARE_REVISION_UUID),
-              this._cacheCharacteristic(service, SOFTWARE_REVISION_UUID),
-              this._cacheCharacteristic(service, MANUFACTURER_NAME_UUID),
-              this._cacheCharacteristic(service, PNP_ID_UUID),
+              this._cacheCharacteristic(service, 'serial_number_string'),
+              this._cacheCharacteristic(service, 'hardware_revision_string'),
+              this._cacheCharacteristic(service, 'firmware_revision_string'),
+              this._cacheCharacteristic(service, 'software_revision_string'),
+              this._cacheCharacteristic(service, 'manufacturer_name_string'),
+              this._cacheCharacteristic(service, 'pnp_id'),
             ])
           }),
         ]);
@@ -115,34 +104,34 @@
     /* Battery Service */
 
     getBatteryLevel() {
-      return this._readCharacteristicValue(BATTERY_LEVEL_UUID)
+      return this._readCharacteristicValue('battery_level')
       .then(data => data.getUint8(0));
     }
 
     /* Device Info Service */
 
     getSerialNumber() {
-      return this._readCharacteristicValue(SERIAL_NUMBER_UUID)
+      return this._readCharacteristicValue('serial_number_string')
       .then(this._decodeString);
     }
     getHardwareRevision() {
-      return this._readCharacteristicValue(HARDWARE_REVISION_UUID)
+      return this._readCharacteristicValue('hardware_revision_string')
       .then(this._decodeString);
     }
     getFirmwareRevision() {
-      return this._readCharacteristicValue(FIRMWARE_REVISION_UUID)
+      return this._readCharacteristicValue('firmware_revision_string')
       .then(this._decodeString);
     }
     getSoftwareRevision() {
-      return this._readCharacteristicValue(SOFWARE_REVISION_UUID)
+      return this._readCharacteristicValue('software_revision_string')
       .then(this._decodeString);
     }
     getManufacturerName() {
-      return this._readCharacteristicValue(MANUFACTURER_NAME_UUID)
+      return this._readCharacteristicValue('manufacturer_name_string')
       .then(this._decodeString);
     }
     getPnpID() {
-      return this._readCharacteristicValue(PNP_ID_UUID)
+      return this._readCharacteristicValue('pnp_id')
       .then(this._decodeString);
     }
 

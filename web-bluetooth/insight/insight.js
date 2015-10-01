@@ -1,14 +1,6 @@
 (() => {
   'use strict';
 
-  /* Bluetooth Service UUIDs */
-
-  const INSIGHT_SERVICE_UUID = '13630000-aeb9-10cf-ef69-81e145a91113';
-
-  /* Bluetooth Characteristic UUIDs */
-
-  const DECK_CARD_UUID = '13630001-aeb9-10cf-ef69-81e145a91113';
-
   const SUITES = new Map([
     ["1", "C"],
     ["2", "H"],
@@ -31,6 +23,15 @@
     ["c", "Q"],
     ["d", "K"],
   ]);
+
+  /* Custom Bluetooth Service UUIDs */
+
+  const INSIGHT_SERVICE_UUID = '13630000-aeb9-10cf-ef69-81e145a91113';
+
+  /* Custom Bluetooth Characteristic UUIDs */
+
+  const DECK_CARD_UUID = '13630001-aeb9-10cf-ef69-81e145a91113';
+
 
   class Insight {
     constructor() {
