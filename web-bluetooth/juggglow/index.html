@@ -9,6 +9,7 @@
   <body>
     <button id="requestDevice">requestDevice</button>
     <span id="device"></span>
+    <span id="batteryLevel"></span>
     <br/>
     <label>Top LED Color: <input id="rgb1" type="color"/></label>
     <label>Bottom LED Color: <input id="rgb2" type="color"/></label>
@@ -31,15 +32,21 @@
 
       document.querySelector('#requestDevice').addEventListener('click', function() {
         document.querySelector('#device').textContent = '';
+        document.querySelector('#batteryLevel').textContent = '';
         juggglow.requestDevice()
         .then(device => {
-          document.querySelector('#device').textContent = device.instanceID;
           console.log(device);
+          document.querySelector('#device').textContent = device.instanceID;
+          return juggglow.getBatteryLevel().then(handleBatteryLevel);
         })
         .catch(error => {
           console.error('Argh!', error);
         });
       });
+
+      function handleBatteryLevel(batteryLevel) {
+        document.querySelector('#batteryLevel').textContent = 'Battery: ' + batteryLevel + '%';
+      }
 
       document.querySelector('#setLightEffectOff').addEventListener('click', () => {
         juggglow.setEffectLightOff();

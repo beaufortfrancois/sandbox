@@ -7,12 +7,15 @@
   /* Bluetooth Service UUIDs */
 
   const JUGGGLOW_SERVICE_UUID = '624e957f-cb42-4cd6-bacc-84aeb898f69b';
+  const BATTERY_SERVICE_UUID = 'battery_service';
 
   /* Bluetooth Characteristic UUIDs */
 
   const BALL_CONTROL_UUID = 'c75076c0-abbf-11e4-8053-0002a5d5c51b';
   const BALL_CONTROL_NOTIFICATION_UUID = 'f9136034-3b36-4286-8340-570ecd514d35';
   const BALL_EVENT_NOTIFICATION_UUID = 'd6d4ef6d-1cef-4aa2-9657-e373d6f697fb';
+
+  const BATTERY_LEVEL_UUID = 0x2A19;
 
   class Juggglow {
     constructor() {
@@ -29,14 +32,18 @@
       })
       .then(server => {
         this.server = server;
-        return server.getPrimaryService(JUGGGLOW_SERVICE_UUID)
-        .then(service => {
-          return Promise.all([
-            this._cacheCharacteristic(service, BALL_CONTROL_UUID),
-            this._cacheCharacteristic(service, BALL_CONTROL_NOTIFICATION_UUID),
-            this._cacheCharacteristic(service, BALL_EVENT_NOTIFICATION_UUID),
-          ])
-        });
+        return Promise.all([
+          server.getPrimaryService(JUGGGLOW_SERVICE_UUID).then(service => {
+            return Promise.all([
+              this._cacheCharacteristic(service, BALL_CONTROL_UUID),
+              this._cacheCharacteristic(service, BALL_CONTROL_NOTIFICATION_UUID),
+              this._cacheCharacteristic(service, BALL_EVENT_NOTIFICATION_UUID),
+            ])
+          }),
+          server.getPrimaryService(BATTERY_SERVICE_UUID).then(service => {
+            return this._cacheCharacteristic(service, BATTERY_LEVEL_UUID)
+          }),
+        ]);
       })
       .then(() => this.device); // Returns device when fulfilled.
     }
@@ -83,6 +90,13 @@
     setLightEffectColorChangeOnCatchRandom() {
       let data = [0x3C];
       return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data))
+    }
+
+    /* Battery Service */
+
+    getBatteryLevel() {
+      return this._readCharacteristicValue(BATTERY_LEVEL_UUID)
+      .then(data => data.getUint8(0));
     }
 
     /* Utils */
