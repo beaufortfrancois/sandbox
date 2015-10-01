@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insight Demo</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+    <style>img { width: 500px; height: 500px; margin: 0 auto; display: block }</style>
+  </head>
+  <body>
+    <button id="requestDevice">requestDevice</button>
+    <span id="device"></span>
+    <span id="batteryLevel"></span>
+    <br/>
+    <img id="deckcard" width="226">
+
+    <script src="insight.js"></script>
+    <script>
+
+      document.querySelector('#requestDevice').addEventListener('click', function() {
+        document.querySelector('#device').textContent = '';
+        document.querySelector('#batteryLevel').textContent = '';
+        insight.requestDevice()
+        .then(device => {
+          console.log(device);
+          document.querySelector('#device').textContent = device.instanceID;
+          return Promise.all([
+            insight.getBatteryLevel().then(handleBatteryLevel),
+            insight.getDeckCard().then(handleDeckCard),
+          ]);
+        })
+        .catch(error => {
+          console.error('Argh!', error);
+        });
+      });
+
+      function handleBatteryLevel(batteryLevel) {
+        document.querySelector('#batteryLevel').textContent = 'Battery: ' + batteryLevel + '%';
+      }
+
+      function handleDeckCard(code) {
+        var deckCardImageUrl = 'img/' + code + '.svg';
+        if (document.querySelector('#deckcard').src !== deckCardImageUrl) {
+          document.querySelector('#deckcard').src = deckCardImageUrl;
+        }
+        // Start polling until notifications land...
+        insight.getDeckCard().then(handleDeckCard);
+      }
+    </script>
+  </body>
+</html>
