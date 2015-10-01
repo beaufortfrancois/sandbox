@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juggglow Demo</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+    <style>button { margin: 4px }</style>
+  </head>
+  <body>
+    <button id="requestDevice">requestDevice</button>
+    <span id="device"></span>
+    <br/>
+    <label>Top LED Color: <input id="rgb1" type="color"/></label>
+    <label>Bottom LED Color: <input id="rgb2" type="color"/></label>
+    <label>LED Brightness: <input id="brightness" type="number" min="0" max="100"></label>
+    <label>Time interval: <input id="timeInterval" type="number" min="0"></label>
+    <br/>
+    <button id="setLightEffectOff">setLightEffectOff</button>
+    <button id="setLightEffectStop">setLightEffectStop</button>
+    <button id="setLightEffectBrightness">setLightEffectBrightness</button>
+    <button id="setLightEffectColor">setLightEffectColor</button>
+    <button id="setLightEffectTwoColors">setLightEffectTwoColors</button>
+    <button id="setLightEffectRainbow">setLightEffectRainbow</button>
+    <button id="setLightEffectMagicHands">setLightEffectMagicHands</button>
+    <button id="setLightEffectMagicHandsRandomColor">setLightEffectMagicHandsRandomColor</button>
+    <button id="setLightEffectColorChangeOnCatch">setLightEffectColorChangeOnCatch</button>
+    <button id="setLightEffectColorChangeOnCatchRandom">setLightEffectColorChangeOnCatchRandom</button>
+
+    <script src="juggglow.js"></script>
+    <script>
+
+      document.querySelector('#requestDevice').addEventListener('click', function() {
+        document.querySelector('#device').textContent = '';
+        juggglow.requestDevice()
+        .then(device => {
+          document.querySelector('#device').textContent = device.instanceID;
+          console.log(device);
+        })
+        .catch(error => {
+          console.error('Argh!', error);
+        });
+      });
+
+      document.querySelector('#setLightEffectOff').addEventListener('click', () => {
+        juggglow.setEffectLightOff();
+      });
+      document.querySelector('#setLightEffectStop').addEventListener('click', () => {
+        juggglow.setLightEffectStop();
+      });
+      document.querySelector('#setLightEffectBrightness').addEventListener('click', () => {
+        let brightness = document.querySelector('#brightness').value;
+        juggglow.setLightEffectBrightness(brightness);
+      });
+      document.querySelector('#setLightEffectColor').addEventListener('click', () => {
+        let rgb = document.querySelector('#rgb1');
+        let r = parseInt(rgb.value.slice(1, 3), 16);
+        let g = parseInt(rgb.value.slice(3, 5), 16);
+        let b = parseInt(rgb.value.slice(5, 7), 16);
+        juggglow.setLightEffectColor(r ,g ,b);
+      });
+      document.querySelector('#setLightEffectTwoColors').addEventListener('click', () => {
+        let rgb1 = document.querySelector('#rgb1');
+        let rgb2 = document.querySelector('#rgb2');
+        let r1 = parseInt(rgb1.value.slice(1, 3), 16);
+        let g1 = parseInt(rgb1.value.slice(3, 5), 16);
+        let b1 = parseInt(rgb1.value.slice(5, 7), 16);
+        let r2 = parseInt(rgb2.value.slice(1, 3), 16);
+        let g2 = parseInt(rgb2.value.slice(3, 5), 16);
+        let b2 = parseInt(rgb2.value.slice(5, 7), 16);
+        juggglow.setLightEffectTwoColors(r1, g1, b1, r2, g2, b2);
+      });
+      document.querySelector('#setLightEffectRainbow').addEventListener('click', () => {
+        let timeInterval = document.querySelector('#timeInterval');
+        juggglow.setLightEffectRainbow(timeInterval);
+      });
+      document.querySelector('#setLightEffectMagicHands').addEventListener('click', () => {
+        let rgb1 = document.querySelector('#rgb1');
+        let rgb2 = document.querySelector('#rgb2');
+        let rCatch = parseInt(rgb1.value.slice(1, 3), 16);
+        let gCatch = parseInt(rgb1.value.slice(3, 5), 16);
+        let bCatch = parseInt(rgb1.value.slice(5, 7), 16);
+        let rFlight = parseInt(rgb2.value.slice(1, 3), 16);
+        let gFlight = parseInt(rgb2.value.slice(3, 5), 16);
+        let bFlight = parseInt(rgb2.value.slice(5, 7), 16);
+        juggglow.setLightEffectMagicHands(rCatch, gCatch, bCatch, rFlight, gFlight, bFlight);
+      });
+      document.querySelector('#setLightEffectMagicHandsRandomColor').addEventListener('click', () => {
+        juggglow.setLightEffectMagicHandsRandomColor();
+      });
+      document.querySelector('#setLightEffectColorChangeOnCatch').addEventListener('click', () => {
+        let rgb1 = document.querySelector('#rgb1');
+        let rgb2 = document.querySelector('#rgb2');
+        let r1 = parseInt(rgb1.value.slice(1, 3), 16);
+        let g1 = parseInt(rgb1.value.slice(3, 5), 16);
+        let b1 = parseInt(rgb1.value.slice(5, 7), 16);
+        let r2 = parseInt(rgb2.value.slice(1, 3), 16);
+        let g2 = parseInt(rgb2.value.slice(3, 5), 16);
+        let b2 = parseInt(rgb2.value.slice(5, 7), 16);
+        juggglow.setLightEffectColorChangeOnCatch(r1, g1, b1, r2, g2, b2);
+      });
+      document.querySelector('#setLightEffectColorChangeOnCatchRandom').addEventListener('click', () => {
+        juggglow.setLightEffectColorChangeOnCatchRandom();
+      });
+    </script>
+  </body>
+</html>
