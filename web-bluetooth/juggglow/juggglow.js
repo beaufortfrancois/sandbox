@@ -1,13 +1,11 @@
 (() => {
   'use strict';
 
-  let encoder = new TextEncoder('utf-8');
-  let decoder = new TextDecoder('utf-8');
-
   /* Bluetooth Service UUIDs */
 
   const JUGGGLOW_SERVICE_UUID = '624e957f-cb42-4cd6-bacc-84aeb898f69b';
   const BATTERY_SERVICE_UUID = 'battery_service';
+  const HEALTH_THERMOMETER_SERVICE_UUID = 'health_thermometer';
 
   /* Bluetooth Characteristic UUIDs */
 
@@ -15,7 +13,9 @@
   const BALL_CONTROL_NOTIFICATION_UUID = 'f9136034-3b36-4286-8340-570ecd514d35';
   const BALL_EVENT_NOTIFICATION_UUID = 'd6d4ef6d-1cef-4aa2-9657-e373d6f697fb';
 
-  const BATTERY_LEVEL_UUID = 0x2A19;
+  const BATTERY_LEVEL_UUID = 'battery_level';
+
+  const TEMPERATURE_MEASUREMENT_UUID = 'temperature_measurement';
 
   class Juggglow {
     constructor() {
@@ -41,7 +41,11 @@
             ])
           }),
           server.getPrimaryService(BATTERY_SERVICE_UUID).then(service => {
-            return this._cacheCharacteristic(service, BATTERY_LEVEL_UUID)
+            return this._cacheCharacteristic(service, BATTERY_LEVEL_UUID);
+          }),
+          server.getPrimaryService(HEALTH_THERMOMETER_SERVICE_UUID).then(service => {
+            console.log(service);
+            return this._cacheCharacteristic(service, TEMPERATURE_MEASUREMENT_UUID);
           }),
         ]);
       })
@@ -49,7 +53,6 @@
     }
 
     /* Juggglow Service */
-    /* http://www.juggglow.com/downloads/juggglow_api_v1.0_2015-07.pdf */
 
     setLightEffectOff() {
       let data = [0x30];
@@ -99,11 +102,19 @@
       .then(data => data.getUint8(0));
     }
 
+    /* Health Thermometer Service */
+
+    getTemperature() {
+      return this._readCharacteristicValue(TEMPERATURE_MEASUREMENT_UUID)
+      .then(data => data.getInt8(0));
+    }
+
     /* Utils */
 
     _cacheCharacteristic(service, characteristicUuid) {
       return service.getCharacteristic(characteristicUuid)
       .then(characteristic => {
+        console.log(characteristic);
         this._characteristics.set(characteristicUuid, characteristic);
       });
     }

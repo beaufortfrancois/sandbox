@@ -10,6 +10,7 @@
     <button id="requestDevice">requestDevice</button>
     <span id="device"></span>
     <span id="batteryLevel"></span>
+    <span id="temperature"></span>
     <br/>
     <label>Top LED Color: <input id="rgb1" type="color"/></label>
     <label>Bottom LED Color: <input id="rgb2" type="color"/></label>
@@ -37,7 +38,10 @@
         .then(device => {
           console.log(device);
           document.querySelector('#device').textContent = device.instanceID;
-          return juggglow.getBatteryLevel().then(handleBatteryLevel);
+          return Promise.all([
+            juggglow.getBatteryLevel().then(handleBatteryLevel),
+            juggglow.getTemperature().then(handleTemperature),
+          ]);
         })
         .catch(error => {
           console.error('Argh!', error);
@@ -46,6 +50,10 @@
 
       function handleBatteryLevel(batteryLevel) {
         document.querySelector('#batteryLevel').textContent = 'Battery: ' + batteryLevel + '%';
+      }
+
+      function handleTemperature(temperature) {
+        document.querySelector('#temperature').textContent = 'Temperature: ' + temperature + 'C';
       }
 
       document.querySelector('#setLightEffectOff').addEventListener('click', () => {
