@@ -48,44 +48,40 @@
     /* Juggglow Service */
 
     setLightEffectOff() {
-      let data = [0x30];
-      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data))
+      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array([0x30]));
     }
     setLightEffectStop() {
-      let data = [0x31];
-      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data))
+      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array([0x31]));
     }
     setLightEffectBrightness(brightnessPercent) {
       let data = [0x32, Math.round(brightnessPercent, 2.55)];
-      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data))
+      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data));
     }
     setLightEffectColor(r, g, b) {
       let data = [0x34, r, g, b, r, g, b];
-      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data))
+      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data));
     }
     setLightEffectTwoColors(r1, g1, b1, r2, g2, b2) {
       let data = [0x34, r1, g1, b1, r2, g2, b2];
-      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data))
+      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data));
     }
     setLightEffectRainbow(timeInterval) {
       let data = [0x35, 0x03, timeInterval, 0x01];
-      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data))
+      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data));
     }
     setLightEffectMagicHands(rCatch, gCatch, bCatch, rFlight, gFlight, bFlight) {
       let data = [0x39, rCatch, gCatch, bCatch, rFlight, gFlight, bFlight];
-      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data))
+      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data));
     }
     setLightEffectMagicHandsRandomColor() {
-      let data = [0x3A];
-      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data))
+      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array([0x3A]));
     }
     setLightEffectColorChangeOnCatch(r1, g1, b1, r2, g2, b2) {
       let data = [0x3B, r1, g1, b1, r2, g2, b2];
-      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data))
+      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data));
     }
     setLightEffectColorChangeOnCatchRandom() {
-      let data = [0x3C];
-      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array(data))
+      return this._writeCharacteristicValue(BALL_CONTROL_UUID, new Uint8Array([0x3C]));
     }
 
     /* Battery Service */
@@ -128,12 +124,6 @@
         console.debug('WRITE', characteristic.uuid, value);
       }
       return characteristic.writeValue(value);
-    }
-    _decodeString(data) {
-      return decoder.decode(data);
-    }
-    _encodeString(data) {
-      return encoder.encode(data);
     }
   }
 
