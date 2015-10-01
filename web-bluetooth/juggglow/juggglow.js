@@ -44,7 +44,6 @@
             return this._cacheCharacteristic(service, BATTERY_LEVEL_UUID);
           }),
           server.getPrimaryService(HEALTH_THERMOMETER_SERVICE_UUID).then(service => {
-            console.log(service);
             return this._cacheCharacteristic(service, TEMPERATURE_MEASUREMENT_UUID);
           }),
         ]);
@@ -114,7 +113,6 @@
     _cacheCharacteristic(service, characteristicUuid) {
       return service.getCharacteristic(characteristicUuid)
       .then(characteristic => {
-        console.log(characteristic);
         this._characteristics.set(characteristicUuid, characteristic);
       });
     }
