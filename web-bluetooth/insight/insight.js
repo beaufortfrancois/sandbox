@@ -1,6 +1,9 @@
 (() => {
   'use strict';
 
+  let encoder = new TextEncoder('utf-8');
+  let decoder = new TextDecoder('utf-8');
+
   const SUITES = new Map([
     ["1", "C"],
     ["2", "H"],
@@ -151,6 +154,12 @@
         console.debug('WRITE', characteristic.uuid, value);
       }
       return characteristic.writeValue(value);
+    }
+    _decodeString(data) {
+      return decoder.decode(data);
+    }
+    _encodeString(data) {
+      return encoder.encode(data);
     }
   }
 
