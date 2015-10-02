@@ -31,6 +31,7 @@
   /* Custom Bluetooth Characteristic UUIDs */
 
   const DECK_CARD_UUID = '13630001-aeb9-10cf-ef69-81e145a91113';
+  const MUTE_VIBRATION_UUID = '13630005-aeb9-10cf-ef69-81e145a91113';
 
 
   class Insight {
@@ -52,6 +53,7 @@
           server.getPrimaryService(INSIGHT_SERVICE_UUID).then(service => {
             return Promise.all([
               this._cacheCharacteristic(service, DECK_CARD_UUID),
+              this._cacheCharacteristic(service, MUTE_VIBRATION_UUID),
             ])
           }),
           server.getPrimaryService('battery_service').then(service => {
@@ -83,6 +85,10 @@
         const code = data.getUint8(0).toString(16);
         return VALUES.get(code.slice(1, 2)) + SUITES.get(code.slice(0,1));
       });
+    }
+    setVibration(isEnabled) {
+      let data = isEnabled ? [0x00] : [0x01];
+      return this._writeCharacteristicValue(MUTE_VIBRATION_UUID, new Uint8Array(data));
     }
 
     /* Battery Service */
