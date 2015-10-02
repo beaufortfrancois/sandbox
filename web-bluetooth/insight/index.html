@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Insight Demo</title>
     <link rel="icon" sizes="192x192" href="../favicon.png">
-    <style>img { width: 500px; height: 500px; margin: 0 auto; display: block }</style>
+    <style>img { width: 500px; height: 500px; margin: 0 auto; display: block; opacity: 0 }</style>
   </head>
   <body>
     <button id="requestDevice">requestDevice</button>
@@ -15,6 +15,12 @@
 
     <script src="insight.js"></script>
     <script>
+
+      var deckCardImage = document.querySelector('#deckcard');
+      var lastCode = null;
+
+      // TODO: Remove when notifications land.
+      var firstGuess = true;
 
       document.querySelector('#requestDevice').addEventListener('click', function() {
         document.querySelector('#device').textContent = '';
@@ -38,10 +44,16 @@
       }
 
       function handleDeckCard(code) {
-        var deckCardImageUrl = 'img/' + code + '.svg';
-        if (document.querySelector('#deckcard').src !== deckCardImageUrl) {
-          document.querySelector('#deckcard').src = deckCardImageUrl;
+        if (code && lastCode !== code && !firstGuess) {
+          var deckCardImageUrl = 'img/' + code + '.svg';
+          deckCardImage.src = deckCardImageUrl;
+          deckCardImage.onload = () => {
+            deckCardImage.style.opacity = 1;
+            setTimeout(() => { deckCardImage.style.opacity = 0; }, 3e3);
+          }
         }
+        firstGuess = false;
+        lastCode = code;
         // Start polling until notifications land...
         insight.getDeckCard().then(handleDeckCard);
       }
