@@ -62,10 +62,10 @@
           server.getPrimaryService('battery_service').then(service => {
             return this._cacheCharacteristic(service, 'battery_level');
           }),
+          // TODO: Uncomment when device_information service is actually
+          // available in Chrome OS. http://crbug.com/532930
+          /*
           server.getPrimaryService('device_information').then(service => {
-            // TODO: Remove resolve when device_information service is actually
-            // available in Chrome OS. http://crbug.com/532930
-            return Promise.resolve();
             return Promise.all([
               this._cacheCharacteristic(service, 'serial_number_string'),
               this._cacheCharacteristic(service, 'hardware_revision_string'),
@@ -75,6 +75,7 @@
               this._cacheCharacteristic(service, 'pnp_id'),
             ])
           }),
+          */
         ]);
       })
       .then(() => this.device); // Returns device when fulfilled.
