@@ -18,8 +18,8 @@
       this._characteristics = new Map();
       this._debug = false;
     }
-    requestMyDevice() {
-      return navigator.bluetooth.requestMyDevice({filters:[{services:[ DEVICE_SERVICE_A_UUID ]}]})
+    requestDevice() {
+      return navigator.bluetooth.requestDevice({filters:[{services:[ DEVICE_SERVICE_A_UUID ]}]})
       .then(device => {
         this.device = device;
         return device.connectGATT();
