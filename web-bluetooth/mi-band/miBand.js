@@ -30,8 +30,8 @@
     constructor() {
       this.device = null;
       this.server = null;
-      this.service = null;
-      this._debug = true;
+      this._characteristics = new Map();
+      this._debug = false;
     }
     requestDevice() {
       return navigator.bluetooth.requestDevice({filters:[{services:[ MIBAND_SERVICE_UUID ]}]})
