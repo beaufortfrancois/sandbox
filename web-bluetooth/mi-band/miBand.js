@@ -12,7 +12,7 @@
 
   /* Custom Bluetooth Service UUIDs */
 
-  const MIBAND_SERVICE_UUID = 0xFEEE0;
+  const MIBAND_SERVICE_UUID = 0xFEE0;
 
   /* Custom Bluetooth Characteristic UUIDs */
 
