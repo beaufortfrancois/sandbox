@@ -130,6 +130,20 @@
         return date;
       });
     }
+    pair() {
+      return this._readCharacteristicValue(BLE_CONNECTION_PARAMETERS_UUID)
+      .then(data => {
+        let timeout = 0xffff & (0xff & data.getUint8(6) | (0xff & data.getUint8(7)) << 8)
+        if (timeout < 250) {
+          // FIXME: Use a high supervision timeout to avoid a connection timeout.
+          let params = [204, 1, 244, 1, 0, 0, 250, 0, 54, 0, 96, 9];
+          return this._writeCharacteristicValue(BLE_CONNECTION_PARAMETERS_UUID, new Uint8Array(params))
+          .then(() => this.setUserInfo())
+        } else {
+          return this.setUserInfo();
+        }
+      });
+    }
     setUserInfo() {
       let uuid = 1586927552; // UUID must have 10 digits.
       let gender = 1; // Gender (Female 0, Male 1)
