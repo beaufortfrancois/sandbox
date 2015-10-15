@@ -51,6 +51,14 @@
       return this._writeCharacteristicValue(DEVICE_CHARACTERISTIC_B_UUID, new Uint8Array(data));
     }
 
+    startNotificationsCharacteristicA() {
+      return this._startNotifications(DEVICE_CHARACTERISTIC_A_UUID);
+    }
+
+    stopNotificationsCharacteristicA() {
+      return this._stopNotifications(DEVICE_CHARACTERISTIC_A_UUID);
+    }
+
     /* Battery Service */
 
     getBatteryLevel() {
@@ -84,6 +92,20 @@
         console.debug('WRITE', characteristic.uuid, value);
       }
       return characteristic.writeValue(value);
+    }
+    _startNotifications(characteristicUuid) {
+      let characteristic = this._characteristics.get(characteristicUuid);
+      // Returns characteristic to set up characteristicvaluechanged event
+      // handlers in the resolved promise.
+      return characteristic.startNotifications()
+      .then(() => characteristic);
+    }
+    _stopNotifications(characteristicUuid) {
+      let characteristic = this._characteristics.get(characteristicUuid);
+      // Returns characteristic to remove characteristicvaluechanged event
+      // handlers in the resolved promise.
+      return characteristic.stopNotifications()
+      .then(() => characteristic);
     }
   }
 
