@@ -45,7 +45,6 @@
 
     readCharacteristicA() {
       return this._readCharacteristicValue(DEVICE_CHARACTERISTIC_A_UUID)
-      .then(data => data.getUint8(0));
     }
 
     writeCharacteristicB(data) {
