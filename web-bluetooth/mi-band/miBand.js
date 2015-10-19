@@ -13,6 +13,7 @@
   /* Custom Bluetooth Service UUIDs */
 
   const MIBAND_SERVICE_UUID = 0xFEE0;
+  const IOS_SERVICE_UUID = 0xFEE7;
 
   /* Custom Bluetooth Characteristic UUIDs */
 
@@ -24,6 +25,7 @@
   const DEVICE_NAME_UUID = 0xFF02;
   const STEPS_UUID = 0xFF06;
   const USER_INFO_UUID = 0xFF04;
+  const MAC_ADDRESS_UUID = 0xFEC9;
 
 
   class MiBand {
@@ -41,18 +43,23 @@
       })
       .then(server => {
         this.server = server;
-        return server.getPrimaryService(MIBAND_SERVICE_UUID).then(service => {
-          return Promise.all([
-            this._cacheCharacteristic(service, BATTERY_INFO_UUID),
-            this._cacheCharacteristic(service, BLE_CONNECTION_PARAMETERS_UUID),
-            this._cacheCharacteristic(service, CONTROL_POINT_UUID),
-            this._cacheCharacteristic(service, DATETIME_UUID),
-            this._cacheCharacteristic(service, DEVICE_INFO_UUID),
-            this._cacheCharacteristic(service, DEVICE_NAME_UUID),
-            this._cacheCharacteristic(service, STEPS_UUID),
-            this._cacheCharacteristic(service, USER_INFO_UUID),
-          ])
-        });
+        return Promise.all([
+          server.getPrimaryService(MIBAND_SERVICE_UUID).then(service => {
+            return Promise.all([
+              this._cacheCharacteristic(service, BATTERY_INFO_UUID),
+              this._cacheCharacteristic(service, BLE_CONNECTION_PARAMETERS_UUID),
+              this._cacheCharacteristic(service, CONTROL_POINT_UUID),
+              this._cacheCharacteristic(service, DATETIME_UUID),
+              this._cacheCharacteristic(service, DEVICE_INFO_UUID),
+              this._cacheCharacteristic(service, DEVICE_NAME_UUID),
+              this._cacheCharacteristic(service, STEPS_UUID),
+              this._cacheCharacteristic(service, USER_INFO_UUID),
+            ])
+          }),
+          server.getPrimaryService(IOS_SERVICE_UUID).then(service => {
+            return this._cacheCharacteristic(service, MAC_ADDRESS_UUID);
+          }),
+        ]);
       })
       .then(() => this.device); // Returns device when fulfilled.
     }
@@ -144,26 +151,36 @@
         }
       });
     }
+    getMacAddress() {
+      return this._readCharacteristicValue(MAC_ADDRESS_UUID).then(data => {
+        for (var i = 0, a = []; i < data.byteLength; i++) {
+          a.push(String('00' + data.getUint8(i).toString(16)).slice(-2));
+        }
+        return a.join(':');
+      });
+    }
     setUserInfo() {
-      let uuid = 1586927552; // UUID must have 10 digits.
-      let gender = 1; // Gender (Female 0, Male 1)
-      let age = 32; // Age in years.
-      let height = 170; // Height in cm.
-      let weight = 70; // Weight in kg.
-      let type = 1; // If 1, all saved data will be lost.
+      return this.getMacAddress().then(macAddress => {
+        let uuid = 1586927552; // UUID must have 10 digits.
+        let gender = 1; // Gender (Female 0, Male 1)
+        let age = 32; // Age in years.
+        let height = 170; // Height in cm.
+        let weight = 70; // Weight in kg.
+        let type = 1; // If 1, all saved data will be lost.
 
-      let userInfo = [];
-      for (var i = 0; i < 4; i++) { userInfo.push(uuid & 0xff); uuid >>= 8; }
-      userInfo.push(gender);
-      userInfo.push(age);
-      userInfo.push(height);
-      userInfo.push(weight);
-      userInfo.push(type);
-      for (var i = 0; i < 10; i++) { /* Alias */ userInfo.push(0); }
-      let crc = (this._computeCRC(userInfo) ^ parseInt(this.device.instanceID.slice(-2), 16));
-      userInfo.push(crc);
+        let userInfo = [];
+        for (var i = 0; i < 4; i++) { userInfo.push(uuid & 0xff); uuid >>= 8; }
+        userInfo.push(gender);
+        userInfo.push(age);
+        userInfo.push(height);
+        userInfo.push(weight);
+        userInfo.push(type);
+        for (var i = 0; i < 10; i++) { /* Alias */ userInfo.push(0); }
+        let crc = (this._computeCRC(userInfo) ^ parseInt(macAddress.slice(-2), 16));
+        userInfo.push(crc);
 
-      return this._writeCharacteristicValue(USER_INFO_UUID, new Uint8Array(userInfo));
+        return this._writeCharacteristicValue(USER_INFO_UUID, new Uint8Array(userInfo));
+      });
     }
     setDateTime() {
       let today = new Date();
