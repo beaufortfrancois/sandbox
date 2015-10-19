@@ -117,7 +117,11 @@
         };
       }
       var img = new Image();
-      img.src = 'color-wheel.png';
+      if (window.location.hash.substr(1) === 'cds') {
+        img.src = 'chrome-logo.png'
+      } else {
+        img.src = 'color-wheel.png'
+      }
       img.onload = function() {
         var img = this;
         var canvas = document.getElementById('colorPicker');
