@@ -16,7 +16,8 @@
     <button id="getSteps">get Steps</button>
     <button id="getDateTime">get Date Time</button>
     <br/>
-    <button id="pair">pair</button>
+    <button id="pairReset">pair (reset)</button>
+    <button id="pairReconnect">pair (reconnect)</button>
     <button id="setUserInfo">set User Info</button>
     <button id="setProgressLightColor">set Progress Light Color</button>
     <button id="setBandLocation">set Band Location</button>
@@ -53,8 +54,12 @@ document.querySelector('#getDateTime').addEventListener('click', function() {
   miBand.getDateTime().then(date => { console.log(date); })
 });
 
-document.querySelector('#pair').addEventListener('click', function() {
-  miBand.pair();
+document.querySelector('#pairReset').addEventListener('click', function() {
+  miBand.pair(true);
+});
+
+document.querySelector('#pairReconnect').addEventListener('click', function() {
+  miBand.pair(false);
 });
 
 document.querySelector('#setUserInfo').addEventListener('click', function() {

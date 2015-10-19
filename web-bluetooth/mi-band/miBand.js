@@ -137,19 +137,23 @@
         return date;
       });
     }
-    pair() {
-      return this._readCharacteristicValue(BLE_CONNECTION_PARAMETERS_UUID)
-      .then(data => {
-        let timeout = 0xffff & (0xff & data.getUint8(6) | (0xff & data.getUint8(7)) << 8)
-        if (timeout < 250) {
-          // FIXME: Use a high supervision timeout to avoid a connection timeout.
-          let params = [39, 0, 39, 0, 0, 0, 208, 7, 39, 0, 96, 9];
-          return this._writeCharacteristicValue(BLE_CONNECTION_PARAMETERS_UUID, new Uint8Array(params))
-          .then(() => this.setUserInfo())
-        } else {
-          return this.setUserInfo();
-        }
-      });
+    pair(reset) {
+      if (!reset) {
+        return this.setUserInfo(reset);
+      } else {
+        return this._readCharacteristicValue(BLE_CONNECTION_PARAMETERS_UUID)
+        .then(data => {
+          let timeout = 0xffff & (0xff & data.getUint8(6) | (0xff & data.getUint8(7)) << 8)
+          if (timeout < 250) {
+            // FIXME: Use a high supervision timeout to avoid a connection timeout.
+            let params = [39, 0, 39, 0, 0, 0, 208, 7, 39, 0, 96, 9];
+            return this._writeCharacteristicValue(BLE_CONNECTION_PARAMETERS_UUID, new Uint8Array(params))
+            .then(() => this.setUserInfo(reset));
+          } else {
+            return this.setUserInfo(reset);
+          }
+        });
+      }
     }
     getMacAddress() {
       return this._readCharacteristicValue(MAC_ADDRESS_UUID).then(data => {
@@ -159,14 +163,14 @@
         return a.join(':');
       });
     }
-    setUserInfo() {
+    setUserInfo(reset) {
       return this.getMacAddress().then(macAddress => {
         let uuid = 1586927552; // UUID must have 10 digits.
         let gender = 1; // Gender (Female 0, Male 1)
         let age = 32; // Age in years.
         let height = 170; // Height in cm.
         let weight = 70; // Weight in kg.
-        let type = 1; // If 1, all saved data will be lost.
+        let type = reset ? 1 : 0; // If 1, all saved data will be lost.
 
         let userInfo = [];
         for (var i = 0; i < 4; i++) { userInfo.push(uuid & 0xff); uuid >>= 8; }
