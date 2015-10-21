@@ -7,7 +7,7 @@
     <style>img { width: 500px; height: 500px; margin: 0 auto; display: block; opacity: 0 }</style>
   </head>
   <body>
-    <button id="requestDevice">requestDevice</button>
+    <button id="connect">connect</button>
     <span id="device"></span>
     <span id="batteryLevel"></span>
     <br/>
@@ -22,13 +22,13 @@
       // TODO: Remove when notifications land.
       var firstGuess = true;
 
-      document.querySelector('#requestDevice').addEventListener('click', function() {
+      document.querySelector('#connect').addEventListener('click', function() {
         document.querySelector('#device').textContent = '';
         document.querySelector('#batteryLevel').textContent = '';
-        insight.requestDevice()
-        .then(device => {
-          console.log(device);
-          document.querySelector('#device').textContent = device.instanceID;
+        insight.connect()
+        .then(() => {
+          console.log(insight.device);
+          document.querySelector('#device').textContent = insight.device.instanceID;
           return Promise.all([
             insight.getBatteryLevel().then(handleBatteryLevel),
             insight.getDeckCard().then(handleDeckCard),

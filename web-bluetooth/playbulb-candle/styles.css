@@ -57,7 +57,7 @@ body.connected #step2 {
 #batteryLevel::before {
   content: 'Battery: ';
 }
-#requestDevice {
+#connect {
   color: white;
   background-color: #4CAF50;
   width: 100%;

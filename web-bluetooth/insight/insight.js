@@ -44,7 +44,7 @@
       this._characteristics = new Map();
       this._debug = false;
     }
-    requestDevice() {
+    connect() {
       return navigator.bluetooth.requestDevice({filters:[{services:[ INSIGHT_SERVICE_UUID ]}]})
       .then(device => {
         this.device = device;
@@ -78,7 +78,6 @@
           */
         ]);
       })
-      .then(() => this.device); // Returns device when fulfilled.
     }
 
     /* Insight Service */

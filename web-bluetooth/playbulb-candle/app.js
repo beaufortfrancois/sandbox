@@ -1,8 +1,8 @@
 var currentColor = [255, 255, 255]; // White by default.
 
-document.querySelector('#requestDevice').addEventListener('click', function() {
-  playbulbCandle.requestDevice()
-  .then(device => {
+document.querySelector('#connect').addEventListener('click', function() {
+  playbulbCandle.connect()
+  .then(() => {
     document.querySelector('#state').classList.add('connected');
     return Promise.all([
       playbulbCandle.getDeviceName().then(handleDeviceName),

@@ -35,7 +35,7 @@
       this._characteristics = new Map();
       this._debug = false;
     }
-    requestDevice() {
+    connect() {
       return navigator.bluetooth.requestDevice({filters:[{services:[ MIBAND_SERVICE_UUID ]}]})
       .then(device => {
         this.device = device;
@@ -61,7 +61,6 @@
           }),
         ]);
       })
-      .then(() => this.device); // Returns device when fulfilled.
     }
 
     /* MiBand Service */

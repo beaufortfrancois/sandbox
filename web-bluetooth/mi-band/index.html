@@ -7,7 +7,7 @@
     <style>button { margin: 4px }</style>
   </head>
   <body>
-    <button id="requestDevice">request Device</button>
+    <button id="connect">connect</button>
     <br/>
     <button id="getDeviceInfo">get Device Info</button>
     <button id="getDeviceName">get Device Name</button>
@@ -30,8 +30,8 @@
     <script src="miBand.js"></script>
     <script>
 
-document.querySelector('#requestDevice').addEventListener('click', function() {
-  miBand.requestDevice().then(device => { console.log(device); })
+document.querySelector('#connect').addEventListener('click', function() {
+  miBand.connect().then(() => { console.log(miBand.device); })
 });
 
 document.querySelector('#getBatteryInfo').addEventListener('click', function() {

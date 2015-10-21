@@ -6,7 +6,7 @@
     <link rel="icon" sizes="192x192" href="../favicon.png">
   </head>
   <body>
-    <button id="requestDevice">requestDevice</button>
+    <button id="connect">connect</button>
     <span id="device"></span>
     <span id="batteryLevel"></span>
     <span id="bodySensorLocation"></span>
@@ -15,14 +15,14 @@
     <script src="heartRateSensor.js"></script>
     <script>
 
-      document.querySelector('#requestDevice').addEventListener('click', function() {
+      document.querySelector('#connect').addEventListener('click', function() {
         document.querySelector('#device').textContent = '';
         document.querySelector('#batteryLevel').textContent = '';
         document.querySelector('#bodySensorLocation').textContent = '';
-        heartRateSensor.requestDevice()
-        .then(device => {
-          console.log(device);
-          document.querySelector('#device').textContent = device.instanceID;
+        heartRateSensor.connect()
+        .then(() => {
+          console.log(heartRateSensor.device);
+          document.querySelector('#device').textContent = heartRateSensor.device.instanceID;
           return Promise.all([
             heartRateSensor.getBatteryLevel().then(handleBatteryLevel),
             heartRateSensor.getBodySensorLocation().then(handleBodySensorLocation),

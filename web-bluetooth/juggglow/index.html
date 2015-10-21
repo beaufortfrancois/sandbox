@@ -7,7 +7,7 @@
     <style>button { margin: 4px }</style>
   </head>
   <body>
-    <button id="requestDevice">requestDevice</button>
+    <button id="connect">connect</button>
     <span id="device"></span>
     <span id="batteryLevel"></span>
     <span id="temperature"></span>
@@ -31,13 +31,13 @@
     <script src="juggglow.js"></script>
     <script>
 
-      document.querySelector('#requestDevice').addEventListener('click', function() {
+      document.querySelector('#connect').addEventListener('click', function() {
         document.querySelector('#device').textContent = '';
         document.querySelector('#batteryLevel').textContent = '';
-        juggglow.requestDevice()
-        .then(device => {
-          console.log(device);
-          document.querySelector('#device').textContent = device.instanceID;
+        juggglow.connect()
+        .then(() => {
+          console.log(juggglow.device);
+          document.querySelector('#device').textContent = juggglow.device.instanceID;
           return Promise.all([
             juggglow.getBatteryLevel().then(handleBatteryLevel),
             juggglow.getTemperature().then(handleTemperature),
