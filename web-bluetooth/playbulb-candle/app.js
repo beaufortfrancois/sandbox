@@ -1,4 +1,4 @@
-var currentColor = [255, 255, 255]; // White by default.
+var r = g = b = 255; // White by default.
 
 document.querySelector('#connect').addEventListener('click', function() {
   playbulbCandle.connect()
@@ -54,11 +54,10 @@ img.onload = function() {
     var y = (evt.clientY - rect.top) * devicePixelRatio;
     var data = context.getImageData(0, 0, canvas.width, canvas.height).data;
 
-    var r = data[((canvas.width * y) + x) * 4];
-    var g = data[((canvas.width * y) + x) * 4 + 1];
-    var b = data[((canvas.width * y) + x) * 4 + 2];
+    r = data[((canvas.width * y) + x) * 4];
+    g = data[((canvas.width * y) + x) * 4 + 1];
+    b = data[((canvas.width * y) + x) * 4 + 2];
 
-    currentColor = [r,g,b];
     changeColor();
   });
 
@@ -76,11 +75,6 @@ document.querySelector('#rainbowFade').addEventListener('click', changeColor);
 
 function changeColor() {
   var effect = document.querySelector('[name="effectSwitch"]:checked').id;
-  if (!effect.startsWith('rainbow')) {
-    var r = currentColor[0];
-    var g = currentColor[1];
-    var b = currentColor[2];
-  }
   switch(effect) {
     case 'noEffect':
       playbulbCandle.setColor(r, g, b).then(onColorChanged);
@@ -106,7 +100,9 @@ function changeColor() {
 function onColorChanged(rgb) {
   if (rgb) {
     console.log('Color changed to ' + rgb);
-    currentColor = rgb;
+    r = rgb[0];
+    g = rgb[1];
+    b = rgb[2];
   } else {
     console.log('Color changed');
   }
