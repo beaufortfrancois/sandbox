@@ -6,7 +6,6 @@
       this.device = null;
       this.server = null;
       this._characteristics = new Map();
-      this._debug = false;
     }
     connect() {
       return navigator.bluetooth.requestDevice({filters:[{services:[ 'heart_rate' ]}]})
@@ -22,10 +21,7 @@
               this._cacheCharacteristic(service, 'body_sensor_location'),
               this._cacheCharacteristic(service, 'heart_rate_measurement'),
             ])
-          }),
-          server.getPrimaryService('battery_service').then(service => {
-            return this._cacheCharacteristic(service, 'battery_level');
-          }),
+          })
         ]);
       })
     }
@@ -48,12 +44,11 @@
         }
      });
     }
-
-    /* Battery Service */
-
-    getBatteryLevel() {
-      return this._readCharacteristicValue('battery_level')
-      .then(data => data.getUint8(0));
+    startNotificationsHeartRateMeasurement() {
+      return this._startNotifications('heart_rate_measurement');
+    }
+    stopNotificationsHeartRateMeasurement() {
+      return this._stopNotifications('heart_rate_measurement');
     }
 
     /* Utils */
@@ -69,19 +64,26 @@
       return characteristic.readValue()
       .then(buffer => {
         let data = new DataView(buffer);
-        if (this._debug) {
-          for (var i = 0, a = []; i < data.byteLength; i++) { a.push(data.getUint8(i)); }
-          console.debug('READ', characteristic.uuid, a);
-        }
         return data;
       });
     }
     _writeCharacteristicValue(characteristicUuid, value) {
       let characteristic = this._characteristics.get(characteristicUuid);
-      if (this._debug) {
-        console.debug('WRITE', characteristic.uuid, value);
-      }
       return characteristic.writeValue(value);
+    }
+    _startNotifications(characteristicUuid) {
+      let characteristic = this._characteristics.get(characteristicUuid);
+      // Returns characteristic to set up characteristicvaluechanged event
+      // handlers in the resolved promise.
+      return characteristic.startNotifications()
+      .then(() => characteristic);
+    }
+    _stopNotifications(characteristicUuid) {
+      let characteristic = this._characteristics.get(characteristicUuid);
+      // Returns characteristic to remove characteristicvaluechanged event
+      // handlers in the resolved promise.
+      return characteristic.stopNotifications()
+      .then(() => characteristic);
     }
   }
 

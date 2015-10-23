@@ -8,7 +8,7 @@
   <body>
     <button id="connect">connect</button>
     <span id="device"></span>
-    <span id="batteryLevel"></span>
+    <span id="heartRate"></span>
     <span id="bodySensorLocation"></span>
     <br/>
 
@@ -17,15 +17,15 @@
 
       document.querySelector('#connect').addEventListener('click', function() {
         document.querySelector('#device').textContent = '';
-        document.querySelector('#batteryLevel').textContent = '';
+        document.querySelector('#heartRate').textContent = '';
         document.querySelector('#bodySensorLocation').textContent = '';
         heartRateSensor.connect()
         .then(() => {
           console.log(heartRateSensor.device);
           document.querySelector('#device').textContent = heartRateSensor.device.instanceID;
           return Promise.all([
-            heartRateSensor.getBatteryLevel().then(handleBatteryLevel),
             heartRateSensor.getBodySensorLocation().then(handleBodySensorLocation),
+            heartRateSensor.startNotificationsHeartRateMeasurement().then(handleNotificationsHeartRateMeasurement),
           ]);
         })
         .catch(error => {
@@ -33,8 +33,10 @@
         });
       });
 
-      function handleBatteryLevel(batteryLevel) {
-        document.querySelector('#batteryLevel').textContent = 'Battery: ' + batteryLevel + '%';
+      function handleNotificationsHeartRateMeasurement(heartRateMeasurement) {
+        heartRateMeasurement.addEventListener('characteristicvaluechanged', function(heartRate) {
+          document.querySelector('#heartRate').textContent = heartRate + 'BPM';
+        });
       }
 
       function handleBodySensorLocation(bodySensorLocation) {
