@@ -8,12 +8,16 @@
   <body>
     <button id="connect">connect</button>
     <span id="device"></span>
-    <span id="heartRate"></span>
     <span id="bodySensorLocation"></span>
+    <pre id="minHeartRate"></pre>
+    <pre id="maxHeartRate"></pre>
+    <pre id="heartRate"></pre>
     <br/>
 
     <script src="heartRateSensor.js"></script>
     <script>
+      var maxHeartRate = null;
+      var minHeartRate = null;
 
       document.querySelector('#connect').addEventListener('click', function() {
         document.querySelector('#device').textContent = '';
@@ -35,7 +39,20 @@
 
       function handleNotificationsHeartRateMeasurement(heartRateMeasurement) {
         heartRateMeasurement.addEventListener('characteristicvaluechanged', function(heartRate) {
-          document.querySelector('#heartRate').textContent = heartRate + 'BPM';
+          var heartRate = heartRateSensor.parseHeartRate(event.target.value);
+          document.querySelector('#heartRate').textContent = JSON.stringify(heartRate, null, 2);
+          if (maxHeartRate === null) {
+            maxHeartRate = heartRate.heartRate;
+          } else {
+            maxHeartRate = Math.max(maxHeartRate, heartRate.heartRate);
+          }
+          document.querySelector('#maxHeartRate').textContent = 'Max ' + maxHeartRate + ' BPM';
+          if (minHeartRate === null) {
+            minHeartRate = heartRate.heartRate;
+          } else {
+            minHeartRate = Math.min(minHeartRate, heartRate.heartRate);
+          }
+          document.querySelector('#minHeartRate').textContent = 'Min ' + minHeartRate + ' BPM';
         });
       }
 
