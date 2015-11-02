@@ -1,19 +1,17 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Heart Rate Sensor Demo</title>
     <link rel="icon" sizes="192x192" href="../favicon.png">
+    <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <button id="connect">connect</button>
-    <span id="device"></span>
-    <span id="bodySensorLocation"></span>
-    <pre id="minHeartRate"></pre>
-    <pre id="maxHeartRate"></pre>
-    <pre id="heartRate"></pre>
-    <br/>
-
+    <div id="container">
+      <div id="statusText">GET &#x2764;</div>
+      <canvas id="waves"></canvas>
+    </div>
     <script src="heartRateSensor.js"></script>
     <script src="app.js"></script>
   </body>
