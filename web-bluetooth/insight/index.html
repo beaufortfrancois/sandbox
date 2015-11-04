@@ -15,23 +15,17 @@
 
     <script src="insight.js"></script>
     <script>
-
       var deckCardImage = document.querySelector('#deckcard');
-      var lastCode = null;
-
-      // TODO: Remove when notifications land.
-      var firstGuess = true;
 
       document.querySelector('#connect').addEventListener('click', function() {
         document.querySelector('#device').textContent = '';
         document.querySelector('#batteryLevel').textContent = '';
         insight.connect()
         .then(() => {
-          console.log(insight.device);
-          document.querySelector('#device').textContent = insight.device.instanceID;
+          document.querySelector('#device').textContent = insight.device.id;
           return Promise.all([
             insight.getBatteryLevel().then(handleBatteryLevel),
-            insight.getDeckCard().then(handleDeckCard),
+            insight.startNotificationsDeckCard().then(handleDeckCard)
           ]);
         })
         .catch(error => {
@@ -43,19 +37,15 @@
         document.querySelector('#batteryLevel').textContent = 'Battery: ' + batteryLevel + '%';
       }
 
-      function handleDeckCard(code) {
-        if (code && lastCode !== code && !firstGuess) {
-          var deckCardImageUrl = 'img/' + code + '.svg';
-          deckCardImage.src = deckCardImageUrl;
+      function handleDeckCard(deckCard) {
+        deckCard.addEventListener('characteristicvaluechanged', event => {
+          var code = insight.parseDeckCard(event.target.value);
+          deckCardImage.src = 'img/' + code + '.svg';
           deckCardImage.onload = () => {
             deckCardImage.style.opacity = 1;
             setTimeout(() => { deckCardImage.style.opacity = 0; }, 3e3);
           }
-        }
-        firstGuess = false;
-        lastCode = code;
-        // Start polling until notifications land...
-        insight.getDeckCard().then(handleDeckCard);
+        });
       }
     </script>
   </body>

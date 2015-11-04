@@ -82,12 +82,16 @@
 
     /* Insight Service */
 
-    getDeckCard() {
-      return this._readCharacteristicValue(DECK_CARD_UUID)
-      .then(data => {
-        const code = data.getUint8(0).toString(16);
-        return VALUES.get(code.slice(1, 2)) + SUITES.get(code.slice(0,1));
-      });
+    startNotificationsDeckCard() {
+      return this._startNotifications(DECK_CARD_UUID);
+    }
+    stopNotificationsDeckCard() {
+      return this._stopNotifications(DECK_CARD_UUID);
+    }
+    parseDeckCard(buffer) {
+      let data = new DataView(buffer);
+      let code = data.getUint8(0).toString(16);
+      return VALUES.get(code.slice(1, 2)) + SUITES.get(code.slice(0,1));
     }
     setVibration(isEnabled) {
       let data = isEnabled ? [0x00] : [0x01];
@@ -154,6 +158,20 @@
         console.debug('WRITE', characteristic.uuid, value);
       }
       return characteristic.writeValue(value);
+    }
+    _startNotifications(characteristicUuid) {
+      let characteristic = this._characteristics.get(characteristicUuid);
+      // Returns characteristic to set up characteristicvaluechanged event
+      // handlers in the resolved promise.
+      return characteristic.startNotifications()
+      .then(() => characteristic);
+    }
+    _stopNotifications(characteristicUuid) {
+      let characteristic = this._characteristics.get(characteristicUuid);
+      // Returns characteristic to remove characteristicvaluechanged event
+      // handlers in the resolved promise.
+      return characteristic.stopNotifications()
+      .then(() => characteristic);
     }
     _decodeString(data) {
       return decoder.decode(data);
