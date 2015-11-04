@@ -2,6 +2,7 @@
   "short_name": "PLAYBULB",
   "name": "PLAYBULB Candle Demo",
   "background_color": "#333333",
+  "theme_color": "#333333",
   "icons": [
     {
       "src": "../favicon.png",
