@@ -66,3 +66,9 @@ function drawWaves() {
 }
 
 window.onresize = drawWaves;
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    drawWaves();
+  }
+});
