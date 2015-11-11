@@ -2,7 +2,7 @@ var canvas = document.querySelector('canvas');
 var statusText = document.querySelector('#statusText');
 
 statusText.addEventListener('click', function() {
-  statusText.textContent = 'Breath...';
+  statusText.textContent = 'Breathe...';
   heartRates = [];
   heartRateSensor.connect()
   .then(() => heartRateSensor.startNotificationsHeartRateMeasurement().then(handleHeartRateMeasurement))
