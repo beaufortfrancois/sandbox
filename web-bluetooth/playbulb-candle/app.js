@@ -35,11 +35,7 @@ document.querySelector('#deviceName').addEventListener('input', function() {
 /* Color picker */
 
 var img = new Image();
-if (window.location.hash.substr(1) === 'cds') {
-  img.src = 'chrome-logo.png'
-} else {
-  img.src = 'color-wheel.png'
-}
+img.src = 'color-wheel.png'
 img.onload = function() {
   var canvas = document.querySelector('canvas');
   var context = canvas.getContext('2d');
