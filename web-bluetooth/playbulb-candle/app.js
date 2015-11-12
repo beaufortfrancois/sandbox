@@ -1,8 +1,10 @@
 var r = g = b = 255; // White by default.
 
 document.querySelector('#connect').addEventListener('click', function() {
+  document.querySelector('#state').classList.add('connecting');
   playbulbCandle.connect()
   .then(() => {
+    document.querySelector('#state').classList.remove('connecting');
     document.querySelector('#state').classList.add('connected');
     return playbulbCandle.getDeviceName().then(handleDeviceName)
     .then(() => playbulbCandle.getBatteryLevel().then(handleBatteryLevel));

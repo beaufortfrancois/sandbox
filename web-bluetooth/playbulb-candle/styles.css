@@ -25,6 +25,11 @@ body #step2 {
 body.connected #step2 {
   display: inherit;
 }
+body.connecting #loading {
+  display: block;
+  text-align: center;
+  padding-top: 24px;
+}
 #title {
   font-family: Roboto;
   color: rgb(255, 255, 255);
@@ -34,6 +39,9 @@ body.connected #step2 {
   width: 100%;
   padding: 12px 0;
   padding-top: 340px;
+}
+#loading {
+  display: none;
 }
 #deviceName {
   font-family: Roboto;
