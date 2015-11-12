@@ -32,8 +32,8 @@ body.connected #step2 {
   letter-spacing: -.02em;
   text-align: center;
   width: 100%;
-  margin: 12px 0;
-  margin-top: 340px;
+  padding: 12px 0;
+  padding-top: 340px;
 }
 #deviceName {
   font-family: Roboto;
