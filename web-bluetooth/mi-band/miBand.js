@@ -23,7 +23,9 @@
   const DATETIME_UUID = 0xFF0A;
   const DEVICE_INFO_UUID = 0xFF01;
   const DEVICE_NAME_UUID = 0xFF02;
+  const NOTIFICATIONS_UUID = 0xFF03;
   const STEPS_UUID = 0xFF06;
+  const ACTIVITY_DATA_UUID = 0xFF07;
   const USER_INFO_UUID = 0xFF04;
   const MAC_ADDRESS_UUID = 0xFEC9;
 
@@ -36,7 +38,8 @@
       this._debug = false;
     }
     connect() {
-      return navigator.bluetooth.requestDevice({filters:[{services:[ MIBAND_SERVICE_UUID ]}]})
+      let options = {filters:[{services:[ MIBAND_SERVICE_UUID ]}]};
+      return navigator.bluetooth.requestDevice(options)
       .then(device => {
         this.device = device;
         return device.connectGATT();
@@ -52,7 +55,9 @@
               this._cacheCharacteristic(service, DATETIME_UUID),
               this._cacheCharacteristic(service, DEVICE_INFO_UUID),
               this._cacheCharacteristic(service, DEVICE_NAME_UUID),
+              this._cacheCharacteristic(service, NOTIFICATIONS_UUID),
               this._cacheCharacteristic(service, STEPS_UUID),
+              this._cacheCharacteristic(service, ACTIVITY_DATA_UUID),
               this._cacheCharacteristic(service, USER_INFO_UUID),
             ])
           }),
@@ -97,11 +102,29 @@
         return batteryInfo;
       });
     }
+    startNotificationsSteps() {
+      return this._startNotifications(NOTIFICATIONS_UUID)
+      .then(() => {
+        return this._startNotifications(ACTIVITY_DATA_UUID);
+      })
+      .then(() => {
+        return this._startNotifications(STEPS_UUID);
+      });
+    }
+    stopNotificationsSteps() {
+      return this._stopNotifications(NOTIFICATIONS_UUID)
+      .then(this._stopNotifications(ACTIVITY_DATA_UUID))
+      .then(this._stopNotifications(STEPS_UUID));
+    }
     getSteps() {
       return this._readCharacteristicValue(STEPS_UUID)
       .then(data => {
-        return data.getUint8(0) + (data.getUint8(1) << 8)
+        return this.parseSteps(data);
       });
+    }
+    parseSteps(data) {
+      return data.getUint8(0) | (data.getUint8(1) << 8) |
+          (data.getUint8(2) << 16) | (data.getUint8(3) << 24);
     }
     getBluetoothConnectionParameters() {
       return this._readCharacteristicValue(BLE_CONNECTION_PARAMETERS_UUID)
@@ -255,6 +278,20 @@
         console.debug('WRITE', characteristic.uuid, value);
       }
       return characteristic.writeValue(value);
+    }
+    _startNotifications(characteristicUuid) {
+      let characteristic = this._characteristics.get(characteristicUuid);
+      // Returns characteristic to set up characteristicvaluechanged event
+      // handlers in the resolved promise.
+      return characteristic.startNotifications()
+      .then(() => characteristic);
+    }
+    _stopNotifications(characteristicUuid) {
+      let characteristic = this._characteristics.get(characteristicUuid);
+      // Returns characteristic to remove characteristicvaluechanged event
+      // handlers in the resolved promise.
+      return characteristic.stopNotifications()
+      .then(() => characteristic);
     }
     _computeCRC(data) {
       let crc = 0;

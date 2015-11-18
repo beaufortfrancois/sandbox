@@ -14,6 +14,8 @@
     <button id="getBatteryInfo">get Battery Info</button>
     <button id="getBluetoothConnectionParameters">get Bluetooth Connection Parameters</button>
     <button id="getSteps">get Steps</button>
+    <button id="startSteps">start Steps</button>
+    <button id="stopSteps">stop Steps</button>
     <button id="getDateTime">get Date Time</button>
     <br/>
     <button id="pairReset">pair (reset)</button>
@@ -26,6 +28,8 @@
     <button id="factoryReset">factory Reset</button>
     <button id="test">test</button>
     <button id="vibrate">vibrate</button>
+    <br/>
+    <span id="steps"></span>
 
     <script src="miBand.js"></script>
     <script>
@@ -49,6 +53,23 @@ document.querySelector('#getDeviceName').addEventListener('click', function() {
 document.querySelector('#getSteps').addEventListener('click', function() {
   miBand.getSteps().then(steps => { console.log(steps); })
 });
+
+document.querySelector('#startSteps').addEventListener('click', function() {
+  miBand.startNotificationsSteps().then(stepsCharacteristic => {
+    stepsCharacteristic.addEventListener('characteristicvaluechanged', handleSteps);
+  });
+});
+
+document.querySelector('#stopSteps').addEventListener('click', function() {
+  miBand.stopNotificationsSteps().then(stepsCharacteristic => {
+    stepsCharacteristic.removeEventListener('characteristicvaluechanged', handleSteps);
+  });
+});
+
+function handleSteps(event) {
+  var data = new DataView(event.target.value);
+  document.querySelector('#steps').innerHTML = miBand.parseSteps(data) + ' &#x1f463';
+};
 
 document.querySelector('#getDateTime').addEventListener('click', function() {
   miBand.getDateTime().then(date => { console.log(date); })
