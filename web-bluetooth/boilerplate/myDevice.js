@@ -1,4 +1,4 @@
-(() => {
+(function() {
   'use strict';
 
   /* Custom Bluetooth Service UUIDs */
