@@ -1,0 +1,72 @@
+#container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background-color: #03A9F4;
+  font-family: Roboto;
+}
+
+#statusText {
+  position: absolute;
+  bottom: 50%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  margin: 0 auto;
+  color: #fff;
+  font-size: 38px;
+  max-width: 256px;
+  overflow-x: visible;
+  cursor: default;
+  padding: 12px 0;
+  -webkit-user-select: none;
+  font-weight: bold;
+  will-change: transform; 
+}
+
+#subStatusText {
+  position: absolute;
+  top: calc(50% + 24px);
+  left: 0;
+  right: 0;
+  text-align: center;
+  margin: 0 auto;
+  color: rgba(255, 255, 255, 2);
+  font-size: 17px;
+  max-width: 250px;
+  overflow-y: hidden;
+  cursor: default;
+  height: 25%;
+  -webkit-user-select: none;
+}
+
+#subStatusText::before {
+  content: 'Activity';
+  display: block;
+  padding-bottom: 4px;
+  text-transform: uppercase;
+  font-size: 70%;
+  font-weight: bold;
+  border-bottom: 1px solid rgba(255,255,255,.5);
+  margin-bottom: 8px;
+}
+.date {
+  float: left;
+  font-size: 80%;
+  line-height: 20px;
+  text-align: right;
+  width: 128px;
+}
+
+.steps {
+  text-align: right;
+  padding-right: 24px;
+}
+
+.steps::after {
+  content: ' steps';
+  color: rgba(255,255,255,0.8);
+  font-size: 66%;
+}

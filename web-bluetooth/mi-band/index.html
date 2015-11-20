@@ -1,131 +1,18 @@
 <!doctype html>
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Band</title>
-     <link rel="icon" sizes="192x192" href="../favicon.png">
-    <style>button { margin: 4px }</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Mi Band Demo</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+    <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <button id="connect">connect</button>
-    <br/>
-    <button id="getDeviceInfo">get Device Info</button>
-    <button id="getDeviceName">get Device Name</button>
-    <button id="getBatteryInfo">get Battery Info</button>
-    <button id="getBluetoothConnectionParameters">get Bluetooth Connection Parameters</button>
-    <button id="getSteps">get Steps</button>
-    <button id="startSteps">start Steps</button>
-    <button id="stopSteps">stop Steps</button>
-    <button id="getDateTime">get Date Time</button>
-    <br/>
-    <button id="pairReset">pair (reset)</button>
-    <button id="pairReconnect">pair (reconnect)</button>
-    <button id="setUserInfo">set User Info</button>
-    <button id="setProgressLightColor">set Progress Light Color</button>
-    <button id="setBandLocation">set Band Location</button>
-    <button id="setDateTime">set Date Time</button>
-    <button id="locate">locate</button>
-    <button id="factoryReset">factory Reset</button>
-    <button id="test">test</button>
-    <button id="vibrate">vibrate</button>
-    <br/>
-    <span id="steps"></span>
-
+    <div id="container">
+      <div id="statusText">GET &#x1f463;</div>
+      <div id="subStatusText"></div>
+    </div>
     <script src="miBand.js"></script>
-    <script>
-
-document.querySelector('#connect').addEventListener('click', function() {
-  miBand.connect().then(() => { console.log(miBand.device); })
-});
-
-document.querySelector('#getBatteryInfo').addEventListener('click', function() {
-  miBand.getBatteryInfo().then(batteryInfo => { console.log(batteryInfo); })
-});
-
-document.querySelector('#getDeviceInfo').addEventListener('click', function() {
-  miBand.getDeviceInfo().then(deviceInfo => { console.log(deviceInfo); })
-});
-
-document.querySelector('#getDeviceName').addEventListener('click', function() {
-  miBand.getDeviceName().then(deviceName => { console.log(deviceName); })
-});
-
-document.querySelector('#getSteps').addEventListener('click', function() {
-  miBand.getSteps().then(steps => { console.log(steps); })
-});
-
-document.querySelector('#startSteps').addEventListener('click', function() {
-  miBand.startNotificationsSteps().then(stepsCharacteristic => {
-    stepsCharacteristic.addEventListener('characteristicvaluechanged', handleSteps);
-  });
-});
-
-document.querySelector('#stopSteps').addEventListener('click', function() {
-  miBand.stopNotificationsSteps().then(stepsCharacteristic => {
-    stepsCharacteristic.removeEventListener('characteristicvaluechanged', handleSteps);
-  });
-});
-
-function handleSteps(event) {
-  var data = new DataView(event.target.value);
-  document.querySelector('#steps').innerHTML = miBand.parseSteps(data) + ' &#x1f463';
-};
-
-document.querySelector('#getDateTime').addEventListener('click', function() {
-  miBand.getDateTime().then(date => { console.log(date); })
-});
-
-document.querySelector('#pairReset').addEventListener('click', function() {
-  miBand.pair(true);
-});
-
-document.querySelector('#pairReconnect').addEventListener('click', function() {
-  miBand.pair(false);
-});
-
-document.querySelector('#setUserInfo').addEventListener('click', function() {
-  miBand.setUserInfo();
-});
-
-document.querySelector('#setDateTime').addEventListener('click', function() {
-  miBand.setDateTime();
-});
-
-document.querySelector('#setProgressLightColor').addEventListener('click', function() {
-  function rand() {
-   return Math.floor(Math.random() * 7) ;
-  }
-  miBand.setProgressLightColor(rand(), rand(), rand());
-});
-
-var bandLocation = 0;
-document.querySelector('#setBandLocation').addEventListener('click', function() {
-  miBand.setBandLocation(bandLocation++);
-  if (bandLocation > 2) {
-    bandLocation = 0;
-  }
-});
-
-document.querySelector('#locate').addEventListener('click', function() {
-  miBand.locate();
-});
-
-document.querySelector('#factoryReset').addEventListener('click', function() {
-  miBand.factoryReset();
-});
-
-document.querySelector('#test').addEventListener('click', function() {
-  miBand.test();
-});
-
-document.querySelector('#vibrate').addEventListener('click', function() {
-  miBand.vibrate();
-});
-
-document.querySelector('#getBluetoothConnectionParameters').addEventListener('click', function() {
-  miBand.getBluetoothConnectionParameters().then(connectionParams => { console.log(connectionParams); })
-});
-
-    </script>
+    <script src="app.js"></script>
   </body>
 </html>
