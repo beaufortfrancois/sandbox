@@ -11,7 +11,7 @@ statusText.addEventListener('click', function() {
   .then(() => miBand.getSteps())
   .then(steps => {
     var today = new Date().toJSON().substr(0, 10);
-    offset = steps - parseInt(localStorage.getItem(today), 10);
+    offset = steps - parseInt(localStorage.getItem(today) || 0);
     updateSteps(steps);
     return Promise.resolve();
   })
@@ -51,7 +51,7 @@ function updateSteps(steps) {
 function updateStats() {
   var stats = '';
   Object.keys(localStorage).reverse().forEach(key => {
-    var day = new Date(key).toDateString();
+    var day = new Date(key).toDateString().slice(0, -5);
     stats += '<div class="date">' + day + '</div>' +
         '<div class="steps">' + localStorage.getItem(key) + '</div>';
   });
