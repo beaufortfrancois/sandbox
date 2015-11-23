@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boilerplate 3</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+  </head>
+  <body>
+    <button>Click</button>
+    <script src="myDevice.js"></script>
+    <script>
+      document.querySelector('button').onclick = function() {
+        myDevice.discover()
+        .then(device => {
+          console.log(device.id);
+          myDevice.connect();
+        });
+      }
+    </script>
+  </body>
+</html>
