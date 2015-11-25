@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nascent Object Wireless Setup</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+  </head>
+  <body>
+    <label>WiFi SSID<input id="ssid"></label>
+    <label>WiFi Password <input id="password"></label>
+    <button>Setup</button>
+    <script>
+      document.querySelector('button').addEventListener('click', function() {
+        navigator.bluetooth.requestDevice({ filters: [{ name: ['Edison'] }] })
+        .then(device => {
+          console.log(device);
+          return device.connectGATT();
+        })
+        .then(gattServer => {
+          console.log(gattServer);
+          // It looks like we have to wait a little bit before getting the service...
+          return new Promise(function(resolve) {
+            setTimeout(function() {
+              resolve(gattServer.getPrimaryService('85e58700-4c43-11e5-95ef-0002a5d5c51b'));
+            }, 2e3);
+          })
+        })
+	.then(service => {
+          console.log(service);
+          return service.getCharacteristic('b5fc6ce0-63ce-11e5-a0a1-0002a5d5c51b');
+        })
+        .then(characteristic => {
+          console.log(characteristic);
+          var ssid = document.querySelector('#ssid').value;
+          var password = document.querySelector('#password').value;
+          var encoder = new TextEncoder();
+          var data = JSON.stringify({ 'ssid': ssid, 'password': password });
+          return characteristic.writeValue(encoder.encode(data));
+        })
+        .then(() => {
+          console.log('Setup done');
+        })
+        .catch(e => console.log(e));
+      });
+    </script>
+  </body>
+</html>
