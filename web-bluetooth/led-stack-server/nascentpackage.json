@@ -1,0 +1,8 @@
+{
+    "name": "led-stack-server",
+    "version": "0.0.1",
+    "app_id": "com.nascentobjects.led-stack-server",
+    "modules": {
+      "LED Bar": { "type": "nascent-ledbar" }
+    }
+}

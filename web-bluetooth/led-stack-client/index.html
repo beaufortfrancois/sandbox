@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+<meta charset="utf-8">
+<title>Nascent Objects</title>
+</head>
+<body>
+<button id="scan">Scan</button>
+<hr/>
+
+<input id="color" type="color"><button id="setColor" disabled>setColor</button>
+<hr/>
+
+<input id="message"><button id="addMessage" disabled>addMessage</button>
+<hr/>
+
+<button id="readMessage" disabled>readMessage</button>
+<textarea id="lastMessage"></textarea>
+
+<div id="errorText" class="errorText"></div>
+<script> 
+var serviceUUID = 0xEC00;
+var colorUUID = 0xEC01;
+var messageUUID = 0xEC02;
+
+document.getElementById('scan').addEventListener('click', function() {
+  console.log('Requesting Device');
+  navigator.bluetooth.requestDevice({ filters: [{ services: [serviceUUID] }]
+  }).then(function(device) {
+    console.log('Getting GATT');
+    return device.connectGATT();
+  }).then(function(server) {
+    console.log('Getting Primary Service');
+    return server.getPrimaryService(serviceUUID);
+  }).then(function(service) {
+    console.log('Getting Characteristics');
+    return Promise.all([
+      service.getCharacteristic(colorUUID).then(enableColorButton),
+      service.getCharacteristic(messageUUID).then(enableMessageButton),
+    ]);
+  }).catch(function(err) {
+    document.getElementById('errorText').innerHTML = '' + err;
+    console.log('ERROR:', err);	
+  });
+});
+
+function enableColorButton(characteristic) {
+  document.getElementById('setColor').disabled = false;
+  document.getElementById('setColor').addEventListener('click', function() {
+    var color = document.getElementById('color').value;
+    var r = parseInt(color.substr(1, 2), 16);
+    var g = parseInt(color.substr(3, 2), 16);
+    var b = parseInt(color.substr(5, 2), 16);
+
+    characteristic.writeValue(new Uint8Array([r, g, b]))
+    .catch(err => {
+      document.getElementById('errorText').innerHTML = '' + err;
+      console.log('ERROR:', err);	
+    });
+  });
+  return Promise.resolve();
+}
+
+function enableMessageButton(characteristic) {
+  document.getElementById('addMessage').disabled = false;
+  document.getElementById('addMessage').addEventListener('click', function() {
+    var encoder = new TextEncoder();
+    var message = document.getElementById('message').value;
+    characteristic.writeValue(encoder.encode(message))
+    .catch(err => {
+      document.getElementById('errorText').innerHTML = '' + err;
+      console.log('ERROR:', err);	
+    });
+  });
+  document.getElementById('readMessage').disabled = false;
+  document.getElementById('readMessage').addEventListener('click', function() {
+    characteristic.readValue()
+    .then(buffer => {
+      var decoder = new TextDecoder();
+      var message = decoder.decode(buffer);
+      document.getElementById('lastMessage').value = message;
+    })
+    .catch(err => {
+      document.getElementById('errorText').innerHTML = '' + err;
+      console.log('ERROR:', err);	
+    });
+  });
+  return Promise.resolve();
+}
+
+</script>
+</body>
+</html>
