@@ -7,12 +7,14 @@
     <link rel="icon" sizes="192x192" href="../favicon.png">
   </head>
   <body>
+    <label>Device name<input id="nameFilter"></label>
     <label>WiFi SSID<input id="ssid"></label>
     <label>WiFi Password <input id="password"></label>
     <button>Setup</button>
     <script>
       document.querySelector('button').addEventListener('click', function() {
-        navigator.bluetooth.requestDevice({ filters: [{ name: ['Edison'] }] })
+        var nameFilter = document.querySelector('#nameFilter').value;
+        navigator.bluetooth.requestDevice({ filters: [{ name: [nameFilter] }] })
         .then(device => {
           console.log(device);
           return device.connectGATT();
