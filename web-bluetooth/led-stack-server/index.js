@@ -14,18 +14,26 @@ function dropLed() {
   var toto = function(index) {
     setTimeout(function() {
       
-      ledbar.setLed(index, user.r, user.g, user.b, 0.05);
+      ledbar.setLed(index, user.r, user.g, user.b, 0);
       if (index + 1 < numLeds) {
-        ledbar.setLed(index + 1, 0, 0, 0, 0.05);
+        ledbar.setLed(index + 1, 0, 0, 0, 0);
       }
       if (index >= numMessages) {
         toto(--index);
       } else {
         updateLeds();
       }
-    }, 50);
+    }, 16);
   };
   toto(numLeds-1);
+}
+
+function readLed() {
+  var numLeds = ledbar.getNumLeds();
+  var numMessages = messages.length;
+  if (numMessages < numLeds) {
+    ledbar.setLed(numMessages, 0, 0, 0, 0.2);
+  }
 }
 
 function updateLeds() {
@@ -93,7 +101,7 @@ function MessagesCharacteristic() {
     if (message) {
       var text = message[Object.keys(message)];
       console.log(text);
-      updateLeds();
+      readLed();
       callback(self.RESULT_SUCCESS, new Buffer(text));
     } else {
       console.log('error');
