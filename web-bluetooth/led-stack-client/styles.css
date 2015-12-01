@@ -1,0 +1,83 @@
+img {
+  font-size: 12px;
+  max-width: 100%;
+}
+
+#container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background-color: #3E2723;
+  font-family: Roboto;
+}
+
+#top {
+  bottom: 50%;
+}
+
+#bottom {
+  top: 50%;
+}
+
+.box {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  margin: 0 auto;
+  font-size: 38px;
+  max-width: 256px;
+  padding: 12px 0;
+  -webkit-user-select: none;
+  margin-top: 12px;
+  padding-top: 24px;
+  background: #482E29;
+  border-radius: 4px;
+  height: 128px;
+}
+
+button {
+  border: 0;
+  margin: 0 auto;
+  margin-top: -30px;
+  text-transform: uppercase;
+  font-family: Roboto;
+  color: rgb(223, 195, 130);
+  font-weight: bold;
+  font-size: large;
+  display: block;
+  background: transparent;
+}
+
+.gem {
+  background: #3E2723;
+  border-radius: 50%;
+  padding: 4px;
+  height: 16px;
+  width: 16px;
+  display: inline-block;
+  border-bottom: 1px solid #6D4C41;
+  font-size: 16px;
+  line-height: 16px;
+}
+
+#message {
+  background: rgb(62, 39, 35);
+  border: 0;
+  border-bottom: 1px solid #6D4C41;
+  border-radius: 2px;
+  padding: 0 4px 0 4px;
+  color: #DFC382;
+  line-height: 24px;
+  font-family: Roboto;
+}
+
+#addMessage {
+  margin-top: 20px;
+}
+
+.gem::after {
+  content: '◈';
+}

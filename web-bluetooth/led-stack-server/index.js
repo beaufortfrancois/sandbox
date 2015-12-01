@@ -10,22 +10,21 @@ function dropLed() {
   if (numMessages == numLeds) {
     return;
   }
-  var user = users[currentClientAddress];
-  var toto = function(index) {
+  var user = users[clientAddress];
+  var updateLed = function(index) {
     setTimeout(function() {
-      
       ledbar.setLed(index, user.r, user.g, user.b, 0);
       if (index + 1 < numLeds) {
         ledbar.setLed(index + 1, 0, 0, 0, 0);
       }
       if (index >= numMessages) {
-        toto(--index);
+        updateLed(--index);
       } else {
         updateLeds();
       }
     }, 16);
   };
-  toto(numLeds-1);
+  updateLed(numLeds-1);
 }
 
 function readLed() {
@@ -50,39 +49,38 @@ function updateLeds() {
   }
 }
 
-function UserInfoCharacteristic() {
+function ColorCharacteristic() {
   var self = this;
 
   self.init = function() {
-    UserInfoCharacteristic.super_.call(self, {
+    ColorCharacteristic.super_.call(self, {
       uuid: 'ec01',
       properties: ['read', 'write']
     });
   };
 
   self.onReadRequest = function(offset, callback) {
-     var user = users[currentClientAddress];
+     var user = users[clientAddress];
      var data = new Buffer([user.r, user.g, user.b]);
      callback(self.RESULT_SUCCESS, data);
   };
 
   self.onWriteRequest = function(data, offset, withoutResponse, callback) {
     if (data.length == 3) {
-      users[currentClientAddress].r = data.readUInt8(0);
-      users[currentClientAddress].g = data.readUInt8(1);
-      users[currentClientAddress].b = data.readUInt8(2);
+      users[clientAddress].r = data.readUInt8(0);
+      users[clientAddress].g = data.readUInt8(1);
+      users[clientAddress].b = data.readUInt8(2);
       updateLeds();
       callback(this.RESULT_SUCCESS);
     } else {
       callback(this.RESULT_ERROR);
     }
-    console.log(users[currentClientAddress]);
   };
  
   self.init();
 }
 
-util.inherits(UserInfoCharacteristic, bleno.Characteristic);
+util.inherits(ColorCharacteristic, bleno.Characteristic);
 
 function MessagesCharacteristic() {
   var self = this;
@@ -111,7 +109,7 @@ function MessagesCharacteristic() {
 
   self.onWriteRequest = function(data, offset, withoutResponse, callback) {
     var message = {};
-    message[currentClientAddress] = data.toString();
+    message[clientAddress] = data.toString();
     messages.push(message);
     dropLed();
     //updateLeds();
@@ -129,7 +127,7 @@ function MainService() {
    bleno.PrimaryService.call(this, {
        uuid: 'ec00',
        characteristics: [
-           new UserInfoCharacteristic(),
+           new ColorCharacteristic(),
            new MessagesCharacteristic()
        ]
    });
@@ -160,30 +158,23 @@ bleno.on('advertisingStart', function(err) {
   }
 });
 
-bleno.on('advertisingStop', function(err) {
-  console.log('advertisingStop');
-});
-
-var currentClientAddress = null;
+var clientAddress = null;
 var users = {};
 var messages = [];
 
-bleno.on('accept', function(clientAddress) {
-  console.log('connected - ' + clientAddress);
-  currentClientAddress = clientAddress;
-  if (!users[currentClientAddress]) {
-    var id = Object.keys(users).length;
-    users[currentClientAddress] = {
-      'id': id, 
-      'r': 255,
-      'g': 255,
-      'b': 255,
-    };
-    console.log(users);
+const colors = [{"r":242,"g":214,"b":214},{"r":80,"g":5,"b":5},{"r":80,"g":15,"b":15},{"r":81,"g":255,"b":255},{"r":213,"g":175,"b":175},{"r":215,"g":63,"b":63},{"r":11,"g":15,"b":15},{"r":14,"g":95,"b":95},{"r":222,"g":155,"b":155},{"r":78,"g":113,"b":113},{"r":111,"g":240,"b":240},{"r":111,"g":240,"b":240},{"r":254,"g":160,"b":160},{"r":252,"g":64,"b":64},{"r":249,"g":16,"b":16},{"r":243,"g":208,"b":208}];
+
+bleno.on('accept', function(address) {
+  console.log('accept ' + address);
+  clientAddress = address;
+  if (!users[clientAddress]) {
+    var color = colors[Math.round(Math.random(colors.length) * colors.length)];
+    users[clientAddress] = {'r': color.r, 'g': color.g, 'b': color.b};
   }
+  console.log(users);
 });
 
-bleno.on('disconnect', function(clientAddress) {
-  console.log('disconnected - ' + clientAddress);
-  currentClientAddress = null;
+bleno.on('disconnect', function(address) {
+  clientAddress = null;
+  console.log('disconnect ' + address);
 });
