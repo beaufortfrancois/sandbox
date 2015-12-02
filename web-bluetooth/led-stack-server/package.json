@@ -5,7 +5,7 @@
   "main": "nascentapp.js",
   "author": "Nascent Objects",
   "dependencies": {
-    "bleno": "sandeepmistry/bleno",
+    "eddystone-beacon": "^1.0.4",
     "nascent": "git+ssh://git@bitbucket.org/nascentobjects/nascent.git",
     "nascent-ledbar": "git+ssh://git@bitbucket.org/nascentobjects/nascent-ledbar.git"
   }
