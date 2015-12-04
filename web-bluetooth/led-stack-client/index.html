@@ -9,21 +9,29 @@
   </head>
   <body>
     <div id="container">
-      <div id="top" class="box">
-        <img src="treasure-chest.png">
-        <button id="open">Open</button>
-      </div>
-      <div id="bottom" class="box">
-        <div id="gems">
-          <div class="gem" style="color:#ff0000"></div>
-          <div class="gem" style="color:#00ff00"></div>
-          <div class="gem" style="color:#0000ff"></div>
-          <div class="gem" style="color:#ffff00"></div>
-          <div class="gem" style="color:#ff00ff"></div>
-          <div class="gem" style="color:#00ffff"></div>
+      <div id="step1">
+        <div class="top box">
+          <div class="big gem" style="color:#DCC080"></div>
+          <button id="connect">Connect</button>
         </div>
-        <input id="message">
-        <button id="addMessage">Store</button>
+      </div>
+      <div id="step2" hidden>
+        <div class="top box">
+          <img src="treasure-chest.png">
+          <button id="open">Open</button>
+        </div>
+        <div class="bottom box">
+          <div id="gems">
+            <div class="gem" style="color:#ff0000"></div>
+            <div class="gem" style="color:#00ff00"></div>
+            <div class="gem" style="color:#0000ff"></div>
+            <div class="gem" style="color:#ffff00"></div>
+            <div class="gem" style="color:#ff00ff"></div>
+            <div class="gem" style="color:#00ffff"></div>
+          </div>
+          <input id="message">
+          <button id="addMessage">Store</button>
+        </div>
       </div>
     </div>
     <script src="app.js"></script>

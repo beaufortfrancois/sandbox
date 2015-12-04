@@ -5,7 +5,7 @@
   "main": "nascentapp.js",
   "author": "Nascent Objects",
   "dependencies": {
-    "eddystone-beacon": "^1.0.4",
+    "eddystone-beacon": "beaufortfrancois/node-eddystone-beacon#addScanData",
     "nascent": "git+ssh://git@bitbucket.org/nascentobjects/nascent.git",
     "nascent-ledbar": "git+ssh://git@bitbucket.org/nascentobjects/nascent-ledbar.git"
   }
