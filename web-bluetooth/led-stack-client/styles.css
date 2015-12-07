@@ -9,7 +9,7 @@ img {
   right: 0;
   left: 0;
   bottom: 0;
-  background-color: #3E2723;
+  background-color: #212121;
   font-family: Roboto;
 }
 
@@ -33,7 +33,6 @@ img {
   -webkit-user-select: none;
   margin-top: 12px;
   padding-top: 24px;
-  background: #482E29;
   border-radius: 4px;
   height: 128px;
 }
@@ -41,17 +40,18 @@ img {
 button {
   border: 0;
   margin: 0 auto;
-  text-transform: uppercase;
   font-family: Roboto;
-  color: rgb(223, 195, 130);
-  font-weight: bold;
-  font-size: large;
+  color: #CFD8DC;
   display: block;
   background: transparent;
+  outline: none;
+  padding: 4px 8px;
+  border-radius: 16px;
+  background: #37474F;
+  margin-top: 12px;
 }
 
 .big {
-  background: #482E29 !important;
   font-size: 64px !important;
   height: 64px !important;
   width: 64px !important;
@@ -62,37 +62,55 @@ button {
 }
 
 .gem {
-  background: #3E2723;
   border-radius: 50%;
   padding: 4px;
   height: 16px;
   width: 16px;
   display: inline-block;
-  border-bottom: 1px solid #6D4C41;
-  font-size: 16px;
-  line-height: 16px;
+  border: 2px solid #212121;;
+}
+
+.selected {
+  border: 2px solid #ECEFF1;
 }
 
 #message {
-  background: rgb(62, 39, 35);
-  border: 0;
-  border-bottom: 1px solid #6D4C41;
-  border-radius: 2px;
-  padding: 0 4px 0 4px;
-  color: #DFC382;
+  background: transparent;
+  border: 1px solid #ffffff;
+  padding: 0 8px 0 8px;
   line-height: 24px;
   font-family: Roboto;
+  color: #ECEFF1;
+  outline: none;
+  line-height: 32px;
+  border-radius: 16px;
+  width: 200px;
 }
 
 #open {
-  margin-top: -30px;
+  margin-top: -42px;
 }
 
-#connect,
-#addMessage {
-  margin-top: 20px;
+#openedMessage {
+  position: absolute;
+  background-color: white;
+  border: 2px solid;
+  padding: 4px;
+  font-size: small;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-.gem::after {
-  content: '◈';
+.right {
+  right: 0;
+}
+
+#error {
+  background: #D32F2F;
+  top: 0;
+  color: white;
+  position: fixed;
+  width: 100%;
+  line-height: 36px;
+  padding: 0 4px;
 }

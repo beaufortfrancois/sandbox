@@ -29,7 +29,7 @@ document.getElementById('connect').addEventListener('click', function() {
     document.getElementById('step2').hidden = false;
   })
   .catch(function(err) {
-    console.log('ERROR:', err);	
+    showError(err);
   });
 });
 
@@ -51,45 +51,69 @@ function handleColorCharacteristic(characteristic) {
       var b = parseInt(color.substr(5, 2), 16);
 
       characteristic.writeValue(new Uint8Array([r, g, b]))
+      .then(() => {
+        document.querySelector('.selected').classList.remove('selected');
+        event.target.classList.add('selected');
+      })
       .catch(err => {
-        document.getElementById('errorText').innerHTML = '' + err;
-        console.log('ERROR:', err);	
+        showError(err);
       });
     });
   });
 }
 
 function handleMessageCharacteristic(characteristic) {
-  document.getElementById('addMessage').disabled = false;
-  document.getElementById('addMessage').addEventListener('click', function() {
+  var openedMessage = document.getElementById('openedMessage');
+  document.getElementById('messageForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    event.stopPropagation();
     var encoder = new TextEncoder();
-    var message = document.getElementById('message').value;
-    characteristic.writeValue(encoder.encode(message))
+    var message = document.getElementById('message');
+    characteristic.writeValue(encoder.encode(message.value))
+    .then(() => {
+      message.value = '';
+    })
     .catch(err => {
-      document.getElementById('errorText').innerHTML = '' + err;
-      console.log('ERROR:', err);	
+      showError(err);
     });
   });
   document.getElementById('open').disabled = false;
   document.getElementById('open').addEventListener('click', function() {
+    openedMessage.hidden = true;
+    openedMessage.innerText = '';
     characteristic.readValue()
     .then(buffer => {
       var decoder = new TextDecoder();
       var message = decoder.decode(buffer);
-      console.log(message);
-      //document.getElementById('lastMessage').value = message;
+      if (message) {
+        openedMessage.innerText = message;
+        openedMessage.hidden = false;
+        openedMessage.classList.toggle('right');
+      } else {
+        showError('No more messages...');
+      }
     })
     .catch(err => {
-      //document.getElementById('errorText').innerHTML = '' + err;
-      console.log('ERROR:', err);	
+      showError(err);
     });
   });
+  openedMessage.addEventListener('click', function() {
+    openedMessage.hidden = true;
+    openedMessage.innerText = '';
+  });
   return Promise.resolve();
+}
+
+function showError(err) {
+  var error = document.getElementById('error');
+  error.innerText = err.toString();
+  error.hidden = false;
+  setTimeout(function() { error.hidden = true; }, 5e3);
 }
 
 const colors = ['#f44336', '#9C27B0', '#3F51B5', '#009688', '#FFEB3B', '#9E9E9E'];
 var gems = document.querySelectorAll("#gems .gem");
 Array.from(gems).forEach(function(gem, i) {
-  gem.style.color = colors[i];
+  gem.style.backgroundColor = colors[i];
   gem.dataset.color = colors[i];
 });
