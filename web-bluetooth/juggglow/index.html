@@ -37,7 +37,7 @@
         juggglow.connect()
         .then(() => {
           console.log(juggglow.device);
-          document.querySelector('#device').textContent = juggglow.device.instanceID;
+          document.querySelector('#device').textContent = juggglow.device.id;
           return Promise.all([
             juggglow.getBatteryLevel().then(handleBatteryLevel),
             juggglow.getTemperature().then(handleTemperature),
