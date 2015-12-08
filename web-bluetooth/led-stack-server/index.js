@@ -6,7 +6,6 @@ var ledbar = Nascent.getModule('LED Bar');
 
 var util = require('util');
 var eddystone = require('eddystone-beacon');
-/* https://github.com/don/node-eddystone-beacon/pull/31#issue-119847706 */
 var bleno = require('eddystone-beacon/node_modules/bleno');
 
 function dropLed() {
@@ -117,7 +116,6 @@ function MessagesCharacteristic() {
     message[clientAddress] = data.toString();
     messages.push(message);
     dropLed();
-    //updateLeds();
     callback(self.RESULT_SUCCESS);
     console.log(messages);
   };
@@ -131,7 +129,6 @@ var clientAddress = null;
 var users = {};
 var messages = [];
 
-//const colors = [{"r":242,"g":214,"b":214},{"r":80,"g":5,"b":5},{"r":80,"g":15,"b":15},{"r":81,"g":255,"b":255},{"r":213,"g":175,"b":175},{"r":215,"g":63,"b":63},{"r":11,"g":15,"b":15},{"r":14,"g":95,"b":95},{"r":222,"g":155,"b":155},{"r":78,"g":113,"b":113},{"r":111,"g":240,"b":240},{"r":111,"g":240,"b":240},{"r":254,"g":160,"b":160},{"r":252,"g":64,"b":64},{"r":249,"g":16,"b":16},{"r":243,"g":208,"b":208}];
 const colors = ['#f44336', '#9C27B0', '#3F51B5', '#009688', '#FFEB3B', '#9E9E9E'];
 
 bleno.on('stateChange', function(state) {
