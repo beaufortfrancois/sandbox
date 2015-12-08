@@ -1,14 +1,10 @@
 document.getElementById('connect').addEventListener('click', function() {
-  console.log('Requesting Device');
   navigator.bluetooth.requestDevice({ filters: [{ name: 'LED Stack' }]})
   .then(function(device) {
-    console.log(device);
-    console.log('Getting GATT');
+    document.querySelector('#status').textContent = 'connecting...';
     return device.connectGATT();
   })
   .then(function(server) {
-    console.log(server);
-    console.log('Getting Primary Service');
     // FIXME: Remove this timeout when GattServices property works as intended.
     // crbug.com/560277
     return new Promise(function(resolve) {
@@ -18,7 +14,6 @@ document.getElementById('connect').addEventListener('click', function() {
     })
   })
   .then(function(service) {
-    console.log('Getting Characteristics');
     return Promise.all([
       service.getCharacteristic(0xEC01).then(handleColorCharacteristic),
       service.getCharacteristic(0xEC02).then(handleMessageCharacteristic),
@@ -69,6 +64,10 @@ function handleMessageCharacteristic(characteristic) {
     event.stopPropagation();
     var encoder = new TextEncoder();
     var message = document.getElementById('message');
+    if (!message.value) {
+      showError('Message must not be empty.');
+      return;
+    }
     characteristic.writeValue(encoder.encode(message.value))
     .then(() => {
       message.value = '';

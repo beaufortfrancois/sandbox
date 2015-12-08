@@ -51,6 +51,12 @@ button {
   margin-top: 12px;
 }
 
+#status {
+  color: #ECEFF1;
+  font-size: large;
+  margin-top: 24px;
+}
+
 .big {
   font-size: 64px !important;
   height: 64px !important;
