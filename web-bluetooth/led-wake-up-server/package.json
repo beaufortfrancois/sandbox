@@ -1,0 +1,12 @@
+{
+  "name": "led-wake-up-server",
+  "version": "0.0.1",
+  "description": "",
+  "main": "nascentapp.js",
+  "author": "Nascent Objects",
+  "dependencies": {
+    "eddystone-beacon": "beaufortfrancois/node-eddystone-beacon#addScanData",
+    "nascent": "git+ssh://git@bitbucket.org/nascentobjects/nascent.git",
+    "nascent-ledbar": "git+ssh://git@bitbucket.org/nascentobjects/nascent-ledbar.git"
+  }
+}

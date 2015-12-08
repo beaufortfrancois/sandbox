@@ -1,0 +1,8 @@
+{
+    "name": "led-wake-up-server",
+    "version": "0.0.1",
+    "app_id": "com.nascentobjects.led-wake-up-server",
+    "modules": {
+      "LED Bar": { "type": "nascent-ledbar" }
+    }
+}
