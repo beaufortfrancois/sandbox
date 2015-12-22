@@ -1,4 +1,4 @@
-// Updated version of Finger.
+// Modified version of Finger.
 // Credits: https://github.com/aino/finger
 
 (function(window) {
@@ -185,7 +185,6 @@
 
     show: function( index ) {
       if ( index != this.index ) {
-        console.log('show', index);
         this.config.onchange.call(this, index)
       }
       this.to = -( index*this.width )
