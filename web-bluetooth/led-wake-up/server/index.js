@@ -91,7 +91,7 @@ function timer() {
       now.getMinutes() === wakeUpTime.getMinutes()) {
     ledbar.setAllLeds(wakeUpColor[0], wakeUpColor[1], wakeUpColor[2]);
     clearInterval(timerInterval);
-    shutdownTimeout = setTimeout(shutdown, 1e3 * 60); // 1min
+    shutdownTimeout = setTimeout(shutdown, 1e3 * 60 * 5); // 5min
   }
 }
 
