@@ -130,7 +130,7 @@ bleno.on('advertisingStart', function(error) {
 
 function startBeacon() {
   console.log("Starting beacon.");
-  eddystone.advertiseUrl('https://goo.gl/bsGHvl', {name: utils.DEVICE_NAME});
+  eddystone.advertiseUrl('https://goo.gl/BnZY2y', {name: utils.DEVICE_NAME});
 }
 
 bleno.on('accept', function(address) {
