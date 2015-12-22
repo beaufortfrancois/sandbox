@@ -24,7 +24,7 @@ document.getElementById('connect').addEventListener('click', function() {
   .then(function(service) {
     // FIXME: Use Promise.all when Android handles it properly.
     return service.getCharacteristic(0xEC01).then(handleColorCharacteristic)
-    .then(() => service.getCharacteristic(0xEC02).then(handleWakeUpDelayCharacteristic));
+    .then(() => service.getCharacteristic(0xEC02).then(handleWakeUpTimeCharacteristic));
   })
   .then(function() {
     document.getElementById('step1').hidden = true;
@@ -75,29 +75,28 @@ function displayWakeUpTime(time) {
   });
 }
 
-function handleWakeUpDelayCharacteristic(characteristic) {
+function handleWakeUpTimeCharacteristic(characteristic) {
   return characteristic.readValue()
   .then(buffer => {
     // Set alarm time.
+    var encoder = new TextEncoder('utf-8');
     var data = new DataView(buffer);
     var wakeUpTime = new Date();
-    if (data.byteLength == 3) {
-      wakeUpTime.setHours(data.getUint8(0) + wakeUpTime.getHours());
-      wakeUpTime.setMinutes(data.getUint8(1) + wakeUpTime.getMinutes());
-      wakeUpTime.setSeconds(data.getUint8(2) + wakeUpTime.getSeconds());
+    if (data.byteLength) {
+      var decoder = new TextDecoder('utf-8');
+      wakeUpTime = new Date(decoder.decode(data) * 1000);
     } else {
       wakeUpTime.setHours(7)
       wakeUpTime.setMinutes(0);
       wakeUpTime.setSeconds(0);
-      var delay = exports.getTimeDiff(new Date(), wakeUpTime);
-      characteristic.writeValue(new Uint8Array([delay.hours, delay.minutes, delay.seconds]));
+      console.log(wakeUpTime);
+      characteristic.writeValue(encoder.encode(wakeUpTime.getTime() / 1000));
     }
     displayWakeUpTime(wakeUpTime);
 
     document.getElementById('forward').addEventListener('click', function() {
       wakeUpTime.setMinutes(wakeUpTime.getMinutes() + minutesStep);
-      var delay = exports.getTimeDiff(new Date(), wakeUpTime);
-      characteristic.writeValue(new Uint8Array([delay.hours, delay.minutes, delay.seconds]))
+      characteristic.writeValue(encoder.encode(wakeUpTime.getTime() / 1000))
       .then(() => {
         displayWakeUpTime(wakeUpTime);
       })
@@ -107,8 +106,7 @@ function handleWakeUpDelayCharacteristic(characteristic) {
     });
     document.getElementById('backward').addEventListener('click', function() {
       wakeUpTime.setMinutes(wakeUpTime.getMinutes() - minutesStep);
-      var delay = exports.getTimeDiff(new Date(), wakeUpTime);
-      characteristic.writeValue(new Uint8Array([delay.hours, delay.minutes, delay.seconds]))
+      characteristic.writeValue(encoder.encode(wakeUpTime.getTime() / 1000))
       .then(() => {
         displayWakeUpTime(wakeUpTime);
       })

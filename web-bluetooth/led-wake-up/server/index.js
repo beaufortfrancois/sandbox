@@ -4,6 +4,7 @@ var ledbar = Nascent.getModule('LED Bar');
 var util = require('util');
 var eddystone = require('eddystone-beacon');
 var bleno = require('eddystone-beacon/node_modules/bleno');
+var StringDecoder = require('string_decoder').StringDecoder;
 
 var utils = require('./utils.js');
 
@@ -46,11 +47,11 @@ function WakeUpColorCharacteristic() {
 
 util.inherits(WakeUpColorCharacteristic, bleno.Characteristic);
 
-function WakeUpDelayCharacteristic() {
+function WakeUpTimeCharacteristic() {
   var self = this;
 
   self.init = function() {
-    WakeUpDelayCharacteristic.super_.call(self, {
+    WakeUpTimeCharacteristic.super_.call(self, {
       uuid: 'ec02',
       properties: ['read', 'write']
     });
@@ -58,18 +59,15 @@ function WakeUpDelayCharacteristic() {
 
   self.onReadRequest = function(offset, callback) {
     if (wakeUpTime) {
-      var wakeUpDelay = utils.getTimeDiff(new Date(), wakeUpTime);
-      callback(self.RESULT_SUCCESS, new Buffer([wakeUpDelay.hours, wakeUpDelay.minutes, wakeUpDelay.seconds]));
+      callback(self.RESULT_SUCCESS, new Buffer('' + wakeUpTime.getTime() / 1000));
     } else {
       callback(self.RESULT_SUCCESS, new Buffer(''));
     }
   };
 
   self.onWriteRequest = function(data, offset, withoutResponse, callback) {
-    wakeUpTime = new Date();
-    wakeUpTime.setHours(data.readUInt8(0) + wakeUpTime.getHours());
-    wakeUpTime.setMinutes(data.readUInt8(1) + wakeUpTime.getMinutes());
-    wakeUpTime.setSeconds(data.readUInt8(2) + wakeUpTime.getSeconds());
+    var decoder = new StringDecoder('utf-8');
+    wakeUpTime = new Date(parseInt(decoder.write(data)) * 1000);
     callback(self.RESULT_SUCCESS);
     confirmActionToUser();
     clearInterval(timerInterval);
@@ -80,7 +78,7 @@ function WakeUpDelayCharacteristic() {
   self.init();
 }
 
-util.inherits(WakeUpDelayCharacteristic, bleno.Characteristic);
+util.inherits(WakeUpTimeCharacteristic, bleno.Characteristic);
 
 function confirmActionToUser() {
   // Show user-defined color for 500ms.
@@ -123,7 +121,7 @@ bleno.on('advertisingStart', function(error) {
         uuid: 'ec00',
         characteristics: [
           new WakeUpColorCharacteristic(),
-          new WakeUpDelayCharacteristic()
+          new WakeUpTimeCharacteristic()
         ]
       })
     ]);
