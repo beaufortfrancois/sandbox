@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Solowheel Xtreme Demo</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+  </head>
+  <body>
+    <button id="connect">Connect</button>
+    <pre id="device"></pre>
+    <pre id="info"></pre>
+    <script>
+      document.querySelector('#connect').addEventListener('click', function() {
+        navigator.bluetooth.requestDevice({ filters: [{ name: 'EXTREME' }] })
+        .then(device => {
+          document.querySelector('#device').textContent = device.id;
+          return device.connectGATT();
+        })
+        .then(gattServer => gattServer.getPrimaryService(0xFFF0))
+        .then(service => service.getCharacteristic(0xFFF7))
+        .then(characteristic => {
+          characteristic.addEventListener('characteristicvaluechanged', onCharacteristicValueChanged);
+          return characteristic.startNotifications();
+        })
+        .catch(error => {
+          console.error('Argh!', error);
+        });
+      });
+
+      function onCharacteristicValueChanged(event) {
+        var textDecoder = new TextDecoder('utf-8');
+        var data = textDecoder.decode(event.target.value).split(',');
+	if (data.length != 3 || data[1] == '00000') {
+          return;
+        }
+        var info = {
+          speed: parseInt(data[0]) * 0.036 + 'km/h',
+          battery: parseInt(data[1]) / 10 + 'v',
+          direction: parseInt(data[2]) ? 'forward' : 'backward',
+        }
+        document.querySelector('#info').textContent = JSON.stringify(info, null, 2);
+      };
+    </script>
+  </body>
+</html>
