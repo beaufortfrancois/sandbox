@@ -1,6 +1,3 @@
-const DEVICE_NAME = 'Wake Up';
-process.env['BLENO_DEVICE_NAME'] = DEVICE_NAME
-
 var Nascent = require('nascent');
 var ledbar = Nascent.getModule('LED Bar');
 
@@ -8,9 +5,14 @@ var util = require('util');
 var eddystone = require('eddystone-beacon');
 var bleno = require('eddystone-beacon/node_modules/bleno');
 
-var wakeUpColor = [0, 255, 0];
+var utils = require('./utils.js');
+
+var wakeUpColor = utils.getDefaultColor();
 var wakeUpTime = null;
 var timerInterval = null;
+var shutdownTimeout = null;
+
+process.env['BLENO_DEVICE_NAME'] = utils.DEVICE_NAME;
 
 function WakeUpColorCharacteristic() {
   var self = this;
@@ -23,8 +25,8 @@ function WakeUpColorCharacteristic() {
   };
 
   self.onReadRequest = function(offset, callback) {
-     var data = new Buffer(wakeUpColor);
-     callback(self.RESULT_SUCCESS, data);
+    var data = new Buffer(wakeUpColor);
+    callback(self.RESULT_SUCCESS, data);
   };
 
   self.onWriteRequest = function(data, offset, withoutResponse, callback) {
@@ -32,9 +34,9 @@ function WakeUpColorCharacteristic() {
       wakeUpColor[0] = data.readUInt8(0);
       wakeUpColor[1] = data.readUInt8(1);
       wakeUpColor[2] = data.readUInt8(2);
-      callback(this.RESULT_SUCCESS);
+      callback(self.RESULT_SUCCESS);
     } else {
-      callback(this.RESULT_ERROR);
+      callback(self.RESULT_ERROR);
     }
   };
  
@@ -47,15 +49,16 @@ function WakeUpDelayCharacteristic() {
   var self = this;
 
   self.init = function() {
-     WakeUpDelayCharacteristic.super_.call(self, {
-       uuid: 'ec02',
-       properties: ['read', 'write']
-     });
+    WakeUpDelayCharacteristic.super_.call(self, {
+      uuid: 'ec02',
+      properties: ['read', 'write']
+    });
   };
 
   self.onReadRequest = function(offset, callback) {
-    if (wakeUpDelay) {
-      callback(self.RESULT_SUCCESS, new Buffer(wakeUpDelay));
+    if (wakeUpTime) {
+      var wakeUpDelay = utils.getTimeDiff(new Date(), wakeUpTime);
+      callback(self.RESULT_SUCCESS, new Buffer([wakeUpDelay.hours, wakeUpDelay.minutes, wakeUpDelay.seconds]));
     } else {
       callback(self.RESULT_SUCCESS, new Buffer(''));
     }
@@ -67,8 +70,8 @@ function WakeUpDelayCharacteristic() {
     wakeUpTime.setMinutes(data.readUInt8(1) + wakeUpTime.getMinutes());
     wakeUpTime.setSeconds(data.readUInt8(2) + wakeUpTime.getSeconds());
     callback(self.RESULT_SUCCESS);
-    console.log(wakeUpTime);
     clearInterval(timerInterval);
+    clearTimeout(shutdownTimeout);
     timerInterval = setInterval(timer, 1000);
   };
  
@@ -77,13 +80,18 @@ function WakeUpDelayCharacteristic() {
 
 util.inherits(WakeUpDelayCharacteristic, bleno.Characteristic);
 
+function shutdown() {
+  ledbar.turnOffLeds();
+  clearTimeout(shutdownTimeout);
+}
+
 function timer() {
   var now = new Date();
   if (now.getHours() == wakeUpTime.getHours() && 
       now.getMinutes() === wakeUpTime.getMinutes()) {
     ledbar.setAllLeds(wakeUpColor[0], wakeUpColor[1], wakeUpColor[2]);
     clearInterval(timerInterval);
-    // TODO: Shutdown after some time...
+    shutdownTimeout = setTimeout(shutdown, 1e3 * 60); // 1min
   }
 }
 
@@ -91,7 +99,7 @@ bleno.on('stateChange', function(state) {
   console.log('stateChange: ' + state);
 
   if (state === 'poweredOn') {
-    bleno.startAdvertising(DEVICE_NAME, ['ec00']);
+    bleno.startAdvertising(utils.DEVICE_NAME, ['ec00']);
     startBeacon();
   } else {
     bleno.stopAdvertising();
@@ -115,7 +123,7 @@ bleno.on('advertisingStart', function(error) {
 
 function startBeacon() {
   console.log("Starting beacon.");
-  eddystone.advertiseUrl('https://goo.gl/bsGHvl', {name: DEVICE_NAME});
+  eddystone.advertiseUrl('https://goo.gl/bsGHvl', {name: utils.DEVICE_NAME});
 }
 
 bleno.on('accept', function(address) {

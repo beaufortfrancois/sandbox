@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>LED Wake Up Demo</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div id="container">
+      <div id="step1">
+        <div class="bottom box">
+          <button id="connect">connect</button>
+          <div id="status"></div>
+        </div>
+      </div>
+      <div id="step2" hidden>
+        <div class="top box">
+          <div id="swipe">
+            <div class="colors">
+              <div class="color">Wake up at<br><span class="time">7:00 AM</span></div>
+              <div class="color">Wake up at<br><span class="time">7:00 AM</span></div>
+              <div class="color">Wake up at<br><span class="time">7:00 AM</span></div>
+              <div class="color">Wake up at<br><span class="time">7:00 AM</span></div>
+              <div class="color">Wake up at<br><span class="time">7:00 AM</span></div>
+            </div>
+          </div>
+          <div id="buttons">
+            <button id="backward">-</button>
+            <button id="forward">+</button>
+          </div>
+        </div>
+      </div>
+      <div id="error" hidden></div>
+    </div>
+    <script src="server/utils.js"></script>
+    <script src="swipe.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

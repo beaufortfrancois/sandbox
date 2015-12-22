@@ -1,0 +1,156 @@
+
+*{margin:0;padding:0;}
+#swipe{width:256px;height:256px;overflow:hidden;}
+#swipe::after {
+  content: "";
+  background: url(shadow.png);
+  background-size: 256px 256px;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  width: 256px;
+  height: 256px;
+  opacity: .8;
+}
+.colors{width:1280px;overflow:hidden;height:256px;}
+.color{float:left;width:256px;height:256px;text-align:center;color:#fff;font:bold 30px sans-serif;padding-top: 113px;}
+.blue{color:blue;}
+.green{color:green;}
+.pink{color:pink;}
+.red{color:red;}
+
+img {
+  font-size: 12px;
+  max-width: 100%;
+}
+
+#container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background-color: #1F1F1F;
+  font-family: Roboto;
+}
+
+.top {
+  bottom: 50%;
+}
+
+.bottom {
+  top: 50%;
+}
+
+.box {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  margin: 0 auto;
+  font-size: 38px;
+  max-width: 256px;
+  padding: 12px 0;
+  -webkit-user-select: none;
+  margin-top: 12px;
+  padding-top: 24px;
+  border-radius: 4px;
+  height: 128px;
+}
+
+button {
+  border: 0;
+  font-family: Roboto;
+  color: #212121;
+  margin: 0 12px;
+  outline: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  line-height: 48px;
+  font-size: 24px;
+  will-change: background;
+  transition: background .2s ease-in-out;
+}
+
+#connect {
+  width: 128px;
+  height: 128px;
+  background-color: #2196F3;
+  color: white;
+}
+#status {
+  color: #ECEFF1;
+  font-size: large;
+  margin-top: 24px;
+}
+
+.big {
+  font-size: 64px !important;
+  height: 64px !important;
+  width: 64px !important;
+  line-height: 64px !important;
+  display: block;
+  margin: 0 auto;
+  border: 0 !important;
+}
+
+.gem {
+  border-radius: 50%;
+  padding: 4px;
+  height: 16px;
+  width: 16px;
+  display: inline-block;
+  border: 2px solid #212121;;
+}
+
+.selected {
+  border: 2px solid #ECEFF1;
+}
+
+#message {
+  background: transparent;
+  border: 1px solid #ffffff;
+  padding: 0 8px 0 8px;
+  line-height: 24px;
+  font-family: Roboto;
+  color: #ECEFF1;
+  outline: none;
+  line-height: 32px;
+  border-radius: 16px;
+  width: 200px;
+}
+
+#open {
+  margin-top: -42px;
+}
+
+#openedMessage {
+  position: absolute;
+  background-color: white;
+  border: 2px solid;
+  padding: 4px;
+  font-size: small;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.right {
+  right: 0;
+}
+
+#error {
+  background: #D32F2F;
+  top: 0;
+  color: white;
+  position: fixed;
+  width: 100%;
+  line-height: 36px;
+  padding: 0 4px;
+}
+
+.time {
+  text-transform: uppercase;
+}
