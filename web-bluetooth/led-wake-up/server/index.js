@@ -34,6 +34,7 @@ function WakeUpColorCharacteristic() {
       wakeUpColor[0] = data.readUInt8(0);
       wakeUpColor[1] = data.readUInt8(1);
       wakeUpColor[2] = data.readUInt8(2);
+      confirmActionToUser();
       callback(self.RESULT_SUCCESS);
     } else {
       callback(self.RESULT_ERROR);
@@ -70,6 +71,7 @@ function WakeUpDelayCharacteristic() {
     wakeUpTime.setMinutes(data.readUInt8(1) + wakeUpTime.getMinutes());
     wakeUpTime.setSeconds(data.readUInt8(2) + wakeUpTime.getSeconds());
     callback(self.RESULT_SUCCESS);
+    confirmActionToUser();
     clearInterval(timerInterval);
     clearTimeout(shutdownTimeout);
     timerInterval = setInterval(timer, 1000);
@@ -79,6 +81,14 @@ function WakeUpDelayCharacteristic() {
 }
 
 util.inherits(WakeUpDelayCharacteristic, bleno.Characteristic);
+
+function confirmActionToUser() {
+  // Show user-defined color for 500ms.
+  ledbar.setAllLeds(wakeUpColor[0], wakeUpColor[1], wakeUpColor[2]);
+  setTimeout(function() {
+    ledbar.turnOffLeds();
+  }, 500);
+}
 
 function shutdown() {
   ledbar.turnOffLeds();
@@ -90,7 +100,6 @@ function timer() {
   if (now.getHours() == wakeUpTime.getHours() && 
       now.getMinutes() === wakeUpTime.getMinutes()) {
     ledbar.setAllLeds(wakeUpColor[0], wakeUpColor[1], wakeUpColor[2]);
-    clearInterval(timerInterval);
     shutdownTimeout = setTimeout(shutdown, 1e3 * 60 * 5); // 5min
   }
 }
