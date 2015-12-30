@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Sound Tracker</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+  </head>
+  <body>
+    <div>
+      <div id="step1">
+        <div>
+          <button id="connect">connect</button>
+          <div id="status"></div>
+        </div>
+      </div>
+      <div id="step2" hidden>
+        <div>
+          <input type="number"><button id="updateThreshold">Update Threshold</button>
+          <button id="clearLogs">Clear Logs</button>
+	  <div id="log"></div>
+        </div>
+      </div>
+      <div id="error" hidden></div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
