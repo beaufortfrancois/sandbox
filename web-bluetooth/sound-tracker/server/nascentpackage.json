@@ -1,0 +1,8 @@
+{
+    "name": "sound-tracker-server",
+    "version": "0.0.1",
+    "app_id": "com.nascentobjects.sound-tracker-server",
+    "modules": {
+        "Microphone": { "type": "nascent-microphone" }
+    }
+}

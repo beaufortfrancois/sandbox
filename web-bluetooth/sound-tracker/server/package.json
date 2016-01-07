@@ -1,0 +1,12 @@
+{
+  "name": "sound-tracker-server",
+  "version": "0.0.1",
+  "description": "",
+  "main": "nascentapp.js",
+  "author": "Nascent Objects",
+  "dependencies": {
+    "eddystone-beacon": "don/node-eddystone-beacon.git",
+    "nascent": "git+ssh://git@bitbucket.org/nascentobjects/nascent.git",
+    "nascent-microphone": "git+ssh://git@bitbucket.org/nascentobjects/nascent-microphone.git"
+  }
+}
