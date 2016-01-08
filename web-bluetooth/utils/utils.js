@@ -1,4 +1,4 @@
-BluetoothGATTCharacteristic.prototype.readFloat32Value = function(byteOffset, littleEndian = false) {
+BluetoothGATTCharacteristic.prototype.readFloat32Value = function(byteOffset, littleEndian = true) {
   return this.readValue()
   .then(buffer => {
     var data = new DataView(buffer);
@@ -6,7 +6,7 @@ BluetoothGATTCharacteristic.prototype.readFloat32Value = function(byteOffset, li
   });
 };
 
-BluetoothGATTCharacteristic.prototype.readFloat64Value = function(byteOffset, littleEndian = false) {
+BluetoothGATTCharacteristic.prototype.readFloat64Value = function(byteOffset, littleEndian = true) {
   return this.readValue()
   .then(buffer => {
     var data = new DataView(buffer);
@@ -14,7 +14,7 @@ BluetoothGATTCharacteristic.prototype.readFloat64Value = function(byteOffset, li
   });
 };
 
-BluetoothGATTCharacteristic.prototype.readInt16Value = function(byteOffset, littleEndian = false) {
+BluetoothGATTCharacteristic.prototype.readInt16Value = function(byteOffset, littleEndian = true) {
   return this.readValue()
   .then(buffer => {
     var data = new DataView(buffer);
@@ -22,7 +22,7 @@ BluetoothGATTCharacteristic.prototype.readInt16Value = function(byteOffset, litt
   });
 };
 
-BluetoothGATTCharacteristic.prototype.readInt32Value = function(byteOffset, littleEndian = false) {
+BluetoothGATTCharacteristic.prototype.readInt32Value = function(byteOffset, littleEndian = true) {
   return this.readValue()
   .then(buffer => {
     var data = new DataView(buffer);
@@ -47,7 +47,7 @@ BluetoothGATTCharacteristic.prototype.readStringValue = function(utfLabel = 'utf
   });
 };
 
-BluetoothGATTCharacteristic.prototype.readUint16Value = function(byteOffset, littleEndian = false) {
+BluetoothGATTCharacteristic.prototype.readUint16Value = function(byteOffset, littleEndian = true) {
   return this.readValue()
   .then(buffer => {
     var data = new DataView(buffer);
@@ -55,7 +55,7 @@ BluetoothGATTCharacteristic.prototype.readUint16Value = function(byteOffset, lit
   });
 };
 
-BluetoothGATTCharacteristic.prototype.readUint32Value = function(byteOffset, littleEndian = false) {
+BluetoothGATTCharacteristic.prototype.readUint32Value = function(byteOffset, littleEndian = true) {
   return this.readValue()
   .then(buffer => {
     var data = new DataView(buffer);
