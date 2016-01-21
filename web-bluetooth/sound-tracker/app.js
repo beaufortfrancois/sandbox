@@ -35,7 +35,7 @@ function handleSoundCharacteristic(characteristic) {
 
 function onSoundChanged(event) {
   var now = new Date();
-  var data = new DataView(event.target.value);
+  var data = event.target.value;
   var sound = data.getUint32(0, /*littleEndian=*/true);
   var line = document.createElement('pre');
   line.textContent = now.toLocaleString() + ' [' + Math.round(sound / 1000) + ']';
@@ -44,8 +44,7 @@ function onSoundChanged(event) {
 
 function handleThresholdCharacteristic(characteristic) {
   return characteristic.readValue()
-  .then(function(value) {
-    var data = new DataView(value);
+  .then(function(data) {
     var threshold = data.getUint32(0, /*littleEndian=*/true);
     document.querySelector('[type=number]').value = threshold;
     document.querySelector('#updateThreshold').addEventListener('click', function() {

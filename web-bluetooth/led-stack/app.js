@@ -30,8 +30,7 @@ document.getElementById('connect').addEventListener('click', function() {
 
 function handleColorCharacteristic(characteristic) {
   return characteristic.readValue()
-  .then(buffer => {
-    var data = new DataView(buffer);
+  .then(data => {
     var r = ('00' + data.getUint8(0).toString(16)).slice(-2).toUpperCase();
     var g = ('00' + data.getUint8(1).toString(16)).slice(-2).toUpperCase();
     var b = ('00' + data.getUint8(2).toString(16)).slice(-2).toUpperCase();

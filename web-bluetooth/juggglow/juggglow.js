@@ -108,8 +108,7 @@
     _readCharacteristicValue(characteristicUuid) {
       let characteristic = this._characteristics.get(characteristicUuid);
       return characteristic.readValue()
-      .then(buffer => {
-        let data = new DataView(buffer);
+      .then(data => {
         if (this._debug) {
           for (var i = 0, a = []; i < data.byteLength; i++) { a.push(data.getUint8(i)); }
           console.debug('READ', characteristic.uuid, a);

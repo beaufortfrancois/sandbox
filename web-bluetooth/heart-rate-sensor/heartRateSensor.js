@@ -50,8 +50,7 @@
     stopNotificationsHeartRateMeasurement() {
       return this._stopNotifications('heart_rate_measurement');
     }
-    parseHeartRate(buffer) {
-      let data = new DataView(buffer);
+    parseHeartRate(data) {
       let flags = data.getUint8(0);
       let rate16Bits = flags & 0x1;
       let result = {};
@@ -94,8 +93,7 @@
     }
     _readCharacteristicValue(characteristicUuid) {
       let characteristic = this._characteristics.get(characteristicUuid);
-      return characteristic.readValue()
-      .then(buffer => new DataView(buffer));
+      return characteristic.readValue();
     }
     _writeCharacteristicValue(characteristicUuid, value) {
       let characteristic = this._characteristics.get(characteristicUuid);

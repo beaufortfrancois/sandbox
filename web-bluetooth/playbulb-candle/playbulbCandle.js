@@ -98,7 +98,7 @@
       return this.gattServer.getPrimaryService('battery_service')
       .then(service => service.getCharacteristic('battery_level'))
       .then(characteristic => characteristic.readValue())
-      .then(buffer => new DataView(buffer).getUint8(0));
+      .then(buffer => buffer.getUint8(0));
     }
 
     /* Device Info Service */
@@ -142,8 +142,7 @@
 
     /* Utils */
 
-    _decodeString(buffer) {
-      let data = new DataView(buffer);
+    _decodeString(data) {
       return decoder.decode(data);
     }
     _encodeString(data) {

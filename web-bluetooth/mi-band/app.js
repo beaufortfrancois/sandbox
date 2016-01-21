@@ -23,7 +23,7 @@ statusText.addEventListener('click', function() {
 
 function handleSteps(stepsCharacteristic) {
   stepsCharacteristic.addEventListener('characteristicvaluechanged', event => {
-    var data = new DataView(event.target.value);
+    var data = event.target.value;
     var steps = miBand.parseSteps(data);
 
     var today = new Date().toJSON().substr(0, 10);

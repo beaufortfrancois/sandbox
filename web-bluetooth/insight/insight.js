@@ -88,8 +88,7 @@
     stopNotificationsDeckCard() {
       return this._stopNotifications(DECK_CARD_UUID);
     }
-    parseDeckCard(buffer) {
-      let data = new DataView(buffer);
+    parseDeckCard(data) {
       let code = data.getUint8(0).toString(16);
       return VALUES.get(code.slice(1, 2)) + SUITES.get(code.slice(0,1));
     }
@@ -143,8 +142,7 @@
     _readCharacteristicValue(characteristicUuid) {
       let characteristic = this._characteristics.get(characteristicUuid);
       return characteristic.readValue()
-      .then(buffer => {
-        let data = new DataView(buffer);
+      .then(data => {
         if (this._debug) {
           for (var i = 0, a = []; i < data.byteLength; i++) { a.push(data.getUint8(i)); }
           console.debug('READ', characteristic.uuid, a);

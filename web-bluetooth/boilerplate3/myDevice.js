@@ -74,8 +74,7 @@ class DeviceInformationService extends BluetoothService {
 
   /* Utils */
 
-  _decodeString(buffer) {
-    let data = new DataView(buffer);
+  _decodeString(data) {
     let decoder = new TextDecoder('utf-8');
     return decoder.decode(data);
   }
@@ -88,8 +87,7 @@ class HeartRateService extends BluetoothService {
   }
   getBodySensorLocation() {
     return this._readCharacteristicValue('body_sensor_location')
-    .then(buffer => {
-      let data = new DataView(buffer);
+    .then(data => {
       let bodySensorLocation = data.getUint8(0);
       switch (bodySensorLocation) {
         case 0: return 'Other';

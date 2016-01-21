@@ -37,9 +37,8 @@ document.getElementById('connect').addEventListener('click', function() {
 
 function handleColorCharacteristic(characteristic) {
   return characteristic.readValue()
-  .then(buffer => {
+  .then(data => {
     // Set user color.
-    var data = new DataView(buffer);
     var r = ('00' + data.getUint8(0).toString(16)).slice(-2).toUpperCase();
     var g = ('00' + data.getUint8(1).toString(16)).slice(-2).toUpperCase();
     var b = ('00' + data.getUint8(2).toString(16)).slice(-2).toUpperCase();
@@ -77,10 +76,9 @@ function displayWakeUpTime(time) {
 
 function handleWakeUpTimeCharacteristic(characteristic) {
   return characteristic.readValue()
-  .then(buffer => {
+  .then(data => {
     // Set alarm time.
     var encoder = new TextEncoder('utf-8');
-    var data = new DataView(buffer);
     var wakeUpTime = new Date();
     if (data.byteLength) {
       var decoder = new TextDecoder('utf-8');

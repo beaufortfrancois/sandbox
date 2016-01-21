@@ -42,8 +42,7 @@ class BluetoothService {
   }
   _readCharacteristicValue(characteristicName) {
     let characteristicUuid = this._characteristicUuids.get(characteristicName);
-    return this._characteristics.get(characteristicUuid).readValue()
-    .then(buffer => new DataView(buffer));
+    return this._characteristics.get(characteristicUuid).readValue();
   }
   _writeCharacteristicValue(characteristicName, value) {
     let characteristicUuid = this._characteristicUuids.get(characteristicName);
