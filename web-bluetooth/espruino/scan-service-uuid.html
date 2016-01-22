@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Espruino</title>
+  </head>
+  <body>
+    <button>Test</button>
+  </body>
+  <script>
+    document.querySelector('button').addEventListener('click', function() {
+      var NORDIC_SERVICE = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+      navigator.bluetooth.requestDevice({filters:[{services:[ NORDIC_SERVICE ]}]})
+      .then(function(device) {
+        console.log(device);
+        return device.connectGATT();
+      })
+      .then(function(gattServer) {
+        console.log(gattServer);
+      });
+    });
+  </script>
+</html>
+
