@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eddystone-URL Config</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+  </head>
+  <body>
+
+    <button>Scan Eddystone-URL Beacon in Config Mode</button>
+    <script>
+
+      const EDDYSTONE_URL_CONFIG_SERVICE_UUID                      = 'ee0c2080-8786-40ba-ab96-99b91ac981d8';
+
+      const LOCK_STATE_CHARACTERISTIC_UUID                         = 'ee0c2081-8786-40ba-ab96-99b91ac981d8';
+      const LOCK_CHARACTERISTIC_UUID                               = 'ee0c2082-8786-40ba-ab96-99b91ac981d8';
+      const UNLOCK_CHARACTERISTIC_UUID                             = 'ee0c2083-8786-40ba-ab96-99b91ac981d8';
+      const URI_DATA_CHARACTERISTIC_UUID                           = 'ee0c2084-8786-40ba-ab96-99b91ac981d8';
+      const FLAGS_CHARACTERISTIC_UUID                              = 'ee0c2085-8786-40ba-ab96-99b91ac981d8';
+      const ADVERTISED_TX_POWER_LEVELS_CHARACTERISTIC_UUID         = 'ee0c2086-8786-40ba-ab96-99b91ac981d8';
+      const TX_POWER_MODE_CHARACTERISTIC_UUID                      = 'ee0c2087-8786-40ba-ab96-99b91ac981d8';
+      const BEACON_PERIOD_CHARACTERISTIC_UUID                      = 'ee0c2088-8786-40ba-ab96-99b91ac981d8';
+      const RESET_CHARACTERISTIC_UUID                              = 'ee0c2089-8786-40ba-ab96-99b91ac981d8';
+
+      var lockStateCharacteristic,
+          lockCharacteristic,
+          unlockCharacteristic,
+          uriDataCharacteristic,
+          flagsCharacteristic,
+          advertisedTxPowerLevelsCharacteristic,
+          txPowerModeCharacteristic,
+          beaconPeriodCharacteristic,
+          resetCharacteristic;
+
+      document.querySelector('button').addEventListener('click', function() {
+
+        let options = {filters:[{services:[ EDDYSTONE_URL_CONFIG_SERVICE_UUID ]}]};
+        navigator.bluetooth.requestDevice(options)
+        .then(device => device.connectGATT())
+        .then(gattServer => gattServer.getPrimaryService(EDDYSTONE_URL_CONFIG_SERVICE_UUID))
+        .then(service => {
+          console.log(service);
+          return Promise.all([
+            service.getCharacteristic(LOCK_STATE_CHARACTERISTIC_UUID),
+            service.getCharacteristic(LOCK_CHARACTERISTIC_UUID),
+            service.getCharacteristic(UNLOCK_CHARACTERISTIC_UUID),
+            service.getCharacteristic(URI_DATA_CHARACTERISTIC_UUID),
+            service.getCharacteristic(FLAGS_CHARACTERISTIC_UUID),
+            service.getCharacteristic(ADVERTISED_TX_POWER_LEVELS_CHARACTERISTIC_UUID),
+            service.getCharacteristic(TX_POWER_MODE_CHARACTERISTIC_UUID),
+            service.getCharacteristic(BEACON_PERIOD_CHARACTERISTIC_UUID),
+            service.getCharacteristic(RESET_CHARACTERISTIC_UUID),
+          ]);
+        })
+        .then(characteristics => {
+          console.log(characteristics);
+          [
+            lockStateCharacteristic,
+            lockCharacteristic,
+            unlockCharacteristic,
+            uriDataCharacteristic,
+            flagsCharacteristic,
+            advertisedTxPowerLevelsCharacteristic,
+            txPowerModeCharacteristic,
+            beaconPeriodCharacteristic,
+            resetCharacteristic
+          ] = characteristics;
+
+          lockStateCharacteristic.readValue(data => {
+            console.log(data);
+          });
+          uriDataCharacteristic.readValue(data => {
+            console.log(data);
+          });
+          flagsCharacteristic.readValue(data => {
+            console.log(data);
+          });
+          advertisedTxPowerLevelsCharacteristic.readValue(data => {
+            console.log(data);
+          });
+          txPowerModeCharacteristic.readValue(data => {
+            console.log(data);
+          });
+          beaconPeriodCharacteristic.readValue(data => {
+            console.log(data);
+          });
+
+        })
+        .catch(e => {
+          console.log(e);
+        });
+      });
+    </script>
+  </body>
+</html>
