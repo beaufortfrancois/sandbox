@@ -8,7 +8,11 @@
   </head>
   <body>
 
-    <button>Scan Eddystone-URL Beacon in Config Mode</button>
+    <pre>Based on <a href="https://github.com/google/eddystone/blob/master/eddystone-url/docs/config-service-spec.md">Eddystone-URL Configuration Service</a> Revision v2r2</pre>
+
+    <button>Read Eddystone-URL Config Mode Beacon</button>
+    <div id="log"></div>
+
     <script>
 
       const EDDYSTONE_URL_CONFIG_SERVICE_UUID                      = 'ee0c2080-8786-40ba-ab96-99b91ac981d8';
@@ -34,13 +38,13 @@
           resetCharacteristic;
 
       document.querySelector('button').addEventListener('click', function() {
+        document.querySelector('#log').textContent = '';
 
         let options = {filters:[{services:[ EDDYSTONE_URL_CONFIG_SERVICE_UUID ]}]};
         navigator.bluetooth.requestDevice(options)
         .then(device => device.connectGATT())
         .then(gattServer => gattServer.getPrimaryService(EDDYSTONE_URL_CONFIG_SERVICE_UUID))
         .then(service => {
-          console.log(service);
           return Promise.all([
             service.getCharacteristic(LOCK_STATE_CHARACTERISTIC_UUID),
             service.getCharacteristic(LOCK_CHARACTERISTIC_UUID),
@@ -54,7 +58,6 @@
           ]);
         })
         .then(characteristics => {
-          console.log(characteristics);
           [
             lockStateCharacteristic,
             lockCharacteristic,
@@ -67,30 +70,101 @@
             resetCharacteristic
           ] = characteristics;
 
-          lockStateCharacteristic.readValue(data => {
-            console.log(data);
-          });
-          uriDataCharacteristic.readValue(data => {
-            console.log(data);
-          });
-          flagsCharacteristic.readValue(data => {
-            console.log(data);
-          });
-          advertisedTxPowerLevelsCharacteristic.readValue(data => {
-            console.log(data);
-          });
-          txPowerModeCharacteristic.readValue(data => {
-            console.log(data);
-          });
-          beaconPeriodCharacteristic.readValue(data => {
-            console.log(data);
+          return lockStateCharacteristic.readValue().then(value => {
+            value = value.buffer ? value : new DataView(value);
+            if (value.getUint8(0) == 1) {
+              log('Lock State:    locked');
+            } else {
+              log('Lock State:    unlocked');
+            }
+          })
+          .then(() => {
+
+          return uriDataCharacteristic.readValue().then(value => {
+            value = value.buffer ? value : new DataView(value);
+            log('URI Data:      ' + decodeURL(value));
+          })
+          })
+          .then(() => {
+
+          return flagsCharacteristic.readValue().then(value => {
+            value = value.buffer ? value : new DataView(value);
+            log('Flags value:   0x' + value.getUint8(0).toString(16));
+          })
+          })
+          .then(() => {
+
+          return advertisedTxPowerLevelsCharacteristic.readValue().then(value => {
+            value = value.buffer ? value : new DataView(value);
+            log('Advertised TX Power Levels: \n\n' +
+                   '     Lowest:   ' + value.getInt8(0) + ' dBm \n' +
+                   '     Low:      ' + value.getInt8(1) + ' dBm \n' +
+                   '     Medium:   ' + value.getInt8(2) + ' dBm \n' +
+                   '     High:     ' + value.getInt8(3) + ' dBm');
+          })
+          })
+          .then(() => {
+
+          return txPowerModeCharacteristic.readValue().then(value => {
+            value = value.buffer ? value : new DataView(value);
+            const txPowerModes = ['TX_POWER_MODE_LOWEST', 'TX_POWER_MODE_LOW', 'TX_POWER_MODE_MEDIUM', 'TX_POWER_MODE_HIGH'];
+            log('TX Power Mode: ' + txPowerModes[value.getUint8(0)]);
+          })
+          })
+          .then(() => {
+
+          return beaconPeriodCharacteristic.readValue().then(value => {
+            value = value.buffer ? value : new DataView(value);
+            log('Beacon Period: ' + value.getUint16(0, true /* littleEndian */ ) + ' ms');
+          })
           });
 
         })
         .catch(e => {
-          console.log(e);
+          log(e);
         });
       });
+
+      function decodeURL(value) {
+        const prefixes = [
+          "http://www.",
+          "https://www.",
+          "http://",
+          "https://"
+        ];
+        const suffixes = [
+          ".com/",
+          ".org/",
+          ".edu/",
+          ".net/",
+          ".info/",
+          ".biz/",
+          ".gov/",
+          ".com",
+          ".org",
+          ".edu",
+          ".net",
+          ".info",
+          ".biz",
+          ".gov"
+        ];
+
+        var url = prefixes[value.getUint8(0)];
+        for (var i = 1; i < value.byteLength; i++) {
+          var s = String.fromCharCode(value.getUint8(i));
+          url +=
+            (value.getUint8(i) < suffixes.length)
+              ? suffixes[value.getUint8(i)]
+              : s;
+        }
+        return(url);
+      }
+
+      function log(text) {
+        var pre = document.createElement('pre');
+        pre.textContent = text;
+        document.querySelector('#log').appendChild(pre);
+      }
     </script>
   </body>
 </html>
