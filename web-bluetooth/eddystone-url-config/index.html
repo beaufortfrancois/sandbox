@@ -5,12 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eddystone-URL Config</title>
     <link rel="icon" sizes="192x192" href="../favicon.png">
+    <style>
+      #rev { float: right; margin: 0 }
+      #scanButton { margin-bottom: 8px; display: block; }
+      #uriData { width: 171px; }
+    </style>
   </head>
   <body>
 
-    <pre>Based on <a href="https://github.com/google/eddystone/blob/master/eddystone-url/docs/config-service-spec.md">Eddystone-URL Configuration Service</a> Revision v2r2</pre>
+    <a id="rev" href="https://github.com/google/eddystone/blob/master/eddystone-url/docs/config-service-spec.md">Revision v2r2</a>
 
-    <button>Read Eddystone-URL Config Mode Beacon</button>
+    <button id="scanButton">Read Eddystone-URL Config Mode Beacon</button>
+    <input id="uriData" type="url" placeholder="Enter a new URL..."/>
+    <button id="updateButton" disabled>Update URL</button>
     <div id="log"></div>
 
     <script>
@@ -37,7 +44,7 @@
           beaconPeriodCharacteristic,
           resetCharacteristic;
 
-      document.querySelector('button').addEventListener('click', function() {
+      document.querySelector('#scanButton').addEventListener('click', function() {
         document.querySelector('#log').textContent = '';
 
         let options = {filters:[{services:[ EDDYSTONE_URL_CONFIG_SERVICE_UUID ]}]};
@@ -70,95 +77,221 @@
             resetCharacteristic
           ] = characteristics;
 
-          return lockStateCharacteristic.readValue().then(value => {
-            value = value.buffer ? value : new DataView(value);
-            if (value.getUint8(0) == 1) {
-              log('Lock State:    locked');
-            } else {
-              log('Lock State:    unlocked');
-            }
-          })
-          .then(() => {
-
-          return uriDataCharacteristic.readValue().then(value => {
-            value = value.buffer ? value : new DataView(value);
-            log('URI Data:      ' + decodeURL(value));
-          })
-          })
-          .then(() => {
-
-          return flagsCharacteristic.readValue().then(value => {
-            value = value.buffer ? value : new DataView(value);
-            log('Flags value:   0x' + value.getUint8(0).toString(16));
-          })
-          })
-          .then(() => {
-
-          return advertisedTxPowerLevelsCharacteristic.readValue().then(value => {
-            value = value.buffer ? value : new DataView(value);
-            log('Advertised TX Power Levels: \n\n' +
-                   '     Lowest:   ' + value.getInt8(0) + ' dBm \n' +
-                   '     Low:      ' + value.getInt8(1) + ' dBm \n' +
-                   '     Medium:   ' + value.getInt8(2) + ' dBm \n' +
-                   '     High:     ' + value.getInt8(3) + ' dBm');
-          })
-          })
-          .then(() => {
-
-          return txPowerModeCharacteristic.readValue().then(value => {
-            value = value.buffer ? value : new DataView(value);
-            const txPowerModes = ['TX_POWER_MODE_LOWEST', 'TX_POWER_MODE_LOW', 'TX_POWER_MODE_MEDIUM', 'TX_POWER_MODE_HIGH'];
-            log('TX Power Mode: ' + txPowerModes[value.getUint8(0)]);
-          })
-          })
-          .then(() => {
-
-          return beaconPeriodCharacteristic.readValue().then(value => {
-            value = value.buffer ? value : new DataView(value);
-            log('Beacon Period: ' + value.getUint16(0, true /* littleEndian */ ) + ' ms');
-          })
-          });
-
+          return readAllCharacteristics();
         })
-        .catch(e => {
-          log(e);
-        });
+        .then(() => {
+          document.querySelector('#updateButton').disabled = !document.querySelector('#uriData').validity.valid;
+          document.querySelector('#uriData').addEventListener('input', function(event) {
+            document.querySelector('#updateButton').disabled = !event.target.validity.valid;
+          });
+          document.querySelector('#updateButton').addEventListener('click', function() {
+            return getEncodedUrl(document.querySelector('#uriData').value)
+            .then(encodedUrl => uriDataCharacteristic.writeValue(new Uint8Array(encodedUrl)))
+            .then(readAllCharacteristics)
+            .catch(e => { log(e); });
+          });
+        })
+        .catch(e => log(e));
       });
 
-      function decodeURL(value) {
-        const prefixes = [
-          "http://www.",
-          "https://www.",
-          "http://",
-          "https://"
-        ];
-        const suffixes = [
-          ".com/",
-          ".org/",
-          ".edu/",
-          ".net/",
-          ".info/",
-          ".biz/",
-          ".gov/",
-          ".com",
-          ".org",
-          ".edu",
-          ".net",
-          ".info",
-          ".biz",
-          ".gov"
-        ];
 
-        var url = prefixes[value.getUint8(0)];
-        for (var i = 1; i < value.byteLength; i++) {
-          var s = String.fromCharCode(value.getUint8(i));
-          url +=
-            (value.getUint8(i) < suffixes.length)
-              ? suffixes[value.getUint8(i)]
-              : s;
-        }
-        return(url);
+function readAllCharacteristics() {
+  document.querySelector('#log').textContent = '';
+
+  return lockStateCharacteristic.readValue().then(value => {
+    value = value.buffer ? value : new DataView(value);
+    if (value.getUint8(0) == 1) {
+      log('Lock State:    locked');
+    } else {
+      log('Lock State:    unlocked');
+    }
+  })
+  .then(() => {
+
+  return uriDataCharacteristic.readValue().then(value => {
+    value = value.buffer ? value : new DataView(value);
+    var url = decodeURL(value);
+    if (url.startsWith('https://goo.gl')) {
+      return getLongUrl(url)
+      .then(longUrl => {
+        log('URI Data:      ' + decodeURL(value) + ' (broadcasted)\n' +
+            '               ' + longUrl + ' (expanded)');
+      })
+      .catch(error => {
+        log('URI Data:      ' + decodeURL(value) + '\n' +
+            '               ' + '(Short URL is invalid)');
+      });
+    } else {
+      log('URI Data:      ' + decodeURL(value));
+    }
+  })
+  })
+  .then(() => {
+
+  return flagsCharacteristic.readValue().then(value => {
+    value = value.buffer ? value : new DataView(value);
+    log('Flags value:   0x' + value.getUint8(0).toString(16));
+  })
+  })
+  .then(() => {
+
+  return advertisedTxPowerLevelsCharacteristic.readValue().then(value => {
+    value = value.buffer ? value : new DataView(value);
+    log('Advertised TX Power Levels: \n\n' +
+           '     Lowest:   ' + value.getInt8(0) + ' dBm \n' +
+           '     Low:      ' + value.getInt8(1) + ' dBm \n' +
+           '     Medium:   ' + value.getInt8(2) + ' dBm \n' +
+           '     High:     ' + value.getInt8(3) + ' dBm');
+  })
+  })
+  .then(() => {
+
+  return txPowerModeCharacteristic.readValue().then(value => {
+    value = value.buffer ? value : new DataView(value);
+    const txPowerModes = ['TX_POWER_MODE_LOWEST', 'TX_POWER_MODE_LOW', 'TX_POWER_MODE_MEDIUM', 'TX_POWER_MODE_HIGH'];
+    log('TX Power Mode: ' + txPowerModes[value.getUint8(0)]);
+  })
+  })
+  .then(() => {
+
+  return beaconPeriodCharacteristic.readValue().then(value => {
+    value = value.buffer ? value : new DataView(value);
+    log('Beacon Period: ' + value.getUint16(0, true /* littleEndian */ ) + ' ms');
+  })
+  });
+}
+
+const URL_SCHEMES = [
+  'http://www.',
+  'https://www.',
+  'http://',
+  'https://'
+];
+
+const URL_CODES = [
+  '.com/',
+  '.org/',
+  '.edu/',
+  '.net/',
+  '.info/',
+  '.biz/',
+  '.gov/',
+  '.com',
+  '.org',
+  '.edu',
+  '.net',
+  '.info',
+  '.biz',
+  '.gov'
+];
+
+function decodeURL(value) {
+  var url = URL_SCHEMES[value.getUint8(0)];
+  for (var i = 1; i < value.byteLength; i++) {
+    var s = String.fromCharCode(value.getUint8(i));
+    url +=
+      (value.getUint8(i) < URL_CODES.length)
+        ? URL_CODES[value.getUint8(i)]
+        : s;
+  }
+  return(url);
+}
+
+function encodeURL(url) {
+  let encodedUrl = [];
+  let position = 0;
+  let encoder = new TextEncoder('utf-8');
+  
+  for (let i = 0 ; i < URL_SCHEMES.length; i++) {
+    if (url.startsWith(URL_SCHEMES[i])) {
+      encodedUrl.push(i);      
+      position = URL_SCHEMES[i].length;
+      break;
+    }
+  }
+  
+  while (position < url.length) {
+    let initialPosition = position;
+    for (let i = 0; i < URL_CODES.length; i++) {
+      if (url.startsWith(URL_CODES[i], position)) {
+        encodedUrl.push(i);
+        position += URL_CODES[i].length;
+        break;
       }
+    }
+    if (initialPosition === position) {
+      encodedUrl.push(encoder.encode(url[position])[0]);
+      position++;
+    }
+  }
+  return encodedUrl;
+}
+
+function getEncodedUrl(string) {
+  return new Promise(function(resolve, reject) {
+    try {
+      var url = new URL(string);
+    } catch(e) {
+      reject(e);
+    }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      reject('Only http and https URLs can be encoded.');
+    }
+
+    var encoded = encodeURL(string);
+    if (encoded.length > 18) {
+      return getShortUrl(string)
+      .then(newString => {
+        resolve(encodeURL(newString));
+      })
+      .catch(e => {
+        reject(e);
+      })
+    } else {
+      resolve(encoded);
+    }
+  });
+};
+
+function getShortUrl(url) {
+  const apiUrl = 'https://www.googleapis.com/urlshortener/v1/url?key=AIzaSyCswhXTLkWtSysl0ntTIlqsiLVdvfvEc8k';
+  var options = {  
+    method: 'post',  
+    headers: { "Content-type": "application/json" },  
+    body: JSON.stringify({longUrl: url})
+  };
+  
+  return fetch(apiUrl, options)
+  .then(function(response) {
+    if (response.status === 200) {
+      return response.json();
+    } else {
+      return Promise.reject(new Error(response.statusText));
+    }
+  })  
+  .then(data => data.id)
+}
+
+function getLongUrl(url) {
+  var apiUrl = 'https://www.googleapis.com/urlshortener/v1/url?key=AIzaSyCswhXTLkWtSysl0ntTIlqsiLVdvfvEc8k&shortUrl=' + url;
+
+  return fetch(apiUrl)
+  .then(function(response) {
+    if (response.status === 200) {
+      return response.json();
+    } else {
+      return Promise.reject(new Error(response.statusText));
+    }
+  })
+  .then(data => {
+    if (data.status === 'OK') {
+      return data.longUrl;
+    } else {
+      return Promise.reject(new Error(data.status));
+    }
+  });
+}
+
 
       function log(text) {
         var pre = document.createElement('pre');
