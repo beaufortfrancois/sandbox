@@ -187,7 +187,6 @@
         })
         .then(() => {
           document.querySelector('#updateButton').disabled = !document.querySelector('#container').checkValidity();
-          document.querySelector('#progressBar').hidden = true;
           document.querySelector('#scanButton').hidden = true;
           document.querySelector('#container').animate([{opacity: 0}, {opacity: 1}], 240);
           document.querySelector('#closeButton').animate([{opacity: 0}, {opacity: 1}], 1024);
@@ -198,6 +197,9 @@
           var snackbarContainer = document.querySelector('#snackbar');
           var data = {message: 'Error: ' + e, timeout: 5e3 };
           snackbarContainer.MaterialSnackbar.showSnackbar(data);
+        })
+        .then(() => {
+          document.querySelector('#progressBar').hidden = true;
         });
       });
 
