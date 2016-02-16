@@ -188,7 +188,10 @@
         .then(() => {
           document.querySelector('#updateButton').disabled = !document.querySelector('#container').checkValidity();
           document.querySelector('#scanButton').hidden = true;
-          document.querySelector('#container').animate([{opacity: 0}, {opacity: 1}], 240);
+          document.querySelector('#container').animate([
+              {opacity: 0, transform: 'translateY(24px)'},
+              {opacity: 1, transform: 'translateY(0)'}],
+              {duration: 400, easing: 'ease-out'});
           document.querySelector('#closeButton').animate([{opacity: 0}, {opacity: 1}], 1024);
           document.querySelector('#container').hidden = false;
           document.querySelector('#closeButton').hidden = false;
