@@ -9,9 +9,9 @@
 
     <link href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://code.getmdl.io/1.1.1/material.grey-blue.min.css" />
+    <link rel="stylesheet" href="code.getmdl.io/1.1.1/material.grey-blue.min.css" />
 
-    <script defer src="https://code.getmdl.io/1.1.1/material.min.js"></script>
+    <script defer src="code.getmdl.io/1.1.1/material.min.js"></script>
 
     <style>
       body { display: flex; align-items: center; }
@@ -23,10 +23,12 @@
         #container { margin-right: auto }
         #closeButton { position: fixed; display: block; right: 0; bottom: 0; margin-right: 40px; margin-bottom: 40px; z-index: 900; }
       }
-      @media (max-height: 479px) { 
+      @media (max-height: 479px) and (max-width: 479px) { 
         #closeButton { display: none; }
       }
-      #closeButton { margin-left: 128px; }
+      @media (min-width: 900px) {
+        #closeButton { margin-left: 128px; }
+      }
       #resetButton { margin-left: auto; }
       .firstRow { flex: 1 0 100%; }
       .secondRow { flex: 1 0 33%; }
@@ -40,25 +42,25 @@
 
    <div id="progressBar" hidden class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
 
-  <div id="container" hidden>
+  <form id="container" hidden>
 
   <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label firstRow">
-    <input class="mdl-textfield__input" type="url" id="uri">
+    <input class="mdl-textfield__input" type="url" id="uri" required>
     <label class="mdl-textfield__label" for="uri">URI</label>
   </div>
 
   <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label secondRow">
-    <input class="mdl-textfield__input" type="number" id="flags" pattern="[0-9]+">
+    <input class="mdl-textfield__input" type="number" id="flags" pattern="[0-9]+" required>
     <label class="mdl-textfield__label" for="flags">Flags</label>
   </div>
 
   <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label secondRow">
-    <input class="mdl-textfield__input" type="number" id="period" pattern="[0-9]+">
+    <input class="mdl-textfield__input" type="number" id="period" pattern="[0-9]+" required>
     <label class="mdl-textfield__label" for="period">Period (ms)</label>
   </div>
 
   <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select secondRow">
-    <input class="mdl-textfield__input" type="text" id="txPowerMode" readonly tabIndex="-1">
+    <input class="mdl-textfield__input" type="text" id="txPowerMode" readonly tabIndex="-1" required>
     <label for="txPowerMode" class="mdl-textfield__label">TX Power Mode</label>
     <ul for="txPowerMode" class="mdl-menu mdl-menu--bottom-left mdl-js-menu">
       <li class="mdl-menu__item">Lowest</li>
@@ -69,19 +71,19 @@
   </div>
 
   <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
-    <input class="mdl-textfield__input" type="number" id="lowest" pattern="-?[0-9]+">
+    <input class="mdl-textfield__input" type="number" id="lowest" pattern="-?[0-9]+" required>
     <label class="mdl-textfield__label" for="lowest">Lowest</label>
   </div>
   <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
-    <input class="mdl-textfield__input" type="number" id="low" pattern="-?[0-9]+">
+    <input class="mdl-textfield__input" type="number" id="low" pattern="-?[0-9]+" required>
     <label class="mdl-textfield__label" for="low">Low</label>
   </div>
   <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
-    <input class="mdl-textfield__input" type="number" id="medium" pattern="-?[0-9]+">
+    <input class="mdl-textfield__input" type="number" id="medium" pattern="-?[0-9]+" required>
     <label class="mdl-textfield__label" for="medium">Medium</label>
   </div>
   <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
-    <input class="mdl-textfield__input" type="number" id="high" pattern="-?[0-9]+">
+    <input class="mdl-textfield__input" type="number" id="high" pattern="-?[0-9]+" required>
     <label class="mdl-textfield__label" for="high">High</label>
   </div>
 
@@ -106,7 +108,7 @@
   <button type="button" id="resetButton" class="mdl-button mdl-js-button">Reset</button>
   <button type="button" id="updateButton" disabled class="mdl-button mdl-js-button mdl-button--accent">Update</button>
 
-  </div>
+  </form>
 
 <div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
   <div class="mdl-snackbar__text"></div>
@@ -183,6 +185,7 @@
           return readAllCharacteristics();
         })
         .then(() => {
+          document.querySelector('#updateButton').disabled = !document.querySelector('#container').checkValidity();
           document.querySelector('#progressBar').hidden = true;
           document.querySelector('#scanButton').hidden = true;
           document.querySelector('#container').animate([{opacity: 0}, {opacity: 1}], 240);
@@ -198,10 +201,9 @@
       });
 
 
-      document.querySelector('#uri').addEventListener('input', function(event) {
-        document.querySelector('#updateButton').disabled = !event.target.validity.valid;
+      document.querySelector('#container').addEventListener('input', function(event) {
+        document.querySelector('#updateButton').disabled = !event.target.checkValidity();
       });
-      document.querySelector('#updateButton').disabled = !document.querySelector('#uri').validity.valid;
       document.querySelector('#updateButton').addEventListener('click', function() {
         getEncodedUrl(document.querySelector('#uri').value)
         .then(encodedUrl => uriDataCharacteristic.writeValue(new Uint8Array(encodedUrl)))
