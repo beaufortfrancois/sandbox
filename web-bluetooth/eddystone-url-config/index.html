@@ -33,465 +33,101 @@
       .firstRow { flex: 1 0 100%; }
       .secondRow { flex: 1 0 33%; }
       .thirdRow { flex: 1 0 25%; }
+      .edited { border-color: #448AFF; }
     </style>
     <style>
-.getmdl-select .mdl-icon-toggle__label{float:right;margin-top:-30px;color:rgba(0,0,0,.12)}.getmdl-select.is-focused i.mdl-icon-toggle__label{color:rgb(68,138,255)}.getmdl-select .mdl-menu__container{width:100% !important}.getmdl-select .mdl-menu__container .mdl-menu{width:100%}
+      .getmdl-select .mdl-icon-toggle__label{float:right;margin-top:-30px;color:rgba(0,0,0,.12)}.getmdl-select.is-focused i.mdl-icon-toggle__label{color:rgb(68,138,255)}.getmdl-select .mdl-menu__container{width:100% !important}.getmdl-select .mdl-menu__container .mdl-menu{width:100%}
     </style>
   </head>
   <body>
 
-   <div id="progressBar" hidden class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+    <div id="progressBar" hidden class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
 
-<button id="closeButton" hidden class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--mini-fab">
-  <i class="material-icons">navigate_before</i>
-</button>
+    <button id="closeButton" hidden class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--mini-fab">
+      <i class="material-icons">navigate_before</i>
+    </button>
 
-  <form id="container" hidden>
+    <form id="container" hidden>
 
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label firstRow">
-    <input class="mdl-textfield__input" type="url" id="uri" required>
-    <label class="mdl-textfield__label" for="uri">URI</label>
-  </div>
-
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label secondRow">
-    <input class="mdl-textfield__input" type="number" id="flags" pattern="[0-9]+" required>
-    <label class="mdl-textfield__label" for="flags">Flags</label>
-  </div>
-
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label secondRow">
-    <input class="mdl-textfield__input" type="number" id="period" pattern="[0-9]+" required>
-    <label class="mdl-textfield__label" for="period">Period (ms)</label>
-  </div>
-
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select secondRow">
-    <input class="mdl-textfield__input" type="text" id="txPowerMode" readonly tabIndex="-1" required>
-    <label for="txPowerMode" class="mdl-textfield__label">TX Power Mode</label>
-    <ul for="txPowerMode" class="mdl-menu mdl-menu--bottom-left mdl-js-menu">
-      <li class="mdl-menu__item">Lowest</li>
-      <li class="mdl-menu__item">Low</li>
-      <li class="mdl-menu__item">Medium</li>
-      <li class="mdl-menu__item">High</li>
-    </ul>
-  </div>
-
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
-    <input class="mdl-textfield__input" type="number" id="lowest" pattern="-?[0-9]+" required>
-    <label class="mdl-textfield__label" for="lowest">Lowest</label>
-  </div>
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
-    <input class="mdl-textfield__input" type="number" id="low" pattern="-?[0-9]+" required>
-    <label class="mdl-textfield__label" for="low">Low</label>
-  </div>
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
-    <input class="mdl-textfield__input" type="number" id="medium" pattern="-?[0-9]+" required>
-    <label class="mdl-textfield__label" for="medium">Medium</label>
-  </div>
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
-    <input class="mdl-textfield__input" type="number" id="high" pattern="-?[0-9]+" required>
-    <label class="mdl-textfield__label" for="high">High</label>
-  </div>
-
-  <label for="lock" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
-    <input type="checkbox" id="lock" class="mdl-checkbox__input" disabled>
-    <span class="mdl-checkbox__label">Enable AutoSave</span>
-  </label>
-
-  <dialog class="mdl-dialog">
-    <div class="mdl-dialog__content">
-      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-        <input class="mdl-textfield__input" type="text" id="lockKey">
-        <label class="mdl-textfield__label" for="lockKey">Enter key...</label>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label firstRow">
+        <input class="mdl-textfield__input" type="url" id="uri" required pattern="https?://.+">
+        <label class="mdl-textfield__label" for="uri">URI</label>
       </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label secondRow">
+        <input class="mdl-textfield__input" type="number" id="flags" pattern="[0-9]+" required>
+        <label class="mdl-textfield__label" for="flags">Flags</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label secondRow">
+        <input class="mdl-textfield__input" type="number" id="period" pattern="[0-9]+" required>
+        <label class="mdl-textfield__label" for="period">Period (ms)</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select secondRow">
+        <input class="mdl-textfield__input" type="text" id="txPowerMode" readonly tabIndex="-1" required>
+        <label for="txPowerMode" class="mdl-textfield__label">TX Power Mode</label>
+        <ul for="txPowerMode" class="mdl-menu mdl-menu--bottom-left mdl-js-menu">
+          <li class="mdl-menu__item">Lowest</li>
+          <li class="mdl-menu__item">Low</li>
+          <li class="mdl-menu__item">Medium</li>
+          <li class="mdl-menu__item">High</li>
+        </ul>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
+        <input class="mdl-textfield__input" type="number" id="lowest" pattern="-?[0-9]+" required>
+        <label class="mdl-textfield__label" for="lowest">Lowest</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
+        <input class="mdl-textfield__input" type="number" id="low" pattern="-?[0-9]+" required>
+        <label class="mdl-textfield__label" for="low">Low</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
+        <input class="mdl-textfield__input" type="number" id="medium" pattern="-?[0-9]+" required>
+        <label class="mdl-textfield__label" for="medium">Medium</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
+        <input class="mdl-textfield__input" type="number" id="high" pattern="-?[0-9]+" required>
+        <label class="mdl-textfield__label" for="high">High</label>
+      </div>
+
+      <label for="lock" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
+        <input type="checkbox" id="lock" class="mdl-checkbox__input" disabled>
+        <span class="mdl-checkbox__label">Enable AutoSave</span>
+      </label>
+
+      <dialog class="mdl-dialog">
+        <div class="mdl-dialog__content">
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="text" id="lockKey">
+            <label class="mdl-textfield__label" for="lockKey">Enter key...</label>
+          </div>
+        </div>
+        <div class="mdl-dialog__actions">
+          <button id="confirmLockButton" type="button" class="mdl-button">Ok</button>
+          <button id="cancelLockButton" type="button" class="mdl-button">Cancel</button>
+        </div>
+      </dialog>
+
+      <button type="button" id="resetButton" class="mdl-button mdl-js-button">Reset</button>
+      <button type="button" id="updateButton" disabled class="mdl-button mdl-js-button mdl-button--accent">Update</button>
+
+    </form>
+
+    <div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
+      <div class="mdl-snackbar__text"></div>
+      <button class="mdl-snackbar__action" type="button"></button>
     </div>
-    <div class="mdl-dialog__actions">
-      <button id="confirmLockButton" type="button" class="mdl-button">Ok</button>
-      <button id="cancelLockButton" type="button" class="mdl-button">Cancel</button>
-    </div>
-  </dialog>
+    
+    <button id="scanButton" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
+      <i class="material-icons">bluetooth_searching</i>
+    </button>
 
-  <button type="button" id="resetButton" class="mdl-button mdl-js-button">Reset</button>
-  <button type="button" id="updateButton" disabled class="mdl-button mdl-js-button mdl-button--accent">Update</button>
-
-  </form>
-
-<div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
-  <div class="mdl-snackbar__text"></div>
-  <button class="mdl-snackbar__action" type="button"></button>
-</div>
-
-<button id="scanButton" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
-  <i class="material-icons">bluetooth_searching</i>
-</button>
-
-    <script>
-
-      const EDDYSTONE_URL_CONFIG_SERVICE_UUID                      = 'ee0c2080-8786-40ba-ab96-99b91ac981d8';
-
-      const LOCK_STATE_CHARACTERISTIC_UUID                         = 'ee0c2081-8786-40ba-ab96-99b91ac981d8';
-      const LOCK_CHARACTERISTIC_UUID                               = 'ee0c2082-8786-40ba-ab96-99b91ac981d8';
-      const UNLOCK_CHARACTERISTIC_UUID                             = 'ee0c2083-8786-40ba-ab96-99b91ac981d8';
-      const URI_DATA_CHARACTERISTIC_UUID                           = 'ee0c2084-8786-40ba-ab96-99b91ac981d8';
-      const FLAGS_CHARACTERISTIC_UUID                              = 'ee0c2085-8786-40ba-ab96-99b91ac981d8';
-      const ADVERTISED_TX_POWER_LEVELS_CHARACTERISTIC_UUID         = 'ee0c2086-8786-40ba-ab96-99b91ac981d8';
-      const TX_POWER_MODE_CHARACTERISTIC_UUID                      = 'ee0c2087-8786-40ba-ab96-99b91ac981d8';
-      const BEACON_PERIOD_CHARACTERISTIC_UUID                      = 'ee0c2088-8786-40ba-ab96-99b91ac981d8';
-      const RESET_CHARACTERISTIC_UUID                              = 'ee0c2089-8786-40ba-ab96-99b91ac981d8';
-
-      var lockStateCharacteristic,
-          lockCharacteristic,
-          unlockCharacteristic,
-          uriDataCharacteristic,
-          flagsCharacteristic,
-          advertisedTxPowerLevelsCharacteristic,
-          txPowerModeCharacteristic,
-          beaconPeriodCharacteristic,
-          resetCharacteristic;
-
-      document.querySelector('#scanButton').addEventListener('click', function() {
-        document.querySelector('#progressBar').hidden = true;
-
-        let options = {filters:[{services:[ EDDYSTONE_URL_CONFIG_SERVICE_UUID ]}]};
-        navigator.bluetooth.requestDevice(options)
-        .then(device => {
-          document.querySelector('#progressBar').hidden = false;
-          return device.connectGATT();
-        })
-        .then(gattServer => gattServer.getPrimaryService(EDDYSTONE_URL_CONFIG_SERVICE_UUID))
-        .then(service => {
-          return Promise.all([
-            service.getCharacteristic(LOCK_STATE_CHARACTERISTIC_UUID),
-            service.getCharacteristic(LOCK_CHARACTERISTIC_UUID),
-            service.getCharacteristic(UNLOCK_CHARACTERISTIC_UUID),
-            service.getCharacteristic(URI_DATA_CHARACTERISTIC_UUID),
-            service.getCharacteristic(FLAGS_CHARACTERISTIC_UUID),
-            service.getCharacteristic(ADVERTISED_TX_POWER_LEVELS_CHARACTERISTIC_UUID),
-            service.getCharacteristic(TX_POWER_MODE_CHARACTERISTIC_UUID),
-            service.getCharacteristic(BEACON_PERIOD_CHARACTERISTIC_UUID),
-            service.getCharacteristic(RESET_CHARACTERISTIC_UUID),
-          ]);
-        })
-        .then(characteristics => {
-          [
-            lockStateCharacteristic,
-            lockCharacteristic,
-            unlockCharacteristic,
-            uriDataCharacteristic,
-            flagsCharacteristic,
-            advertisedTxPowerLevelsCharacteristic,
-            txPowerModeCharacteristic,
-            beaconPeriodCharacteristic,
-            resetCharacteristic
-          ] = characteristics;
-
-          return readAllCharacteristics();
-        })
-        .then(() => {
-          document.querySelector('#updateButton').disabled = !document.querySelector('#container').checkValidity();
-          document.querySelector('#scanButton').hidden = true;
-          document.querySelector('#container').animate([
-              {opacity: 0, transform: 'translateY(24px)'},
-              {opacity: 1, transform: 'translateY(0)'}],
-              {duration: 400, easing: 'ease-out'});
-          document.querySelector('#closeButton').animate([{opacity: 0}, {opacity: 1}], 1024);
-          document.querySelector('#container').hidden = false;
-          document.querySelector('#closeButton').hidden = false;
-        })
-        .catch(e => { 
-          var snackbarContainer = document.querySelector('#snackbar');
-          var data = {message: 'Error: ' + e, timeout: 5e3 };
-          snackbarContainer.MaterialSnackbar.showSnackbar(data);
-        })
-        .then(() => {
-          document.querySelector('#progressBar').hidden = true;
-        });
-      });
-
-
-      document.querySelector('#container').addEventListener('input', function(event) {
-        document.querySelector('#updateButton').disabled = !event.target.checkValidity();
-      });
-      document.querySelector('#updateButton').addEventListener('click', function() {
-        getEncodedUrl(document.querySelector('#uri').value)
-        .then(encodedUrl => uriDataCharacteristic.writeValue(new Uint8Array(encodedUrl)))
-        .then(() => {
-          var data = new Int8Array([
-              document.getElementById('lowest').value,
-              document.getElementById('low').value,
-              document.getElementById('medium').value,
-              document.getElementById('high').value
-            ]);
-          return advertisedTxPowerLevelsCharacteristic.writeValue(data);
-        })
-        .then(() => {
-          const txPowerModes = ['Lowest', 'Low', 'Medium', 'High'];
-          var data = new Uint8Array([txPowerModes.indexOf(document.getElementById('txPowerMode').value)]);
-          return txPowerModeCharacteristic.writeValue(data);
-        })
-        .then(() => {
-          var data = new Uint16Array([document.getElementById('period').value]);
-          return beaconPeriodCharacteristic.writeValue(data);
-        })
-        .then(() => {
-          var snackbarContainer = document.querySelector('#snackbar');
-          var data = {message: 'Beacon has been updated.'};
-          snackbarContainer.MaterialSnackbar.showSnackbar(data);
-        })
-        .then(readAllCharacteristics)
-        .catch(e => { console.log(e); });
-      });
-      document.querySelector('#lock').addEventListener('change', function(event) {
-        setLock(event.target.checked);
-      });
-      document.querySelector('#resetButton').addEventListener('click', function() {
-        document.querySelector('#resetButton').disabled = true;
-        document.querySelector('#updateButton').disabled = true;
-        document.querySelector('#progressBar').hidden = false;
-        resetCharacteristic.writeValue(new Uint8Array([1]))
-        .then(readAllCharacteristics)
-        .then(() => {
-          var snackbarContainer = document.querySelector('#snackbar');
-          var data = {message: 'Beacon has been reset.'};
-          snackbarContainer.MaterialSnackbar.showSnackbar(data);
-        })
-        .catch(e => { 
-          var snackbarContainer = document.querySelector('#snackbar');
-          var data = {message: 'Error: ' + e, timeout: 5e3 };
-          snackbarContainer.MaterialSnackbar.showSnackbar(data);
-        })
-        .then(() => {
-          document.querySelector('#resetButton').disabled = false;
-          document.querySelector('#updateButton').disabled = false;
-          document.querySelector('#progressBar').hidden = true;
-        });
-      });
-      document.querySelector('#closeButton').addEventListener('click', function() {
-        document.querySelector('#container').hidden = true;
-        document.querySelector('#closeButton').hidden = true;
-        document.querySelector('#scanButton').hidden = false;
-      });
-      
-
-
-function readAllCharacteristics() {
-  return lockStateCharacteristic.readValue().then(value => {
-    value = value.buffer ? value : new DataView(value);
-    if (value.getUint8(0) == 1) {
-      console.log('Lock State:    locked');
-    } else {
-      console.log('Lock State:    unlocked');
-    }
-    setLock((value.getUint8(0) == 1));
-  })
-  .then(() => {
-
-  return uriDataCharacteristic.readValue().then(value => {
-    value = value.buffer ? value : new DataView(value);
-    var url = decodeURL(value);
-    setValue('uri', url);
-    if (url.startsWith('https://goo.gl')) {
-      return getLongUrl(url)
-      .then(longUrl => {
-        console.log('URI Data:      ' + decodeURL(value) + ' (broadcasted)\n' +
-            '               ' + longUrl + ' (expanded)');
-      })
-      .catch(error => {
-        console.log('URI Data:      ' + decodeURL(value) + '\n' +
-            '               ' + '(Short URL is invalid)');
-      });
-    } else {
-      console.log('URI Data:      ' + decodeURL(value));
-    }
-  })
-  })
-  .then(() => {
-
-  return flagsCharacteristic.readValue().then(value => {
-    value = value.buffer ? value : new DataView(value);
-    console.log('Flags value:   0x' + value.getUint8(0).toString(16));
-    setValue('flags', value.getUint8(0).toString(16));
-  })
-  })
-  .then(() => {
-
-  return advertisedTxPowerLevelsCharacteristic.readValue().then(value => {
-    value = value.buffer ? value : new DataView(value);
-    console.log('Advertised TX Power Levels: \n\n' +
-           '     Lowest:   ' + value.getInt8(0) + ' dBm \n' +
-           '     Low:      ' + value.getInt8(1) + ' dBm \n' +
-           '     Medium:   ' + value.getInt8(2) + ' dBm \n' +
-           '     High:     ' + value.getInt8(3) + ' dBm');
-    setValue('lowest', value.getInt8(0));
-    setValue('low', value.getInt8(1));
-    setValue('medium', value.getInt8(2));
-    setValue('high', value.getInt8(3));
-  })
-  })
-  .then(() => {
-
-  return txPowerModeCharacteristic.readValue().then(value => {
-    value = value.buffer ? value : new DataView(value);
-    const txPowerModes = ['Lowest', 'Low', 'Medium', 'High'];
-    console.log('TX Power Mode: ' + txPowerModes[value.getUint8(0)]);
-    setValue('txPowerMode', txPowerModes[value.getUint8(0)]);
-  })
-  })
-  .then(() => {
-
-  return beaconPeriodCharacteristic.readValue().then(value => {
-    value = value.buffer ? value : new DataView(value);
-    console.log('Beacon Period: ' + value.getUint16(0, true /* littleEndian */ ) + ' ms');
-    setValue('period', value.getUint16(0, true /* littleEndian */ ));
-  })
-  });
-}
-
-const URL_SCHEMES = [
-  'http://www.',
-  'https://www.',
-  'http://',
-  'https://'
-];
-
-const URL_CODES = [
-  '.com/',
-  '.org/',
-  '.edu/',
-  '.net/',
-  '.info/',
-  '.biz/',
-  '.gov/',
-  '.com',
-  '.org',
-  '.edu',
-  '.net',
-  '.info',
-  '.biz',
-  '.gov'
-];
-
-function decodeURL(value) {
-  var url = URL_SCHEMES[value.getUint8(0)];
-  for (var i = 1; i < value.byteLength; i++) {
-    var s = String.fromCharCode(value.getUint8(i));
-    url +=
-      (value.getUint8(i) < URL_CODES.length)
-        ? URL_CODES[value.getUint8(i)]
-        : s;
-  }
-  return(url);
-}
-
-function encodeURL(url) {
-  let encodedUrl = [];
-  let position = 0;
-  let encoder = new TextEncoder('utf-8');
-  
-  for (let i = 0 ; i < URL_SCHEMES.length; i++) {
-    if (url.startsWith(URL_SCHEMES[i])) {
-      encodedUrl.push(i);      
-      position = URL_SCHEMES[i].length;
-      break;
-    }
-  }
-  
-  while (position < url.length) {
-    let initialPosition = position;
-    for (let i = 0; i < URL_CODES.length; i++) {
-      if (url.startsWith(URL_CODES[i], position)) {
-        encodedUrl.push(i);
-        position += URL_CODES[i].length;
-        break;
-      }
-    }
-    if (initialPosition === position) {
-      encodedUrl.push(encoder.encode(url[position])[0]);
-      position++;
-    }
-  }
-  return encodedUrl;
-}
-
-function getEncodedUrl(string) {
-  return new Promise(function(resolve, reject) {
-    try {
-      var url = new URL(string);
-    } catch(e) {
-      reject(e);
-    }
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-      reject('Only http and https URLs can be encoded.');
-    }
-
-    var encoded = encodeURL(string);
-    if (encoded.length > 18) {
-      return getShortUrl(string)
-      .then(newString => {
-        resolve(encodeURL(newString));
-      })
-      .catch(e => {
-        reject(e);
-      })
-    } else {
-      resolve(encoded);
-    }
-  });
-};
-
-function getShortUrl(url) {
-  const apiUrl = 'https://www.googleapis.com/urlshortener/v1/url?key=AIzaSyCswhXTLkWtSysl0ntTIlqsiLVdvfvEc8k';
-  var options = {  
-    method: 'post',  
-    headers: { "Content-type": "application/json" },  
-    body: JSON.stringify({longUrl: url})
-  };
-  
-  return fetch(apiUrl, options)
-  .then(function(response) {
-    if (response.status === 200) {
-      return response.json();
-    } else {
-      return Promise.reject(new Error(response.statusText));
-    }
-  })  
-  .then(data => data.id)
-}
-
-function getLongUrl(url) {
-  var apiUrl = 'https://www.googleapis.com/urlshortener/v1/url?key=AIzaSyCswhXTLkWtSysl0ntTIlqsiLVdvfvEc8k&shortUrl=' + url;
-
-  return fetch(apiUrl)
-  .then(function(response) {
-    if (response.status === 200) {
-      return response.json();
-    } else {
-      return Promise.reject(new Error(response.statusText));
-    }
-  })
-  .then(data => {
-    if (data.status === 'OK') {
-      return data.longUrl;
-    } else {
-      return Promise.reject(new Error(data.status));
-    }
-  });
-}
-
-function setValue(inputId, value) {
-  var element = document.getElementById(inputId).parentElement.querySelector('label');
-  element.parentElement.MaterialTextfield.change(value);
-  element.parentElement.animate([{opacity: 1}, {opacity: 0.5}, {opacity: 1}], 360);
-}
-
-function setLock(locked) {
-  if (locked) {
-    document.getElementById('lock').parentElement.MaterialCheckbox.check();
-    document.getElementById('lock').parentElement.querySelector('.mdl-checkbox__label').textContent = 'Locked';
-  } else {
-    document.getElementById('lock').parentElement.MaterialCheckbox.uncheck();
-    document.getElementById('lock').parentElement.querySelector('.mdl-checkbox__label').textContent = 'Unlocked';
-  }
-}
-    </script>
+    <script src="app.js"></script>
     <script>
 "use strict";window.onload=function(){var e=document.querySelectorAll(".getmdl-select");[].forEach.call(e,function(e){addEventListeners(e)})};var addEventListeners=function(e){var t=e.querySelector("input"),n=e.querySelectorAll("li");e.querySelector("i");[].forEach.call(n,function(e){e.onclick=function(){t.value=e.textContent}})};
     </script>
