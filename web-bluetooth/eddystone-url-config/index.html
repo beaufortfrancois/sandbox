@@ -33,7 +33,8 @@
       .firstRow { flex: 1 0 100%; }
       .secondRow { flex: 1 0 33%; }
       .thirdRow { flex: 1 0 25%; }
-      .edited { border-color: #448AFF; }
+      .edited, .edited span.mdl-checkbox__box-outline { border-color: #448AFF !important; }
+      .edited.mdl-checkbox.is-checked span.mdl-checkbox__tick-outline { background-color: #448AFF !important; }
     </style>
     <style>
       .getmdl-select .mdl-icon-toggle__label{float:right;margin-top:-30px;color:rgba(0,0,0,.12)}.getmdl-select.is-focused i.mdl-icon-toggle__label{color:rgb(68,138,255)}.getmdl-select .mdl-menu__container{width:100% !important}.getmdl-select .mdl-menu__container .mdl-menu{width:100%}
@@ -96,19 +97,36 @@
       </div>
 
       <label for="lock" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
-        <input type="checkbox" id="lock" class="mdl-checkbox__input" disabled>
-        <span class="mdl-checkbox__label">Enable AutoSave</span>
+        <input type="checkbox" id="lock" class="mdl-checkbox__input">
+        <span class="mdl-checkbox__label"></span>
       </label>
 
-      <dialog class="mdl-dialog">
+      <dialog id="unlockDialog" class="mdl-dialog">
         <div class="mdl-dialog__content">
-          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-            <input class="mdl-textfield__input" type="text" id="lockKey">
-            <label class="mdl-textfield__label" for="lockKey">Enter key...</label>
+          <div class="mdl-textfield mdl-js-textfield">
+            <input class="mdl-textfield__input" type="password" id="unlockPassword">
+            <label class="mdl-textfield__label" for="unlockPassword">Enter password...</label>
           </div>
         </div>
         <div class="mdl-dialog__actions">
-          <button id="confirmLockButton" type="button" class="mdl-button">Ok</button>
+          <button id="confirmUnlockButton" type="button" class="mdl-button mdl-button--accent">Unlock</button>
+          <button id="cancelUnlockButton" type="button" class="mdl-button">Cancel</button>
+        </div>
+      </dialog>
+
+      <dialog id="lockDialog" class="mdl-dialog">
+        <div class="mdl-dialog__content">
+          <div class="mdl-textfield mdl-js-textfield">
+            <input class="mdl-textfield__input" type="password" id="lockPassword">
+            <label class="mdl-textfield__label" for="lockPassword">Enter password...</label>
+          </div>
+          <div class="mdl-textfield mdl-js-textfield">
+            <input class="mdl-textfield__input" type="password" id="lockPasswordConfirmation">
+            <label class="mdl-textfield__label" for="lockPasswordConfirmation">Confirm password...</label>
+          </div>
+        </div>
+        <div class="mdl-dialog__actions">
+          <button id="confirmLockButton" type="button" class="mdl-button mdl-button--accent">Lock</button>
           <button id="cancelLockButton" type="button" class="mdl-button">Cancel</button>
         </div>
       </dialog>

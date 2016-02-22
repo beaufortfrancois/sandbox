@@ -23,6 +23,8 @@ var beaconDevice,
     beaconPeriodCharacteristic,
     resetCharacteristic;
 
+var isBeaconLocked;
+
 var $ = document.querySelector.bind(document);
 
 $('#scanButton').addEventListener('click', function() {
@@ -57,8 +59,144 @@ $('#updateButton').addEventListener('click', function() {
   $('#resetButton').disabled = true;
   $('#updateButton').disabled = true;
   $('#progressBar').hidden = false;
+  if (isBeaconLocked) {
+    /* Beacon is locked */
+    $('#unlockPassword').parentElement.MaterialTextfield.change('');
+    $('#unlockDialog').classList.toggle('reset', false);
+    $('#unlockDialog').showModal();
+  } else {
+    /* Beacon is unlocked */
+    if ($('#lock').checked) {
+      /* User wants to lock it */
+      $('#lockPassword').parentElement.MaterialTextfield.change('');
+      $('#lockPasswordConfirmation').parentElement.MaterialTextfield.change('');
+      checkLockPassword();
+      $('#lockDialog').showModal();
+    } else {
+      connectBeacon()
+      .then(updateBeacon);
+    }
+  }
+});
+
+$('#resetButton').addEventListener('click', function() {
+  $('#resetButton').disabled = true;
+  $('#updateButton').disabled = true;
+  $('#progressBar').hidden = false;
+  if (isBeaconLocked) {
+    $('#unlockPassword').parentElement.MaterialTextfield.change('');
+    $('#unlockDialog').classList.toggle('reset', true);
+    $('#unlockDialog').showModal();
+  } else {
+    connectBeacon()
+    .then(resetBeacon);
+  }
+});
+
+$('#closeButton').addEventListener('click', function() {
+  if (gattServer && gattServer.connected) {
+    gattServer.disconnect();
+  }
+  $('#container').hidden = true;
+  $('#closeButton').hidden = true;
+  $('#scanButton').hidden = false;
+});
+
+$('#cancelLockButton').addEventListener('click', onCancelLockDialog);
+$('#lockDialog').addEventListener('cancel', onCancelLockDialog);
+
+function onCancelLockDialog() {
+  $('#lockDialog').close();
+  $('#resetButton').disabled = false;
+  $('#updateButton').disabled = false;
+  $('#progressBar').hidden = true;
+};
+
+$('#confirmLockButton').addEventListener('click', function() {
+  $('#lockDialog').close();
   connectBeacon()
-  .then(() => getEncodedUrl($('#uri').value))
+  .then(() => { return updateBeacon($('#lockPassword').value) })
+});
+
+$('#lock').addEventListener('change', function(event) {
+  event.target.parentElement.classList.toggle('edited', (event.target.defaultChecked !== event.target.checked));
+  setLock(event.target.checked);
+});
+
+$('#lockPassword').addEventListener('input', checkLockPassword);
+$('#lockPasswordConfirmation').addEventListener('input', checkLockPassword);
+
+function checkLockPassword() {
+  if ($('#lockPassword').value === $('#lockPasswordConfirmation').value) {
+    $('#lockPasswordConfirmation').setCustomValidity('');
+  } else {
+    $('#lockPasswordConfirmation').setCustomValidity('Wrong');
+  }
+  $('#lockPasswordConfirmation').parentElement.MaterialTextfield.checkValidity();
+  $('#confirmLockButton').disabled = !$('#lockPasswordConfirmation').validity.valid;
+}
+
+$('#cancelUnlockButton').addEventListener('click', onCancelUnlockDialog);
+$('#unlockDialog').addEventListener('cancel', onCancelUnlockDialog);
+
+function onCancelUnlockDialog() {
+  $('#unlockDialog').close();
+  $('#resetButton').disabled = false;
+  $('#updateButton').disabled = false;
+  $('#progressBar').hidden = true;
+};
+
+$('#confirmUnlockButton').addEventListener('click', function() {
+  var password = $('#unlockPassword').value;
+  $('#unlockDialog').close();
+  connectBeacon()
+  .then(() => generateLock(password))
+  .then(key => unlockCharacteristic.writeValue(key))
+  .then(() => {
+    if ($('#unlockDialog').classList.contains('reset')) {
+      return resetBeacon();
+    } else {
+      if (!$('#lock').checked) {
+        return updateBeacon();
+      } else {
+        return updateBeacon(password);
+      }
+    }  
+  })
+  .catch(e => {
+    var data = {message: 'Error: ' + e, timeout: 5e3 };
+    $('#snackbar').MaterialSnackbar.showSnackbar(data);
+    $('#resetButton').disabled = false;
+    $('#updateButton').disabled = false;
+    $('#progressBar').hidden = true;
+  });
+});
+
+function generateLock(password) {
+  var keyData = new TextEncoder().encode(password);
+  return crypto.subtle.importKey('raw', keyData, 'PBKDF2', false, ['deriveKey'])
+  .then(key => {
+    return window.crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: new Uint8Array(1),
+      iterations: 1000,
+      hash: 'SHA-1'
+    },
+    key,
+    {
+      name: 'AES-CTR',
+      length: 128
+    },
+    true, /* extractable */
+    ['encrypt', 'decrypt']
+    )
+  })
+  .then(webKey => crypto.subtle.exportKey('raw', webKey))
+}
+
+function updateBeacon(password) {
+  return getEncodedUrl($('#uri').value)
   .then(encodedUrl => uriDataCharacteristic.writeValue(new Uint8Array(encodedUrl)))
   .then(() => {
     var data = new Uint16Array([$('#period').value]);
@@ -78,47 +216,46 @@ $('#updateButton').addEventListener('click', function() {
     return txPowerModeCharacteristic.writeValue(data);
   })
   .then(() => {
+    if (password) {
+      return generateLock(password)
+      .then(key => lockCharacteristic.writeValue(key))
+    } else {
+      return Promise.resolve();
+    }
+  })
+  .then(() => {
     var data = {message: 'Beacon has been updated.'};
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
   })
   .then(readBeaconConfig)
+  .catch(e => {
+    var data = {message: 'Error: ' + e, timeout: 5e3 };
+    $('#snackbar').MaterialSnackbar.showSnackbar(data);
+  })
   .then(() => {
     $('#resetButton').disabled = false;
     $('#updateButton').disabled = false;
     $('#progressBar').hidden = true;
   });
-});
+};
 
-$('#lock').addEventListener('change', function(event) {
-  setLock(event.target.checked);
-});
-
-$('#resetButton').addEventListener('click', function() {
-  $('#resetButton').disabled = true;
-  $('#updateButton').disabled = true;
-  $('#progressBar').hidden = false;
-  connectBeacon()
-  .then(() => resetCharacteristic.writeValue(new Uint8Array([1])))
+function resetBeacon() {
+  return resetCharacteristic.writeValue(new Uint8Array([1]))
   .then(() => {
     var data = {message: 'Beacon has been reset.'};
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
   })
   .then(readBeaconConfig)
+  .catch(e => {
+    var data = {message: 'Error: ' + e, timeout: 5e3 };
+    $('#snackbar').MaterialSnackbar.showSnackbar(data);
+  })
   .then(() => {
     $('#resetButton').disabled = false;
     $('#updateButton').disabled = false;
     $('#progressBar').hidden = true;
   });
-});
-
-$('#closeButton').addEventListener('click', function() {
-  if (gattServer && gattServer.connected) {
-    gattServer.disconnect();
-  }
-  $('#container').hidden = true;
-  $('#closeButton').hidden = true;
-  $('#scanButton').hidden = false;
-});
+};
 
 function connectBeacon() {
   if (gattServer && gattServer.connected) {
@@ -165,7 +302,10 @@ function connectBeacon() {
 function readBeaconConfig() {
   return lockStateCharacteristic.readValue().then(value => {
     value = value.buffer ? value : new DataView(value);
-    setLock((value.getUint8(0) == 1));
+    isBeaconLocked = (value.getUint8(0) == 1);
+    setLock(isBeaconLocked);
+    $('#lock').parentElement.classList.toggle('edited', false);
+    $('#lock').defaultChecked = isBeaconLocked;
   })
   .then(() => {
     return uriDataCharacteristic.readValue().then(value => {
@@ -208,11 +348,11 @@ function readBeaconConfig() {
 
 function setValue(inputId, value) {
   var element = $('#' + inputId);
-  element.oninput = function(event) {
+  element.oninput = function() {
     event.target.classList.toggle('edited', (event.target.defaultValue !== event.target.value));
-  }
+  };
   element.defaultValue = value;
-  element.classList.remove('edited');
+  element.classList.toggle('edited', false);
   element.parentElement.MaterialTextfield.change(value);
   element.parentElement.animate([{color: 'initial'}, {color: '#448AFF'}, {color: 'initial'}], 360);
 }
