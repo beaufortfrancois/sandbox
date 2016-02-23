@@ -195,6 +195,13 @@ function generateLock(password) {
   .then(webKey => crypto.subtle.exportKey('raw', webKey))
 }
 
+$('#toggleAdvancedSettings').addEventListener('click', function(event) {
+  event.target.hidden = true;
+  $('#txPowerMode').parentElement.classList.remove('firstRow');
+  $('#txPowerMode').parentElement.classList.add('secondRow');
+  $('#container').classList.toggle('more', true);
+});
+
 function updateBeacon(password) {
   return getEncodedUrl($('#uri').value)
   .then(encodedUrl => uriDataCharacteristic.writeValue(new Uint8Array(encodedUrl)))

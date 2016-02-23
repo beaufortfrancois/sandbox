@@ -33,6 +33,10 @@
       .firstRow { flex: 1 0 100%; }
       .secondRow { flex: 1 0 33%; }
       .thirdRow { flex: 1 0 25%; }
+      #toggleAdvancedSettings { color: #448AFF; cursor: pointer; line-height: 36px; padding: 0 0 0 4px !important; line-height: 36px; }
+      #toggleAdvancedSettings:hover { text-decoration: underline; }
+      #container.more .advancedSetting { display: block; }
+      .advancedSetting { display: none; }
       .edited, .edited span.mdl-checkbox__box-outline { border-color: #448AFF !important; }
       .edited.mdl-checkbox.is-checked span.mdl-checkbox__tick-outline { background-color: #448AFF !important; }
     </style>
@@ -52,20 +56,20 @@
 
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label firstRow">
         <input class="mdl-textfield__input" type="url" id="uri" required pattern="https?://.+">
-        <label class="mdl-textfield__label" for="uri">URI</label>
+        <label class="mdl-textfield__label" for="uri">URL</label>
       </div>
 
-      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label secondRow">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label secondRow advancedSetting">
         <input class="mdl-textfield__input" type="number" id="flags" pattern="[0-9]+" required>
         <label class="mdl-textfield__label" for="flags">Flags</label>
       </div>
 
-      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label secondRow">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label secondRow advancedSetting">
         <input class="mdl-textfield__input" type="number" id="period" pattern="[0-9]+" required>
         <label class="mdl-textfield__label" for="period">Period (ms)</label>
       </div>
 
-      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select secondRow">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select firstRow">
         <input class="mdl-textfield__input" type="text" id="txPowerMode" readonly tabIndex="-1" required>
         <label for="txPowerMode" class="mdl-textfield__label">TX Power Mode</label>
         <ul for="txPowerMode" class="mdl-menu mdl-menu--bottom-left mdl-js-menu">
@@ -76,27 +80,27 @@
         </ul>
       </div>
 
-      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow advancedSetting">
         <input class="mdl-textfield__input" type="number" id="lowest" pattern="-?[0-9]+" required>
         <label class="mdl-textfield__label" for="lowest">Lowest</label>
       </div>
 
-      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow advancedSetting">
         <input class="mdl-textfield__input" type="number" id="low" pattern="-?[0-9]+" required>
         <label class="mdl-textfield__label" for="low">Low</label>
       </div>
 
-      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow advancedSetting">
         <input class="mdl-textfield__input" type="number" id="medium" pattern="-?[0-9]+" required>
         <label class="mdl-textfield__label" for="medium">Medium</label>
       </div>
 
-      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow advancedSetting">
         <input class="mdl-textfield__input" type="number" id="high" pattern="-?[0-9]+" required>
         <label class="mdl-textfield__label" for="high">High</label>
       </div>
 
-      <label for="lock" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
+      <label for="lock" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect advancedSetting">
         <input type="checkbox" id="lock" class="mdl-checkbox__input">
         <span class="mdl-checkbox__label"></span>
       </label>
@@ -130,6 +134,8 @@
           <button id="cancelLockButton" type="button" class="mdl-button">Cancel</button>
         </div>
       </dialog>
+
+      <div id="toggleAdvancedSettings">Advanced settings...</div>
 
       <button type="button" id="resetButton" class="mdl-button mdl-js-button">Reset</button>
       <button type="button" id="updateButton" disabled class="mdl-button mdl-js-button mdl-button--accent">Update</button>
