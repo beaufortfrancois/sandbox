@@ -203,8 +203,12 @@ $('#toggleAdvancedSettings').addEventListener('click', function(event) {
 });
 
 function updateBeacon(password) {
+  var isShortened;
   return getEncodedUrl($('#uri').value)
-  .then(encodedUrl => uriDataCharacteristic.writeValue(new Uint8Array(encodedUrl)))
+  .then(args => {
+    [encodedUrl, isShortened] = args;
+    return uriDataCharacteristic.writeValue(new Uint8Array(encodedUrl));
+  })
   .then(() => {
     var data = new Uint16Array([$('#period').value]);
     return beaconPeriodCharacteristic.writeValue(data);
@@ -233,6 +237,7 @@ function updateBeacon(password) {
   .then(() => {
     var data = {message: 'Beacon has been updated.'};
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
+    updateUriLabel(isShortened);
   })
   .then(readBeaconConfig)
   .catch(e => {
@@ -246,9 +251,15 @@ function updateBeacon(password) {
   });
 };
 
+function updateUriLabel(isShortened) {
+  $('#uriLabel').classList.toggle('shortened', isShortened);
+  $('#uriLabel').textContent = isShortened ? 'URL Shortened' : 'URL';
+}
+
 function resetBeacon() {
   return resetCharacteristic.writeValue(new Uint8Array([1]))
   .then(() => {
+    updateUriLabel(false /* not shortened */);
     var data = {message: 'Beacon has been reset.'};
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
   })
@@ -357,6 +368,9 @@ function setValue(inputId, value) {
   var element = $('#' + inputId);
   element.oninput = function() {
     event.target.classList.toggle('edited', (event.target.defaultValue !== event.target.value));
+    if (event.target.classList.contains('edited') && event.target.id == 'uri') {
+      updateUriLabel(false /* not shortened */);
+    }
   };
   element.defaultValue = value;
   element.classList.toggle('edited', false);
@@ -455,13 +469,13 @@ function getEncodedUrl(string) {
     if (encoded.length > 18) {
       return getShortUrl(string)
       .then(newString => {
-        resolve(encodeURL(newString));
+        resolve([encodeURL(newString), true /* shortened */]);
       })
       .catch(e => {
         reject(e);
       })
     } else {
-      resolve(encoded);
+      resolve([encoded, false /* non shortened */]);
     }
   });
 };
