@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test Multiple start notifications</title>
+    <style>
+      input { width: 100%; font-family: monospace; }
+    </style>
+  </head>
+  <body>
+    <input id="requestDeviceOptions" type="text">
+    <input id="primaryService" type="text">
+    <input id="characteristic" type="text">
+    <button id="startNotifications">Start Notifications</button>
+    <button id="stopNotifications">Stop Notifications</button>
+  </body>
+  <script>
+
+    const HEART_RATE_SERVICE = '0000180d-0000-1000-8000-00805f9b34fb';
+    const DFU_SERVICE = '00001530-1212-efde-1523-785feabcd123';
+    const DFU_CONTROL_POINT_CHARACTERISTIC = '00001531-1212-efde-1523-785feabcd123';
+
+    var bluetoothCharacteristic;
+
+    document.querySelector('#requestDeviceOptions').value = JSON.stringify({ filters: [{services: [HEART_RATE_SERVICE] }], optionalServices: [ DFU_SERVICE ] });
+    document.querySelector('#primaryService').value = DFU_SERVICE;
+    document.querySelector('#characteristic').value = DFU_CONTROL_POINT_CHARACTERISTIC;
+
+    document.querySelector('#startNotifications').addEventListener('click', function() {
+      if (bluetoothCharacteristic) {
+        startNotifications();
+      } else {
+        navigator.bluetooth.requestDevice(JSON.parse(document.querySelector('#requestDeviceOptions').value))
+        .then(device => device.gatt.connect())
+        .then(gatt => gatt.getPrimaryService(document.querySelector('#primaryService').value))
+        .then(service => service.getCharacteristic(document.querySelector('#characteristic').value))
+        .then(characteristic => { bluetoothCharacteristic = characteristic; return startNotifications() })
+      }
+    });
+
+    function startNotifications() {
+      console.log('starting...');
+      return bluetoothCharacteristic.startNotifications()
+      .then(() => console.log('started'))
+      .catch(e => console.log(e));
+    };
+
+    document.querySelector('#stopNotifications').addEventListener('click', function() {
+      if (bluetoothCharacteristic) {
+        stopNotifications();
+      } else {
+        navigator.bluetooth.requestDevice(JSON.parse(document.querySelector('#requestDeviceOptions').value))
+        .then(device => device.gatt.connect())
+        .then(gatt => gatt.getPrimaryService(document.querySelector('#primaryService').value))
+        .then(service => service.getCharacteristic(document.querySelector('#characteristic').value))
+        .then(characteristic => { bluetoothCharacteristic = characteristic; return stopNotifications() })
+      }
+    });
+
+    function stopNotifications() {
+      console.log('stopping...');
+      return bluetoothCharacteristic.stopNotifications()
+      .then(() => console.log('stopped'))
+      .catch(e => console.log(e));
+    };
+
+  </script>
+</html>
+
