@@ -10,6 +10,8 @@ cd bluez/
 make
 ```
 
+For some reasons, I had to tweak the `bootstrap-configure` file as this below before running it.
+
 ```diff
 (trusty)fr@localhost:~/Downloads/bluez(master)$ git diff
 diff --git a/bootstrap-configure b/bootstrap-configure
@@ -48,4 +50,16 @@ start bluetoothd
 ```bash
 sudo umount /usr/libexec/bluetooth/bluetoothd 
 sudo umount /usr/bin/bluetoothctl
+```
+
+## Run BlueZ in Debug Mode
+
+```bash
+/sbin/minijail0 -u bluetooth -g bluetooth -G -c 3500 -- /usr/libexec/bluetooth/bluetoothd -d --nodetach
+```
+
+With Experimental Interfaces ON,
+
+```bash
+/sbin/minijail0 -u bluetooth -g bluetooth -G -c 3500 -- /usr/libexec/bluetooth/bluetoothd -d -E --nodetach
 ```
