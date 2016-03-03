@@ -38,7 +38,8 @@
       this._debug = false;
     }
     connect() {
-      let options = {filters:[{services:[ MIBAND_SERVICE_UUID ]}]};
+      let options = {filters:[{services:[ MIBAND_SERVICE_UUID ]}],
+                     optionalServices: [ IOS_SERVICE_UUID ]};
       return navigator.bluetooth.requestDevice(options)
       .then(device => {
         this.device = device;
