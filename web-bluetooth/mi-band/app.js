@@ -7,7 +7,10 @@ var offset = 0;
 statusText.addEventListener('click', function() {
   statusText.textContent = 'Walk...';
   miBand.connect()
-  .then(() => miBand.pair(false))
+  .then(() => {
+    let reset = (localStorage.length === 0);
+    return miBand.pair(reset);
+  })
   .then(() => miBand.getSteps())
   .then(steps => {
     var today = new Date().toJSON().substr(0, 10);
