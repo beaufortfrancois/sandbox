@@ -1,5 +1,13 @@
 Here's how to build BlueZ from source on your Chromebook in Dev Mode, with crouton and replace system BlueZ.
 
+## Previous Install
+
+make sure that you are update with the mandatory tools : 
+
+```bash
+sudo apt-get install automake libtool libdbus-1-dev libudev-dev libical-dev  libreadline-dev
+```
+
 ## Compile BlueZ
 
 ```bash
