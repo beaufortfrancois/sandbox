@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/github.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js"></script>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.1.2/material.grey-blue.min.css">
+    <script src="https://code.getmdl.io/1.1.2/material.min.js"></script>
+
+    <style>
+      body {
+        min-height: 100%;
+        background-color: #f8f8f8;
+        display: flex;
+        flex-direction: row;
+      }
+      .leftPane { flex: 1 0 38%; }
+      .rightPane { flex: 1 0 62%; }
+      #background {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 525px;
+        background: #fff;
+        border-right: 1px solid #efefef;
+        z-index: -1;
+      }
+      pre, code {
+        font-size: 12px;
+        line-height: 16px;
+        font-family: Consolas, "Lucida Console", monospace;
+        margin: 0;
+        white-space: pre;
+      }
+    </style>
+  </head>
+  <body>
+  
+    <div class="leftPane">
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="deviceName" required>
+        <label class="mdl-textfield__label" for="deviceName">Device Name</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="advertisedDeviceName">
+        <label class="mdl-textfield__label" for="advertisedName">Advertised Device Name</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="advertisedDeviceNamePrefix">
+        <label class="mdl-textfield__label" for="advertisedNamePrefix">Advertised Device Name Prefix</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="advertisedServices">
+        <label class="mdl-textfield__label" for="advertisedServices">Advertised Service(s)</label>
+      </div>
+
+    </div>
+
+    <div class="rightPane">
+
+      <code><pre></pre></code>
+
+    </div>
+
+  <script src="app.js"></script>
+  </body>
+</html>
