@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iHealth Edge Demo</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+  </head>
+  <body>
+    <button>Click</button>
+    <pre></pre>
+    <script src="iHealthEdge.js"></script>
+    <script>
+      function log(str) {
+        document.querySelector('pre').innerHTML += str + '<br/>';
+      }
+
+      function handleActivityNotifications(event) {
+        let value = event.target.value;
+        let textDecoder = new TextDecoder();
+        for (var i = 0, a =[]; i < value.byteLength; i++) {
+          a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
+        }
+        log('> ' + a.join(' ') + ' [' + textDecoder.decode(value) + ']');
+      }
+
+      document.querySelector('button').onclick = function() {
+        iHealthEdge.discover()
+        .then(device => iHealthEdge.connect())
+
+        .then(() => iHealthEdge.getManufacturerName())
+        .then(result => { log('Manufacturer Name: ' + result) })
+          
+        .then(() => iHealthEdge.getModelNumber())
+        .then(result => { log('Model Number: ' + result) })
+          
+        .then(() => iHealthEdge.getHardwareRevision())
+        .then(result => { log('Hardware Revision: ' + result) })
+          
+        .then(() => iHealthEdge.getFirmwareRevision())
+        .then(result => { log('Firmware Revision: ' + result) })
+          
+        .then(() => iHealthEdge.getSoftwareRevision())
+        .then(result => { log('Software Revision: ' + result) })
+          
+        .then(() => iHealthEdge.getSystemId())
+        .then(result => { log('System ID: ' + result) })
+          
+        .then(() => iHealthEdge.getRegulatoryCertificationDataList())
+        .then(result => { log('IEEE 11073-20601 Regulatory Certification Data List: ' + result) })
+          
+        .then(() => iHealthEdge.getPnpId())
+        .then(result => { log('PnP ID: ' + result) })
+
+        .then(() => iHealthEdge.getAndroidPackageName())
+        .then(result => { log('Android Package Name: ' + result) })
+
+        .then(() => iHealthEdge.getDeviceName())
+        .then(result => { log('Device Name: ' + result) })
+
+        .then(() => iHealthEdge.startActivityNotifications(handleActivityNotifications));
+      }
+    </script>
+  </body>
+</html>
