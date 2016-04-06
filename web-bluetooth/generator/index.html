@@ -20,8 +20,19 @@
         display: flex;
         flex-direction: row;
       }
-      .leftPane { flex: 1 0 38%; }
-      .rightPane { flex: 1 0 62%; }
+      .leftPane { width: 480px; }
+      .leftPane > div { padding: 3em }
+      .rightPane { }
+      .section-title {
+        padding: 1em 0;
+        font-size: 1.7em;
+        color: #2196f3;
+        line-height: 1.1em;
+      }
+      .sub-section-title {
+        padding: 1em 0;
+        color: #2196f3;
+      }
       #background {
         position: absolute;
         top: 0;
@@ -38,30 +49,84 @@
         margin: 0;
         white-space: pre;
       }
+      code {
+        padding: 3em !important;
+      }
+      .mdl-textfield__label {
+        color: rgb(158,158,158);
+        font-size: 12px;
+        top: 4px;
+        visibility: visible;
+      }
+      .mdl-checkbox {
+        width: calc(33% - 24px);
+      }
     </style>
   </head>
   <body>
   
     <div class="leftPane">
 
+      <div>
+
+      <div class="section-title">Code Generator<br/>for Web Bluetooth</div>
+
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
         <input class="mdl-textfield__input" type="text" id="deviceName" required>
         <label class="mdl-textfield__label" for="deviceName">Device Name</label>
       </div>
 
+      <div class="section-title">Discovery filters</div>
+
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
         <input class="mdl-textfield__input" type="text" id="advertisedDeviceName">
-        <label class="mdl-textfield__label" for="advertisedName">Advertised Device Name</label>
+        <label class="mdl-textfield__label" for="advertisedName">Advertising Name</label>
       </div>
 
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
         <input class="mdl-textfield__input" type="text" id="advertisedDeviceNamePrefix">
-        <label class="mdl-textfield__label" for="advertisedNamePrefix">Advertised Device Name Prefix</label>
+        <label class="mdl-textfield__label" for="advertisedNamePrefix">Advertising Name Prefix</label>
       </div>
 
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
         <input class="mdl-textfield__input" type="text" id="advertisedServices">
-        <label class="mdl-textfield__label" for="advertisedServices">Advertised Service(s)</label>
+        <label class="mdl-textfield__label" for="advertisedServices">Advertising Service UUID(s)</label>
+      </div>
+
+      <div class="section-title">Characteristics</div>
+
+      <div class="sub-section-title">Characteristic 1</div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="characteristic1Name">
+        <label class="mdl-textfield__label" for="characteristic1Name">Characteristic Name</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="characteristic1Service">
+        <label class="mdl-textfield__label" for="characteristic1Service">Service UUID</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="characteristic1">
+        <label class="mdl-textfield__label" for="characteristic1">Characteristic UUID</label>
+      </div>
+
+      <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="characteristic1Read">
+        <input type="checkbox" id="characteristic1Read" class="mdl-checkbox__input" checked>
+        <span class="mdl-checkbox__label">Read</span>
+      </label>
+
+      <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="characteristic1Write">
+        <input type="checkbox" id="characteristic1Write" class="mdl-checkbox__input" checked>
+        <span class="mdl-checkbox__label">Write</span>
+      </label>
+
+      <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="characteristic1Notify">
+        <input type="checkbox" id="characteristic1Notify" class="mdl-checkbox__input">
+        <span class="mdl-checkbox__label">Notify</span>
+      </label>
+
       </div>
 
     </div>
