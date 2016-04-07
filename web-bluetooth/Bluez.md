@@ -6,29 +6,9 @@ Here's how to build BlueZ from source on your Chromebook in Dev Mode, with crout
 cd ~/Downloads/
 git clone git://git.kernel.org/pub/scm/bluetooth/bluez.git
 cd bluez/
-./bootstrap-configure
+./bootstrap-configure --disable-backtrace --disable-systemd --disable-android
 make
 ```
-
-For some reasons, I had to tweak the `bootstrap-configure` file as this below before running it.
-
-```diff
-(trusty)fr@localhost:~/Downloads/bluez(master)$ git diff
-diff --git a/bootstrap-configure b/bootstrap-configure
-index 87766b1..aa901ad 100755
---- a/bootstrap-configure
-+++ b/bootstrap-configure
-@@ -12,8 +12,7 @@ fi
-                --sysconfdir=/etc \
-                --localstatedir=/var \
-                --enable-manpages \
--               --enable-backtrace \
-                --enable-experimental \
--               --enable-android \
-+               --disable-systemd  \
-                --enable-sixaxis \
-                --disable-datafiles $*
-```                
 
 ## Override BlueZ
 
