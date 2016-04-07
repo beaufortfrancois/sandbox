@@ -7,99 +7,170 @@ function generateCode(options) {
   var advertisedDeviceName = options.advertisedDeviceName;
   var advertisedDeviceNamePrefix = options.advertisedDeviceNamePrefix;
 
-  var filterOptions = {filters: [{}]};
+  function formatUUID(string) {
+    if (string.startsWith('0x')) {
+      return string;
+    } else {
+      return '"' + string + '"';
+    }
+  }
+
+  var filterOptions = '"filters": [{\n';
   if (advertisedDeviceName) {
-    filterOptions.filters[0].name = advertisedDeviceName;
+    filterOptions += '        "name": "' + advertisedDeviceName + '"';
   }
   if (advertisedDeviceNamePrefix) {
-    filterOptions.filters[0].namePrefix = advertisedDeviceNamePrefix;
+    if (filterOptions.length == 0) {
+      filterOptions = '"filters": [{\n';
+    }
+    if (advertisedDeviceName) {
+      filterOptions += ',\n';
+    }
+    filterOptions += '        "namePrefix": "' + advertisedDeviceNamePrefix + '"';
   }
-  if (advertisedServices) {
-    filterOptions.filters[0].services = Array.of(advertisedServices);
+  if (advertisedServices.length) {
+    if (filterOptions.length == 0) {
+      filterOptions = '"filters": [{\n';
+    }
+    if (advertisedDeviceName || advertisedDeviceNamePrefix) {
+      filterOptions += ',\n';
+    }
+    filterOptions += '        "services": [';
+    Array.from(advertisedServices).forEach((service, index) => {
+      if (index >0) {
+        filterOptions += ', ';
+      }
+      filterOptions += formatUUID(service);
+    });
+    filterOptions += ']';
   }
+  filterOptions += '\n      }]';
 
   var characteristicMethods = '';
-  if (options.services) {
-    filterOptions.optionalServices = options.services.map(service => service.uuid);
+  var optionalServicesOptions = '';
+  if (options.characteristicUuid && options.characteristicName && options.characteristicServiceUuid &&
+       (options.characteristicRead || options.characteristicWrite || options.characteristicNotify)) {
 
-    options.services.forEach(service => {
-      service.characteristics.forEach(characteristic => {
-        let characteristicName = characteristic.name.charAt(0).toUpperCase() + characteristic.name.slice(1);
-        if (characteristic.properties.read) {
-          characteristicMethods += `
-  get${characteristicName}() {
-    return this.device.gatt.getPrimaryService("${service.uuid}")
-    .then(service => service.getCharacteristic("${characteristic.uuid}"))
+    if (!Array.from(advertisedServices).includes(options.characteristicServiceUuid)) {
+      optionalServicesOptions = ',\n      "optionalServices": [';
+      optionalServicesOptions += formatUUID(options.characteristicServiceUuid);
+      optionalServicesOptions += ']';
+    }
+
+    let characteristicName = options.characteristicName.charAt(0).toUpperCase() + options.characteristicName.slice(1);
+    if (options.characteristicRead) {
+      characteristicMethods += `
+  read${characteristicName}() {
+    return this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)})
+    .then(service => service.getCharacteristic(${formatUUID(options.characteristicUuid)}))
     .then(characteristic => characteristic.readValue());
   }
 `;
-        }
-        if (characteristic.properties.write) {
-          characteristicMethods += `
-  set${characteristicName}(data) {
-    return this.device.gatt.getPrimaryService("${service.uuid}")
-    .then(service => service.getCharacteristic("${characteristic.uuid}"))
+    }
+    if (options.characteristicWrite) {
+      characteristicMethods += `
+  write${characteristicName}(data) {
+    return this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)})
+    .then(service => service.getCharacteristic(${formatUUID(options.characteristicUuid)}))
     .then(characteristic => characteristic.writeValue(data));
   }
 `;
-        } 
+    }
+    if (options.characteristicNotify) {
+      characteristicMethods += `
+  start${characteristicName}Notifications(listener) {
+    return this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)})
+    .then(service => service.getCharacteristic(${formatUUID(options.characteristicUuid)}))
+    .then(characteristic => {
+      return characteristic.startNotifications()
+      .then(_ => {
+        characteristic.addEventListener('characteristicvaluechanged', listener);
       });
     });
   }
- 
+
+  stop${characteristicName}Notifications(listener) {
+    return this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)})
+    .then(service => service.getCharacteristic(${formatUUID(options.characteristicUuid)}))
+    .then(characteristic => {
+      return characteristic.stopNotifications()
+      .then(_ => {
+        characteristic.removeEventListener('characteristicvaluechanged', listener);
+      });
+    });
+  }
+`;
+    }
+  }
+
   var mainTemplate = `
 
 class ${classDeviceName} {
 
   constructor() {
     this.device = null;
+    this.onDisconnected = this.onDisconnected.bind(this);
   }
 
   request() {
-    let options = ${JSON.stringify(filterOptions)};
+    let options = {
+      ${filterOptions}${optionalServicesOptions}
+    };
     return navigator.bluetooth.requestDevice(options)
     .then(device => {
       this.device = device;
+      this.device.addEventListener('gattserverdisconnected', this.onDisconnected);
       return device;
     });
   }
 
   connect() {
-    return this.device.gatt.connect();
+    if (!this.device) {
+      return Promise.reject('Device is not connected.');
+    } else {
+      return this.device.gatt.connect();
+    }
   }
   ${characteristicMethods}
+  disconnect() {
+    if (!this.device) {
+      return Promise.reject('Device is not connected.');
+    } else {
+      return this.device.gatt.disconnect();
+    }
+  }
+
+  onDisconnected() {
+    console.log('Device is disconnected.');
+  }
 }
 
 var ${instanceDeviceName} = new ${classDeviceName}();
 
-/* Here's how you can use it...
-
-   document.querySelector('button').addEventListener('click', function() {
-     ${instanceDeviceName}.request()
-     .then(_ => ${instanceDeviceName}.connect())
-     .then(_ => {
-       ... 
-     })
-     .catch(error => { console.log(error) });
-  });
-
-*/
+document.querySelector('button').addEventListener('click', function() {
+  ${instanceDeviceName}.request()
+  .then(_ => ${instanceDeviceName}.connect())
+  .then(_ => { /* Do something with ${instanceDeviceName} */})
+  .catch(error => { console.log(error) });
+}
 `;
 
   return mainTemplate.trim();
 }
 
 function updateCodePreview() {
-  
-  var instanceDeviceName = $('#deviceName').value;
+
+  var instanceDeviceName = $('#deviceName').value.replace(/[^a-zA-Z]/g, '');
+  instanceDeviceName = instanceDeviceName.charAt(0).toLowerCase() + instanceDeviceName.slice(1);
   var classDeviceName = instanceDeviceName.charAt(0).toUpperCase() + instanceDeviceName.slice(1);
   var advertisedServices = $('#advertisedServices').value.split(',').map(e => e.trim()).filter(e => e.length);
   var advertisedDeviceName = $('#advertisedDeviceName').value;
   var advertisedDeviceNamePrefix = $('#advertisedDeviceNamePrefix').value;
+  var characteristicName = $('#characteristicName').value.replace(/[^a-zA-Z]/g, '');
 
   try {
-    advertisedServices.map(str => { 
-      if (str.startsWith('0x')) {
+    advertisedServices.map(str => {
+      if (str.startsWith('0x') && str.length == 6) {
         BluetoothUUID.getService(parseInt(str.slice(2), 16));
       } else if (str) {
         BluetoothUUID.getService(str);
@@ -108,32 +179,22 @@ function updateCodePreview() {
     $('#advertisedServices').setCustomValidity('');
   } catch(e) {
     $('#advertisedServices').setCustomValidity(e);
-    $('code').innerText = '';
+    advertisedServices = [];
     return;
   }
 
   $('code').innerText = generateCode({
-     classDeviceName: classDeviceName, 
+     classDeviceName: classDeviceName,
      instanceDeviceName: instanceDeviceName,
      advertisedServices: advertisedServices,
      advertisedDeviceName: advertisedDeviceName,
      advertisedDeviceNamePrefix: advertisedDeviceNamePrefix,
-     services: [
-       {
-         uuid: $('#characteristic1Service').value,
-         characteristics: [
-           {
-             uuid: $('#characteristic1').value,
-             name: $('#characteristic1Name').value,
-             properties: {
-               read: $('#characteristic1Read').checked,
-               write: $('#characteristic1Write').checked, 
-               notify: $('#characteristic1Notify').checked, 
-             }
-           }
-         ]
-       },
-     ]
+     characteristicName: characteristicName,
+     characteristicUuid: $('#characteristic').value,
+     characteristicServiceUuid: $('#characteristicService').value,
+     characteristicRead: $('#characteristicRead').checked,
+     characteristicWrite: $('#characteristicWrite').checked,
+     characteristicNotify: $('#characteristicNotify').checked,
   });
   hljs.highlightBlock($('code'));
 }
@@ -142,30 +203,80 @@ $('#deviceName').addEventListener('input', updateCodePreview);
 $('#advertisedDeviceName').addEventListener('input', updateCodePreview);
 $('#advertisedDeviceNamePrefix').addEventListener('input', updateCodePreview);
 $('#advertisedServices').addEventListener('input', updateCodePreview);
-$('#characteristic1Name').addEventListener('input', updateCodePreview);
-$('#characteristic1Service').addEventListener('input', updateCodePreview);
-$('#characteristic1').addEventListener('input', updateCodePreview);
-$('#characteristic1Read').addEventListener('change', updateCodePreview);
-$('#characteristic1Write').addEventListener('change', updateCodePreview);
-$('#characteristic1Notify').addEventListener('change', updateCodePreview);
+$('#characteristicName').addEventListener('input', updateCodePreview);
+$('#characteristicService').addEventListener('input', updateCodePreview);
+$('#characteristic').addEventListener('input', updateCodePreview);
+$('#characteristicRead').addEventListener('change', updateCodePreview);
+$('#characteristicWrite').addEventListener('change', updateCodePreview);
+$('#characteristicNotify').addEventListener('change', updateCodePreview);
 
 
 function setValue(inputId, value) {
   $('#' + inputId).value = value;
 }
 
-function setCheck(inputId, value) {
-  $('#' + inputId).checked = value;
+function setCheck(inputId, check) {
+  if (check) {
+    $('#' + inputId).parentElement.MaterialCheckbox.check()
+  } else {
+    $('#' + inputId).parentElement.MaterialCheckbox.uncheck()
+  }
 }
 
-setValue('deviceName', 'myBluetoothDevice');
-setValue('advertisedDeviceName', ' ');
-setValue('advertisedServices', 'battery_service');
-setValue('characteristic1Name', 'serialNumber');
-setValue('characteristic1Service', 'device_information');
-setValue('characteristic1', 'serial_number_string');
-setCheck('characteristic1Read', true);
-setCheck('characteristic1Write', true);
-setCheck('characteristic1Notify', false);
+var configIndex = 0;
 
-updateCodePreview();
+const PLACEHOLDERS = [{
+  deviceName: 'Playbulb Candle',
+  advertisedDeviceName: 'PLAYBULB Candle',
+  characteristicName: 'color',
+  characteristicService: '0xFF02',
+  characteristic: '0xFFFC',
+  characteristicRead: false,
+  characteristicWrite: true,
+  characteristicNotify: false,
+}, {
+  deviceName: 'Heart Rate Monitor',
+  advertisedServices: 'heart_rate',
+  characteristicName: 'heart rate measurement',
+  characteristicService: 'heart_rate',
+  characteristic: 'heart_rate_measurement',
+  characteristicRead: false,
+  characteristicWrite: false,
+  characteristicNotify: true,
+}, {
+  deviceName: 'Generic Device',
+  advertisedDeviceName: 'foo',
+  characteristicName: 'manufacturer name',
+  characteristicService: 'device_information',
+  characteristic: 'manufacturer_name_string',
+  characteristicRead: true,
+  characteristicWrite: false,
+  characteristicNotify: false,
+}];
+
+function setConfig(config) {
+  setValue('deviceName',  config.deviceName || '');
+  setValue('advertisedDeviceName', config.advertisedDeviceName || '');
+  setValue('advertisedDeviceNamePrefix', config.advertisedDeviceNamePrefix || '');
+  setValue('advertisedServices', config.advertisedServices || '');
+  setValue('characteristicName', config.characteristicName || '');
+  setValue('characteristicService', config.characteristicService || '');
+  setValue('characteristic',  config.characteristic || '');
+  setCheck('characteristicRead', config.characteristicRead || false);
+  setCheck('characteristicWrite', config.characteristicWrite || false);
+  setCheck('characteristicNotify', config.characteristicNotify || false);
+
+  updateCodePreview();
+}
+
+document.querySelector('button').addEventListener('click', function() {
+  configIndex++;
+  if (configIndex == PLACEHOLDERS.length) {
+    configIndex = 0;
+  }
+  setConfig(PLACEHOLDERS[configIndex]);
+});
+
+$('#characteristicNotify').parentElement.addEventListener('mdl-componentupgraded', function(event) {
+  setConfig(PLACEHOLDERS[0]);
+});

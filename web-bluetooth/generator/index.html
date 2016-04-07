@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generator</title>
+    <title>Get Started with Web Bluetooth</title>
     <link rel="icon" sizes="192x192" href="../favicon.png">
 
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/github.min.css">
-    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/github.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.1.2/material.grey-blue.min.css">
@@ -15,42 +15,36 @@
 
     <style>
       body {
-        min-height: 100%;
         background-color: #f8f8f8;
         display: flex;
         flex-direction: row;
       }
-      .leftPane { width: 480px; }
-      .leftPane > div { padding: 3em }
-      .rightPane { }
+      .leftPane { width: calc(480px - 3em); }
+      .leftPane > div { padding-left: 3em; padding-top: 1.2em; }
+      .section-title:first-child {
+        padding-top: 1em;
+      }
       .section-title {
-        padding: 1em 0;
-        font-size: 1.7em;
+        padding-top: .5em;
+        padding-bottom: 1em;
+        font-size: 1.5em;
         color: #2196f3;
-        line-height: 1.1em;
       }
       .sub-section-title {
         padding: 1em 0;
         color: #2196f3;
-      }
-      #background {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 525px;
-        background: #fff;
-        border-right: 1px solid #efefef;
-        z-index: -1;
+        text-transform: uppercase;
+        font-weight: bold;
       }
       pre, code {
-        font-size: 12px;
+        font-size: 13px;
         line-height: 16px;
         font-family: Consolas, "Lucida Console", monospace;
         margin: 0;
         white-space: pre;
       }
       code {
-        padding: 3em !important;
+        padding-top: 2em !important;
       }
       .mdl-textfield__label {
         color: rgb(158,158,158);
@@ -61,6 +55,15 @@
       .mdl-checkbox {
         width: calc(33% - 24px);
       }
+      #test {
+        position: fixed;
+        display: block;
+        right: 0;
+        bottom: 0;
+        margin-right: 40px;
+        margin-bottom: 40px;
+        z-index: 900;
+      }
     </style>
   </head>
   <body>
@@ -69,14 +72,14 @@
 
       <div>
 
-      <div class="section-title">Code Generator<br/>for Web Bluetooth</div>
+      <div class="section-title">Get Started with Web Bluetooth</div>
 
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-        <input class="mdl-textfield__input" type="text" id="deviceName" required>
+        <input class="mdl-textfield__input" type="text" id="deviceName" required pattern="[a-zA-Z\ ]*">
         <label class="mdl-textfield__label" for="deviceName">Device Name</label>
       </div>
 
-      <div class="section-title">Discovery filters</div>
+      <div class="sub-section-title">Discovery filters</div>
 
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
         <input class="mdl-textfield__input" type="text" id="advertisedDeviceName">
@@ -93,37 +96,35 @@
         <label class="mdl-textfield__label" for="advertisedServices">Advertising Service UUID(s)</label>
       </div>
 
-      <div class="section-title">Characteristics</div>
-
-      <div class="sub-section-title">Characteristic 1</div>
+      <div class="sub-section-title">Characteristic</div>
 
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-        <input class="mdl-textfield__input" type="text" id="characteristic1Name">
-        <label class="mdl-textfield__label" for="characteristic1Name">Characteristic Name</label>
+        <input class="mdl-textfield__input" type="text" id="characteristicName" pattern="[a-zA-Z\ ]*">
+        <label class="mdl-textfield__label" for="characteristicName">Characteristic Name</label>
       </div>
 
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-        <input class="mdl-textfield__input" type="text" id="characteristic1Service">
-        <label class="mdl-textfield__label" for="characteristic1Service">Service UUID</label>
+        <input class="mdl-textfield__input" type="text" id="characteristicService">
+        <label class="mdl-textfield__label" for="characteristicService">Service UUID</label>
       </div>
 
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-        <input class="mdl-textfield__input" type="text" id="characteristic1">
-        <label class="mdl-textfield__label" for="characteristic1">Characteristic UUID</label>
+        <input class="mdl-textfield__input" type="text" id="characteristic">
+        <label class="mdl-textfield__label" for="characteristic">Characteristic UUID</label>
       </div>
 
-      <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="characteristic1Read">
-        <input type="checkbox" id="characteristic1Read" class="mdl-checkbox__input" checked>
+      <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="characteristicRead">
+        <input type="checkbox" id="characteristicRead" class="mdl-checkbox__input">
         <span class="mdl-checkbox__label">Read</span>
       </label>
 
-      <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="characteristic1Write">
-        <input type="checkbox" id="characteristic1Write" class="mdl-checkbox__input" checked>
+      <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="characteristicWrite">
+        <input type="checkbox" id="characteristicWrite" class="mdl-checkbox__input">
         <span class="mdl-checkbox__label">Write</span>
       </label>
 
-      <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="characteristic1Notify">
-        <input type="checkbox" id="characteristic1Notify" class="mdl-checkbox__input">
+      <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="characteristicNotify">
+        <input type="checkbox" id="characteristicNotify" class="mdl-checkbox__input">
         <span class="mdl-checkbox__label">Notify</span>
       </label>
 
@@ -131,9 +132,13 @@
 
     </div>
 
-    <div class="rightPane">
+    <div>
 
       <code><pre></pre></code>
+
+      <button id="test"class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
+        <i class="material-icons">autorenew</i>
+      </button>
 
     </div>
 
