@@ -3,10 +3,11 @@ Here's how to build BlueZ from source on your Chromebook in Dev Mode, with crout
 ## Compile BlueZ
 
 ```bash
+sudo apt-get -y install autotools-dev bison check flex libcap-ng-dev libdbus-glib-1-dev libglib2.0-dev libical-dev libreadline-dev libudev-dev libdw-dev clang lcov
 cd ~/Downloads/
 git clone git://git.kernel.org/pub/scm/bluetooth/bluez.git
 cd bluez/
-./bootstrap-configure --disable-backtrace --disable-systemd --disable-android
+./bootstrap-configure --disable-systemd --disable-android
 make
 ```
 
