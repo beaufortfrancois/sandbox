@@ -63,6 +63,10 @@
         fetch(request, { mode: 'cors', method: 'POST', body: body })
         .then(response => response.json())
         .then(data => {
+          if (data.error) {
+            log(data.error.status, data.error.message, 'error');
+            return;
+          }
           if (!data.results || data.results.length == 0) {
             log('AW SNAP!', 'The Physical Web does NOT validate this URL.', 'error');
             return;
