@@ -18,17 +18,17 @@ function RunPlugin(profiledata) {
   var classDeviceName = fileName.charAt(0).toUpperCase() + fileName.slice(1);
   var instanceDeviceName = 'my' + classDeviceName;
 
-  var filterOptions = '"filters": [{\n';
+  var filterOptions = '"filters": [{\r\n';
   if (profiledata.GAPProperties.DeviceNameAdvertise || profiledata.GAPProperties.DeviceNameResponse) {
     filterOptions += '        "name": "' + profiledata.GAPProperties.DeviceName + '"';
   }
 
   if (profiledata.GAPProperties.ServicesAdvertise && profiledata.GAPProperties.ServicesAdvertisement.length) {
     if (filterOptions.length == 0) {
-      filterOptions = '"filters": [{\n';
+      filterOptions = '"filters": [{\r\n';
     }
     if (profiledata.GAPProperties.DeviceNameAdvertise || profiledata.GAPProperties.DeviceNameResponse) {
-      filterOptions += ',\n';
+      filterOptions += ',\r\n';
     }
 
     filterOptions += '        "services": [';
@@ -40,11 +40,11 @@ function RunPlugin(profiledata) {
     }
     filterOptions += services.join(', ') + ']';
   }
-  filterOptions += '\n      }]';
+  filterOptions += '\r\n      }]';
 
   var optionalServicesOptions = '';
   if (profiledata.Services.length) {
-    optionalServicesOptions = ',\n      "optionalServices": [';
+    optionalServicesOptions = ',\r\n      "optionalServices": [';
   }
   for (var i = 0, services = []; i < profiledata.Services.length; i++) {
     services.push(formatUUID(profiledata.Services[i].UUID));
