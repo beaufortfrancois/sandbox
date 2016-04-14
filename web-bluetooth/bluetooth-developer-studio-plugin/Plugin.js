@@ -11,9 +11,9 @@ function GetInfo(infoObject) {
 function RunPlugin(profiledata) {
 
   log("Plugin -- Begin");
-  log("Output file name is " +fileName + ".js");
 
   var fileName = profiledata.GAPProperties.DeviceName.replace(/[^a-zA-Z]/g, '');
+  log("Output file name is " +fileName + ".js");
 
   var classDeviceName = fileName.charAt(0).toUpperCase() + fileName.slice(1);
   var instanceDeviceName = 'my' + classDeviceName;
