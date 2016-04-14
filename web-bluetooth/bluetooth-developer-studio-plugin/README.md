@@ -12,6 +12,16 @@ Copy/paste `sandbox/web-bluetooth/bluetooth-developer-studio-plugin/` folder con
 2. Press <kbd>Ctrl</kbd>+<kbd>G</kbd> to Generate Code
 3. Pick `Client` and select `Web Bluetooth`
 4. Click `Generate` button
-5. Check out the new generated JS file inside your Bluetooth Developer Studio Plugin Output folder.
+5. Check out the new generated HTML and JS files in the Bluetooth Developer Studio Plugin Output folder.
  
 <img src="https://raw.githubusercontent.com/beaufortfrancois/sandbox/gh-pages/web-bluetooth/bluetooth-developer-studio-plugin/screenshot.png">
+
+### Notes
+
+- Make sure `template.html` and `template.js` lines end with `CR` then `LF`:
+
+```bash
+:update
+:e ++ff=dos
+:wq
+```

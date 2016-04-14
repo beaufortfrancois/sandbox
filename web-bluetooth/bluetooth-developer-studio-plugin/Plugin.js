@@ -13,7 +13,7 @@ function RunPlugin(profiledata) {
   log("Plugin -- Begin");
 
   var fileName = profiledata.GAPProperties.DeviceName.replace(/[^a-zA-Z]/g, '');
-  log("Output file name is " +fileName + ".js");
+  log("Check out " + fileName + ".html and " + fileName + ".js");
 
   var classDeviceName = fileName.charAt(0).toUpperCase() + fileName.slice(1);
   var instanceDeviceName = 'my' + classDeviceName;
@@ -104,12 +104,11 @@ function RunPlugin(profiledata) {
     });\r\n\
   }\r\n';
       }
-
-
     }
   }
 
   var data = {
+    fileName: fileName,
     instanceDeviceName: instanceDeviceName,
     classDeviceName: classDeviceName,
     filterOptions: filterOptions,
@@ -117,18 +116,20 @@ function RunPlugin(profiledata) {
     characteristicMethods: characteristicMethods
   };
 
-  var template = FileManager.ReadFile("template.js");
-  var output = ProcessTemplate(template, data);
+  var jsOutput = ProcessTemplate(FileManager.ReadFile("template.js"), data);
+  FileManager.CreateFile(fileName + ".js", jsOutput);
 
-  FileManager.CreateFile(fileName + ".js",  output);
+  var htmlOutput = ProcessTemplate(FileManager.ReadFile("template.html"), data);
+  FileManager.CreateFile(fileName + ".html", htmlOutput);
 
   log("Plugin -- End");
-
 }
 
 function formatUUID(uuid) {
   if (uuid.length == 4) {
     return('0x' + uuid);
+  } else if (uuid.length == 32) {
+    return '"' + uuid.split(/(....)/).filter(String).join('-') + '"';
   } else {
     return uuid
   }

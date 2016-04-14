@@ -38,11 +38,3 @@ class {{classDeviceName}} {
   }
 
 }
-
-var {{instanceDeviceName}} = new {{classDeviceName}}();
-document.querySelector('button').addEventListener('click', function() {
-  {{instanceDeviceName}}.request()
-  .then(_ => {{instanceDeviceName}}.connect())
-  .then(_ => { /* Do something with {{instanceDeviceName}} */})
-  .catch(error => { console.log(error) });
-}
