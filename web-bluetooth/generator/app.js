@@ -1,3 +1,5 @@
+'use strict';
+
 var $ = document.querySelector.bind(document);
 
 function generateCode(options) {
