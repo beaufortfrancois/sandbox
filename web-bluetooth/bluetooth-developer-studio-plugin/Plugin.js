@@ -126,10 +126,12 @@ function RunPlugin(profiledata) {
 }
 
 function formatUUID(uuid) {
+  uuid = uuid.toLowerCase();
   if (uuid.length == 4) {
     return('0x' + uuid);
   } else if (uuid.length == 32) {
-    return '"' + uuid.split(/(....)/).filter(String).join('-') + '"';
+    let uuid_components = uuid.match(/(........)(....)(....)(....)(............)/);
+    return '"' + uuid_components.slice(1,6).join("-") + '"';
   } else {
     return uuid
   }
