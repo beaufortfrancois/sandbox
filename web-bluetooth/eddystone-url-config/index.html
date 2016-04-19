@@ -9,26 +9,29 @@
 
     <link href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="code.getmdl.io/1.1.1/material.grey-blue.min.css" />
+    <link rel="stylesheet" href="code.getmdl.io/1.1.3/material.grey-blue.min.css" />
 
-    <script defer src="code.getmdl.io/1.1.1/material.min.js"></script>
+    <script defer src="code.getmdl.io/1.1.3/material.min.js"></script>
 
     <style>
       body { display: flex; align-items: center; }
-      #progressBar { position: absolute; width: 100%; }
+      #progressBar { position: absolute; top: 36px; width: 100%; }
+      .top { top: 0 !important; }
       #container { width: 420px; margin: 0 auto; display: flex; flex-flow: row wrap; padding: 20px; margin-left: 0; }
-      #container > div { padding: 20px 4px; } 
-      #container > label { margin: 12px 0px; } 
-      @media (max-width: 700px) { 
+      #container > div { padding: 20px 4px; }
+      #container > label { margin: 12px 0px; }
+      @media (max-width: 700px) {
         #container { margin-left: auto }
         #closeButton { position: fixed; display: block; left: 0; bottom: 0; margin-left: 40px; margin-bottom: 40px; z-index: 900; }
       }
-      @media (max-height: 479px) and (max-width: 479px) { 
+      @media (max-height: 479px) and (max-width: 479px) {
         #closeButton { display: none; }
       }
       @media (min-width: 900px) {
         #closeButton { margin-right: 128px; }
       }
+      #beaconService { text-align: center; padding: 0 !important; text-transform: uppercase; background-color: #448AFF; color: white; line-height: 36px; position: absolute; top: 0; left: 0; width: 100%; font-weight: bold; }
+      sup { font-weight: normal; letter-spacing: -1px; }
       #resetButton { margin-left: auto; }
       .firstRow { flex: 1 0 100%; }
       .secondRow { flex: 1 0 33%; }
@@ -47,16 +50,18 @@
   </head>
   <body>
 
-    <div id="progressBar" hidden class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+    <div id="progressBar" hidden class="mdl-progress mdl-js-progress mdl-progress__indeterminate top"></div>
 
     <button id="closeButton" hidden class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--mini-fab">
       <i class="material-icons">navigate_before</i>
     </button>
 
+    <div id="beaconService"></div>
+
     <form id="container" hidden>
 
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label firstRow">
-        <input class="mdl-textfield__input" type="url" id="uri" required pattern="https?://.+">
+        <input class="mdl-textfield__input" type="url" id="uri" required pattern="https?://.+" spellcheck="false">
         <label class="mdl-textfield__label" for="uri" id="uriLabel">URL</label>
       </div>
 
@@ -79,6 +84,22 @@
           <li class="mdl-menu__item">Medium</li>
           <li class="mdl-menu__item">High</li>
         </ul>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select firstRow">
+        <input class="mdl-textfield__input" type="text" id="radioTxPower" readonly tabIndex="-1" required>
+        <label for="radioTxPower" class="mdl-textfield__label">Radio Tx Power (dBm)</label>
+        <ul for="radioTxPower" class="mdl-menu mdl-menu--bottom-left mdl-js-menu"></ul>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label secondRow advancedSetting">
+        <input class="mdl-textfield__input" type="number" id="advertisingInterval" pattern="[0-9]+" required>
+        <label class="mdl-textfield__label" for="advertisingInterval">Advertising Interval (ms)</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label secondRow advancedSetting">
+        <input class="mdl-textfield__input" type="number" id="advancedAdvertisedTxPower" pattern="[0-9]+" required>
+        <label class="mdl-textfield__label" for="advancedAdvertisedTxPower">Advertising Tx Power (dBm)</label>
       </div>
 
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label thirdRow advancedSetting">
@@ -147,14 +168,56 @@
       <div class="mdl-snackbar__text"></div>
       <button class="mdl-snackbar__action" type="button"></button>
     </div>
-    
+
     <button id="scanButton" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
       <i class="material-icons">bluetooth_searching</i>
     </button>
 
     <script src="app.js"></script>
     <script>
-"use strict";window.onload=function(){var e=document.querySelectorAll(".getmdl-select");[].forEach.call(e,function(e){addEventListeners(e)})};var addEventListeners=function(e){var t=e.querySelector("input"),n=e.querySelectorAll("li");e.querySelector("i");[].forEach.call(n,function(e){e.onclick=function(){t.value=e.textContent}})};
+/* Modified version of https://github.com/CreativeIT/getmdl-select/blob/719ee9ef584086f56af2e026044c2044327e1ce9/src/js/getmdl-select.js */
+{
+    'use strict';
+    window.onload = function () {
+        getmdlSelect.init('.getmdl-select');
+        document.addEventListener("DOMNodeInserted", function (ev) {
+            componentHandler.upgradeDom();
+        }, false);
+    };
+
+    var getmdlSelect = {
+        addEventListeners: function (dropdown) {
+            var input = dropdown.querySelector('input');
+            var list = dropdown.querySelectorAll('li');
+
+            [].forEach.call(list, function (li) {
+                li.onclick = function () {
+
+                    dropdown.MaterialTextfield.change(li.textContent); // handles css class changes
+                    // TODO: Merge upstream - https://github.com/CreativeIT/getmdl-select/issues/20
+                    setTimeout(function() {
+                      li.parentNode.MaterialMenu.hide();
+                    }, li.parentNode.MaterialMenu.Constant_.CLOSE_TIMEOUT);
+
+                    if ("createEvent" in document) {
+                        var evt = document.createEvent("HTMLEvents");
+                        evt.initEvent("change", false, true);
+                        input.dispatchEvent(evt);
+                    } else {
+                        input.fireEvent("onchange");
+                    }
+                }
+            });
+        },
+        init: function (selector) {
+            var dropdowns = document.querySelectorAll(selector);
+            [].forEach.call(dropdowns, function (i) {
+                getmdlSelect.addEventListeners(i);
+                i.style.width = i.querySelector('.mdl-menu').clientWidth + 'px';
+            });
+        }
+    };
+}
     </script>
   </body>
 </html>
