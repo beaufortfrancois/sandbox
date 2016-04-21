@@ -86,7 +86,7 @@ $('#scanButton').addEventListener('click', function() {
     $('#advancedAdvertisedTxPower').parentElement.hidden = isEddystoneUrlBeacon;
     $('#advertisingInterval').parentElement.hidden = isEddystoneUrlBeacon;
     $('#radioTxPower').parentElement.hidden = isEddystoneUrlBeacon;
-    $('#beaconService').innerHTML = isEddystoneUrlBeacon ? 'Eddystone-URL Configuration Service' : 'Eddystone Configuration GATT Service <sup>NEW</sup>';
+    $('#beaconService').innerHTML = isEddystoneUrlBeacon ? 'Eddystone-URL Configuration' : 'Eddystone Configuration';
     $('#progressBar').classList.toggle('top', false);
     $('#progressBar').hidden = true;
     $('#scanButton').hidden = true;
@@ -356,11 +356,12 @@ function updateUriLabel(isShortened) {
 }
 
 function resetBeacon() {
-  return new Promise(function(resolve, reject) {
+  return Promise.resolve()
+  .then(() => {
     if (isEddystoneUrlBeacon) {
-      return resetCharacteristic.writeValue(new Uint8Array([1])).then(resolve, reject);
+      return resetCharacteristic.writeValue(new Uint8Array([1]));
     } else {
-      return advancedFactoryResetCharacteristic.writeValue(new Uint8Array([0x0b])).then(resolve, reject);
+      return advancedFactoryResetCharacteristic.writeValue(new Uint8Array([0x0b]));
     }
   })
   .then(() => {
