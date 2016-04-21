@@ -52,6 +52,7 @@ var capabilitiesCharacteristic,
     advancedFactoryResetCharacteristic,
     advancedRemainConnectableCharacteristic;
 
+var beaconKey;
 
 /* Common */
 
@@ -214,8 +215,34 @@ $('#confirmUnlockButton').addEventListener('click', function() {
   var password = $('#unlockPassword').value;
   $('#unlockDialog').close();
   connectBeacon()
-  .then(() => generateLock(password))
-  .then(key => unlockCharacteristic.writeValue(key))
+  .then(() => {
+    if (isEddystoneUrlBeacon) {
+      return generateLock(password)
+      .then(key => {
+        return unlockCharacteristic.writeValue(key);
+      })
+    } else {
+      let reverse = (dataview) => {
+        let array = toUint8Array(new Uint8Array(dataview.buffer));
+        return new Uint8Array(array.reverse());
+      };
+      let key = new Uint8Array(16);
+      let encodedPassword = new TextEncoder().encode(password);
+      for (var i = 0; i < 16; i++) {
+        key[i] = encodedPassword[i];
+      }
+      return eddystoneUnlockCharacteristic.readValue()
+      .then(challengeData => {
+        return encrypt(key, challengeData)
+        .then(reverse)
+        .then(unlockToken => {
+          console.log('Generated token');
+          console.log(toUint8Array(unlockToken));
+          return eddystoneUnlockCharacteristic.writeValue(unlockToken)
+        })
+      })
+    }
+  })
   .then(() => {
     if ($('#unlockDialog').classList.contains('reset')) {
       return resetBeacon();
@@ -257,6 +284,16 @@ function generateLock(password) {
     )
   })
   .then(webKey => crypto.subtle.exportKey('raw', webKey))
+}
+
+function encrypt(key, data) {
+  return crypto.subtle.importKey('raw', key, {name: 'aes-cbc'}, true, ['encrypt'])
+  .then(k => crypto.subtle.encrypt({name: 'aes-cbc', iv: new Uint8Array(16)}, k, data))
+  .then(encrypted => {
+    let array = toUint8Array(new Uint8Array(encrypted));
+    var half_length = Math.ceil(array.length / 2);
+    return new Uint8Array(array.slice(0, half_length).reverse());
+  });
 }
 
 $('#toggleAdvancedSettings').addEventListener('click', function(event) {
@@ -327,7 +364,38 @@ function updateBeacon(password) {
         return generateLock(password)
         .then(key => lockCharacteristic.writeValue(key))
       } else {
-        return Promise.reject('NOT IMPLEMENTED YET');
+
+        let old_key = beaconKey || new Uint8Array(16);
+        let new_key = new Uint8Array(16);
+        let encodedPassword = new TextEncoder().encode(password);
+        for (var i = 0; i < 16; i++) {
+          new_key[i] = encodedPassword[i];
+        }
+
+        let reverse = (dataview) => {
+          let array = toUint8Array(new Uint8Array(dataview.buffer));
+          return new Uint8Array(array.reverse());
+        };
+
+        return encrypt(old_key, new_key)
+        .then(reverse)
+        .then(toUint8Array)
+        .then(e => {
+          let val = [0, ...e];
+          console.log('Old Key');
+          console.log(toUint8Array(old_key));
+          console.log('New Key');
+          console.log(toUint8Array(new_key));
+          console.log('Lock value');
+          console.log(val);
+          return new Uint8Array(val);
+        })
+        .then(data => {
+          return eddystoneLockStateCharacteristic.writeValue(data)
+        })
+        .then(() => {
+          beaconKey = new_key;
+        })
       }
     } else {
       return Promise.resolve();
@@ -588,6 +656,10 @@ function setLock(locked) {
     $('#lock').parentElement.MaterialCheckbox.uncheck();
     $('#lock').parentElement.querySelector('.mdl-checkbox__label').textContent = 'Unlocked';
   }
+}
+
+function toUint8Array(value) {
+  return Array.prototype.slice.call(new Uint8Array(value.buffer));
 }
 
 const URL_SCHEMES = [
