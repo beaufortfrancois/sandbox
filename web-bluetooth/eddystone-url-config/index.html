@@ -167,6 +167,27 @@
         </div>
       </dialog>
 
+      <dialog id="eddystoneLockStateDialog" class="mdl-dialog">
+        <div class="mdl-dialog__content">
+          <div class="mdl-textfield mdl-js-textfield">
+            <input class="mdl-textfield__input" type="password" id="eddystoneLockStateOldPassword" maxlength="16">
+            <label class="mdl-textfield__label" for="eddystoneLockStateOldPassword">Enter old password...</label>
+          </div>
+          <div class="mdl-textfield mdl-js-textfield">
+            <input class="mdl-textfield__input" type="password" id="eddystoneLockStateNewPassword" maxlength="16">
+            <label class="mdl-textfield__label" for="eddystoneLockStateNewPassword">Enter new password...</label>
+          </div>
+          <div class="mdl-textfield mdl-js-textfield">
+            <input class="mdl-textfield__input" type="password" id="eddystoneLockStatePasswordConfirmation" maxlength="16">
+            <label class="mdl-textfield__label" for="eddystoneLockStatePasswordConfirmation">Confirm new password...</label>
+          </div>
+        </div>
+        <div class="mdl-dialog__actions">
+          <button id="confirmEddystoneLockStateButton" type="button" class="mdl-button mdl-button--accent">Lock</button>
+          <button id="cancelEddystoneLockStateButton" type="button" class="mdl-button">Cancel</button>
+        </div>
+      </dialog>
+
       <div id="toggleAdvancedSettings">Advanced settings...</div>
 
       <button type="button" id="resetButton" class="mdl-button mdl-js-button">Reset</button>

@@ -52,8 +52,6 @@ var capabilitiesCharacteristic,
     advancedFactoryResetCharacteristic,
     advancedRemainConnectableCharacteristic;
 
-var beaconKey;
-
 /* Common */
 
 var beaconDevice,
@@ -144,10 +142,18 @@ $('#updateButton').addEventListener('click', function() {
     /* Beacon is unlocked */
     if ($('#lock').checked) {
       /* User wants to lock it */
-      $('#lockPassword').parentElement.MaterialTextfield.change('');
-      $('#lockPasswordConfirmation').parentElement.MaterialTextfield.change('');
-      checkLockPassword();
-      $('#lockDialog').showModal();
+      if (isEddystoneUrlBeacon) {
+        $('#lockPassword').parentElement.MaterialTextfield.change('');
+        $('#lockPasswordConfirmation').parentElement.MaterialTextfield.change('');
+        checkLockPassword();
+        $('#lockDialog').showModal();
+      } else {
+        $('#eddystoneLockStateOldPassword').parentElement.MaterialTextfield.change('');
+        $('#eddystoneLockStateNewPassword').parentElement.MaterialTextfield.change('');
+        $('#eddystoneLockStatePasswordConfirmation').parentElement.MaterialTextfield.change('');
+        checkEddystoneLockStatePassword();
+        $('#eddystoneLockStateDialog').showModal();
+      }
     } else {
       connectBeacon()
       .then(updateBeacon);
@@ -185,8 +191,16 @@ $('#closeButton').addEventListener('click', function() {
 $('#cancelLockButton').addEventListener('click', onCancelLockDialog);
 $('#lockDialog').addEventListener('cancel', onCancelLockDialog);
 
-function onCancelLockDialog() {
-  $('#lockDialog').close();
+$('#cancelEddystoneLockStateButton').addEventListener('click', onCancelLockDialog);
+$('#eddystoneLockStateDialog').addEventListener('cancel', onCancelLockDialog);
+
+function onCancelLockDialog(event) {
+  if ($('#lockDialog').open) {
+    $('#lockDialog').close();
+  }
+  if ($('#eddystoneLockStateDialog').open) {
+    $('#eddystoneLockStateDialog').close();
+  }
   $('#resetButton').disabled = false;
   $('#updateButton').disabled = false;
   $('#progressBar').hidden = true;
@@ -214,6 +228,25 @@ function checkLockPassword() {
   }
   $('#lockPasswordConfirmation').parentElement.MaterialTextfield.checkValidity();
   $('#confirmLockButton').disabled = !$('#lockPasswordConfirmation').validity.valid;
+}
+
+$('#confirmEddystoneLockStateButton').addEventListener('click', function() {
+  $('#eddystoneLockStateDialog').close();
+  connectBeacon()
+  .then(() => { return updateBeacon($('#eddystoneLockStateNewPassword').value, $('#eddystoneLockStateOldPassword').value) })
+});
+
+$('#eddystoneLockStateNewPassword').addEventListener('input', checkEddystoneLockStatePassword);
+$('#eddystoneLockStatePasswordConfirmation').addEventListener('input', checkEddystoneLockStatePassword);
+
+function checkEddystoneLockStatePassword() {
+  if ($('#eddystoneLockStateNewPassword').value === $('#eddystoneLockStatePasswordConfirmation').value) {
+    $('#eddystoneLockStatePasswordConfirmation').setCustomValidity('');
+  } else {
+    $('#eddystoneLockStatePasswordConfirmation').setCustomValidity('Wrong');
+  }
+  $('#eddystoneLockStatePasswordConfirmation').parentElement.MaterialTextfield.checkValidity();
+  $('#confirmEddystoneLockStateButton').disabled = !$('#eddystoneLockStatePasswordConfirmation').validity.valid;
 }
 
 $('#cancelUnlockButton').addEventListener('click', onCancelUnlockDialog);
@@ -251,8 +284,6 @@ $('#confirmUnlockButton').addEventListener('click', function() {
         return encrypt(key, challengeData)
         .then(reverse)
         .then(unlockToken => {
-          console.log('Generated token');
-          console.log(toUint8Array(unlockToken));
           return eddystoneUnlockCharacteristic.writeValue(unlockToken)
         })
       })
@@ -320,7 +351,7 @@ $('#toggleAdvancedSettings').addEventListener('click', function(event) {
   $('#container').classList.toggle('more', true);
 });
 
-function updateBeacon(password) {
+function updateBeacon(password, oldPassword) {
   var isShortened;
   return getEncodedUrl($('#uri').value)
   .then(args => {
@@ -379,37 +410,25 @@ function updateBeacon(password) {
         return generateLock(password)
         .then(key => lockCharacteristic.writeValue(key))
       } else {
-
-        let old_key = beaconKey || new Uint8Array(16);
-        let new_key = new Uint8Array(16);
-        let encodedPassword = new TextEncoder().encode(password);
-        for (var i = 0; i < 16; i++) {
-          new_key[i] = encodedPassword[i];
+        let newKey = encodePassword(password);
+        let oldKey = encodePassword(oldPassword);
+        // TODO: Remove once finished testing...
+        if (!oldPassword.length) {
+          oldKey = new Uint8Array([0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]);
         }
-
         let reverse = (dataview) => {
           let array = toUint8Array(new Uint8Array(dataview.buffer));
           return new Uint8Array(array.reverse());
         };
-
-        return encrypt(old_key, new_key)
+        return encrypt(oldKey, newKey)
         .then(reverse)
         .then(toUint8Array)
         .then(e => {
           let val = [0, ...e];
-          console.log('Old Key');
-          console.log(toUint8Array(old_key));
-          console.log('New Key');
-          console.log(toUint8Array(new_key));
-          console.log('Lock value');
-          console.log(val);
           return new Uint8Array(val);
         })
         .then(data => {
           return eddystoneLockStateCharacteristic.writeValue(data)
-        })
-        .then(() => {
-          beaconKey = new_key;
         })
       }
     } else {
@@ -432,6 +451,15 @@ function updateBeacon(password) {
     $('#progressBar').hidden = true;
   });
 };
+
+function encodePassword(password) {
+  let key = new Uint8Array(16);
+  let encodedNewPassword = new TextEncoder().encode(password);
+  for (var i = 0; i < 16; i++) {
+    key[i] = encodedNewPassword[i];
+  }
+  return key;
+}
 
 function updateUriLabel(isShortened) {
   $('#uriLabel').classList.toggle('shortened', isShortened);
@@ -602,6 +630,8 @@ function readBeaconConfig() {
       setLock(isBeaconLocked);
       $('#lock').parentElement.classList.toggle('edited', false);
       $('#lock').defaultChecked = isBeaconLocked;
+      // TODO: Remove when this is addressed...
+      if (isBeaconLocked) return Promise.reject('Can\'t read characteristics because beacon is locked...');
     })
     .then(() => {
       return advSlotDataCharacteristic.readValue().then(value => {
