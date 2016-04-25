@@ -65,6 +65,17 @@ var isBeaconLocked;
 
 var $ = document.querySelector.bind(document);
 
+if (navigator.bluetooth) {
+  $('#note').textContent = 'Put your beacon into configuration mode';
+} else if (navigator.userAgent.includes('Chrome/') &&
+          (navigator.userAgent.includes('Android 6') || navigator.userAgent.includes('CrOS'))) {
+  $('#note').innerHTML = 'Go to <pre style="display:inline">about:flags</pre> and turn on Web Bluetooth';
+  $('#scanButton').disabled = true;
+} else  {
+  $('#note').innerHTML = 'Your browser doesn\'t support <a href="https://webbluetoothcg.github.io/web-bluetooth/">Web Bluetooth</a>';
+  $('#scanButton').disabled = true;
+}
+
 $('#scanButton').addEventListener('click', function() {
   $('#progressBar').hidden = true;
   var options = {filters:[{services:[ EDDYSTONE_URL_CONFIG_SERVICE_UUID ]},
@@ -91,6 +102,8 @@ $('#scanButton').addEventListener('click', function() {
     $('#progressBar').classList.toggle('top', false);
     $('#progressBar').hidden = true;
     $('#scanButton').hidden = true;
+    $('body').classList.toggle('config', true);
+    $('#instructions').hidden = true;
     $('#updateButton').disabled = !isFormValid();
     $('#container').animate([
         {opacity: 0, transform: 'translateY(24px)'},
@@ -165,6 +178,8 @@ $('#closeButton').addEventListener('click', function() {
   $('#container').hidden = true;
   $('#closeButton').hidden = true;
   $('#scanButton').hidden = false;
+  $('#instructions').hidden = false;
+  $('body').classList.toggle('config', false);
 });
 
 $('#cancelLockButton').addEventListener('click', onCancelLockDialog);
