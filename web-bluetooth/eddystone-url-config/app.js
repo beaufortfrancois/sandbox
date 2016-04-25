@@ -791,7 +791,7 @@ function getEncodedUrl(string) {
         resolve([encodeURL(newString), true /* shortened */]);
       })
       .catch(e => {
-        reject(e);
+        reject('URL is too long. Please use a shortener.');
       })
     } else {
       resolve([encoded, false /* non shortened */]);
