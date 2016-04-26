@@ -274,11 +274,7 @@ $('#confirmUnlockButton').addEventListener('click', function() {
         let array = toUint8Array(new Uint8Array(dataview.buffer));
         return new Uint8Array(array.reverse());
       };
-      let key = new Uint8Array(16);
-      let encodedPassword = new TextEncoder().encode(password);
-      for (var i = 0; i < 16; i++) {
-        key[i] = encodedPassword[i];
-      }
+      let key = encodePassword(password);
       return eddystoneUnlockCharacteristic.readValue()
       .then(challengeData => {
         return encrypt(key, challengeData)
@@ -410,12 +406,8 @@ function updateBeacon(password, oldPassword) {
         return generateLock(password)
         .then(key => lockCharacteristic.writeValue(key))
       } else {
-        let newKey = encodePassword(password);
         let oldKey = encodePassword(oldPassword);
-        // TODO: Remove once finished testing...
-        if (!oldPassword.length) {
-          oldKey = new Uint8Array([0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]);
-        }
+        let newKey = encodePassword(password);
         let reverse = (dataview) => {
           let array = toUint8Array(new Uint8Array(dataview.buffer));
           return new Uint8Array(array.reverse());
@@ -454,6 +446,9 @@ function updateBeacon(password, oldPassword) {
 
 function encodePassword(password) {
   let key = new Uint8Array(16);
+  if (password.includes(',') && password.split(',').map(Number).length) {
+    return new Uint8Array(password.split(',').map(Number).slice(0, 16));
+  }
   let encodedNewPassword = new TextEncoder().encode(password);
   for (var i = 0; i < 16; i++) {
     key[i] = encodedNewPassword[i];
