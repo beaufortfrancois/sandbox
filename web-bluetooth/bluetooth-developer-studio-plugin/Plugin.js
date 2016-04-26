@@ -19,18 +19,7 @@ function RunPlugin(profiledata) {
   var instanceDeviceName = 'my' + classDeviceName;
 
   var filterOptions = '"filters": [{\r\n';
-  if (profiledata.GAPProperties.DeviceNameAdvertise || profiledata.GAPProperties.DeviceNameResponse) {
-    filterOptions += '        "name": "' + profiledata.GAPProperties.DeviceName + '"';
-  }
-
   if (profiledata.GAPProperties.ServicesAdvertise && profiledata.GAPProperties.ServicesAdvertisement.length) {
-    if (filterOptions.length == 0) {
-      filterOptions = '"filters": [{\r\n';
-    }
-    if (profiledata.GAPProperties.DeviceNameAdvertise || profiledata.GAPProperties.DeviceNameResponse) {
-      filterOptions += ',\r\n';
-    }
-
     filterOptions += '        "services": [';
     for (var i = 0, services = []; i < profiledata.GAPProperties.ServicesAdvertisement.length; i++) {
       var serviceAdvertisement = profiledata.GAPProperties.ServicesAdvertisement[i];
