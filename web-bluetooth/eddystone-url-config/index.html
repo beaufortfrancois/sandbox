@@ -21,7 +21,7 @@
       .top { top: 0 !important; }
       #instructions { display: flex; align-self: flex-start; max-width: 420px; margin-left: auto; margin-right: auto; align-items: center; flex-direction: column; margin-top: 24px; }
       #note { color: #424242 }
-      #container { max-width: 420px; margin: 0 auto; display: flex; flex-flow: row wrap; padding: 20px; margin-left: 0; align-self: center; margin-top: auto; margin-bottom: auto; }
+      #container { max-width: 420px; margin: 0 auto; display: flex; flex-flow: row wrap; padding: 20px; margin-left: 0; align-self: center; margin-top: auto; margin-bottom: auto; padding-top: 48px; }
       #container > div { padding: 20px 4px; }
       #container > label { margin: 12px 0px; }
       @media (max-width: 700px) {
@@ -39,7 +39,7 @@
       @media (min-width: 900px) {
         #closeButton { margin-right: 128px; }
       }
-      #beaconService { text-align: center; padding: 0 !important; text-transform: uppercase; background-color: #448AFF; color: white; line-height: 36px; position: absolute; top: 0; left: 0; width: 100%; font-weight: bold; }
+      #beaconService { text-align: center; padding: 0 !important; text-transform: uppercase; background-color: #448AFF; color: white; line-height: 36px; position: fixed; top: 0; left: 0; width: 100%; font-weight: bold; z-index: 10; }
       #resetButton { margin-left: auto; }
       .firstRow { flex: 1 0 100%; }
       .secondRow { flex: 1 0 33%; }
