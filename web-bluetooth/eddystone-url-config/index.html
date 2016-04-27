@@ -20,7 +20,7 @@
       #progressBar { position: absolute; top: 36px; width: 100%; }
       .top { top: 0 !important; }
       #instructions { display: flex; align-self: flex-start; max-width: 420px; margin-left: auto; margin-right: auto; align-items: center; flex-direction: column; margin-top: 24px; }
-      #note { color: #424242; text-align: center; }
+      .note { color: #424242; text-align: center; width: 100%; }
       #flag { display: inline; font-weight: bold; letter-spacing: -.5px; }
       #container { max-width: 420px; margin: 0 auto; display: flex; flex-flow: row wrap; padding: 20px; margin-left: 0; align-self: center; margin-top: auto; margin-bottom: auto; padding-top: 48px; }
       #container > div { padding: 20px 4px; }
@@ -52,6 +52,7 @@
       .edited, .edited span.mdl-checkbox__box-outline { border-color: #448AFF !important; }
       .edited.mdl-checkbox.is-checked span.mdl-checkbox__tick-outline { background-color: #448AFF !important; }
       .shortened { color: #4CAF50 !important; font-weight: bold; text-transform: uppercase; }
+      #httpsNote { font-style: italic; color: #757575; }
       .byteNote { font-size: small; padding-bottom: 0; }
       #footer { left: 0; right: 0; position: absolute; bottom: 0; text-align: center; line-height: 48px; color: #9e9e9e; }
       #footer a { color: #9e9e9e; }
@@ -197,6 +198,8 @@
       <button type="button" id="resetButton" class="mdl-button mdl-js-button">Reset</button>
       <button type="button" id="updateButton" disabled class="mdl-button mdl-js-button mdl-button--accent">Update</button>
 
+      <div id="httpsNote" class="note">Note: Modern browsers such as Chrome will only<br/>surface HTTPS URLs via the Physical Web.</div>
+
     </form>
 
     <div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
@@ -206,7 +209,7 @@
 
     <div id="instructions">
       <h4>Eddystone Beacon Configuration</h4>
-      <div id="note"></div>
+      <div id="note" class="note"></div>
     </div>
 
     <button id="scanButton" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
