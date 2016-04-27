@@ -67,7 +67,9 @@ if (navigator.bluetooth) {
   $('#note').textContent = 'Put your beacon into configuration mode';
 } else if (navigator.userAgent.includes('Chrome/') &&
           (navigator.userAgent.includes('Android 6') || navigator.userAgent.includes('CrOS'))) {
-  $('#note').innerHTML = 'Copy and paste this in your browser and enable <pre id="flag">chrome://flags/#enable-web-bluetooth</pre>'
+  $('#note').innerHTML = 'This experiment requires Web Bluetooth.<br/>' +
+                         'Copy and paste this into the URL bar and enable<br/>' +
+                         '<pre id="flag">chrome://flags/#enable-web-bluetooth</pre>'
   $('#scanButton').disabled = true;
 } else  {
   $('#note').innerHTML = 'Your browser doesn\'t support <a href="https://webbluetoothcg.github.io/web-bluetooth/">Web Bluetooth</a>';
