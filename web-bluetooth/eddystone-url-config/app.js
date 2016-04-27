@@ -667,16 +667,6 @@ function readEddystoneBeaconConfig() {
     }
   })
   .then(() => {
-    return advancedAdvertisedTxPowerCharacteristic.readValue().then(value => {
-      setValue('advancedAdvertisedTxPower', value.getInt8(0));
-    })
-  })
-  .then(() => {
-    return advertisingIntervalCharacteristic.readValue().then(value => {
-      setValue('advertisingInterval', value.getUint16(0, false /* bigEndian */));
-    })
-  })
-  .then(() => {
     $('ul[for=radioTxPower]').innerHTML = '';
     return capabilitiesCharacteristic.readValue().then(value => {
       for (var i = 6; i < value.buffer.byteLength; i++) {
@@ -692,6 +682,16 @@ function readEddystoneBeaconConfig() {
   .then(() => {
     return radioTxPowerCharacteristic.readValue().then(value => {
       setValue('radioTxPower', value.getInt8(0));
+    })
+  })
+  .then(() => {
+    return advertisingIntervalCharacteristic.readValue().then(value => {
+      setValue('advertisingInterval', value.getUint16(0, false /* bigEndian */));
+    })
+  })
+  .then(() => {
+    return advancedAdvertisedTxPowerCharacteristic.readValue().then(value => {
+      setValue('advancedAdvertisedTxPower', value.getInt8(0));
     })
   })
   .catch(e => {
