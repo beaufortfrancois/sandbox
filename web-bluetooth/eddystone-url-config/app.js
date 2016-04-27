@@ -835,7 +835,7 @@ function getLongUrl(url) {
   });
 }
 
-$('#flag').addEventListener('click', function() {
+$('#flag') && $('#flag').addEventListener('click', function() {
   var range = document.createRange();
   range.selectNode(flag);
   window.getSelection().addRange(range);
