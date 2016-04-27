@@ -67,7 +67,7 @@ if (navigator.bluetooth) {
   $('#note').textContent = 'Put your beacon into configuration mode';
 } else if (navigator.userAgent.includes('Chrome/') &&
           (navigator.userAgent.includes('Android 6') || navigator.userAgent.includes('CrOS'))) {
-  $('#note').innerHTML = 'Open <pre style="display:inline; letter-spacing: -1px;font-weight: bold;">about:flags</pre>, find & enable "Web Bluetooth"';
+  $('#note').innerHTML = 'Copy and paste this in your browser and enable <pre id="flag">chrome://flags/#enable-web-bluetooth</pre>'
   $('#scanButton').disabled = true;
 } else  {
   $('#note').innerHTML = 'Your browser doesn\'t support <a href="https://webbluetoothcg.github.io/web-bluetooth/">Web Bluetooth</a>';
@@ -832,3 +832,16 @@ function getLongUrl(url) {
     }
   });
 }
+
+$('#flag').addEventListener('click', function() {
+  var range = document.createRange();
+  range.selectNode(flag);
+  window.getSelection().addRange(range);
+  try {
+    if (document.execCommand('copy')) {
+      $('#snackbar').MaterialSnackbar.showSnackbar({message: 'Link copied.'});
+    }
+  } catch(err) {
+    // User will have to do it manually...
+  }
+});
