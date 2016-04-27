@@ -87,33 +87,38 @@ $('#scanButton').addEventListener('click', function() {
     return connectBeacon();
   })
   .then(readBeaconConfig)
-  .then(() => {
-    $('#flags').parentElement.hidden = !isEddystoneUrlBeacon;
-    $('#period').parentElement.hidden = !isEddystoneUrlBeacon;
-    $('#txPowerMode').parentElement.hidden = !isEddystoneUrlBeacon;
-    $('#lowest').parentElement.hidden = !isEddystoneUrlBeacon;
-    $('#low').parentElement.hidden = !isEddystoneUrlBeacon;
-    $('#medium').parentElement.hidden = !isEddystoneUrlBeacon;
-    $('#high').parentElement.hidden = !isEddystoneUrlBeacon;
-    $('#advancedAdvertisedTxPower').parentElement.hidden = isEddystoneUrlBeacon;
-    $('#advertisingInterval').parentElement.hidden = isEddystoneUrlBeacon;
-    $('#radioTxPower').parentElement.hidden = isEddystoneUrlBeacon;
-    $('#beaconService').innerHTML = isEddystoneUrlBeacon ? 'Eddystone-URL Configuration' : 'Eddystone Configuration';
-    $('#progressBar').classList.toggle('top', false);
-    $('#progressBar').hidden = true;
-    $('#scanButton').hidden = true;
-    $('body').classList.toggle('config', true);
-    $('#instructions').hidden = true;
-    $('#updateButton').disabled = !isFormValid();
-    $('#container').animate([
-        {opacity: 0, transform: 'translateY(24px)'},
-        {opacity: 1, transform: 'translateY(0)'}],
-        {duration: 400, easing: 'ease-out'});
-    $('#closeButton').animate([{opacity: 0}, {opacity: 1}], 1024);
-    $('#container').hidden = false;
-    $('#closeButton').hidden = false;
-  });
+  .then(showForm);
 });
+
+function showForm() {
+  if ($('#unlockDialog').open) {
+    return;
+  }
+  $('#flags').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#period').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#txPowerMode').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#lowest').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#low').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#medium').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#high').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#advancedAdvertisedTxPower').parentElement.hidden = isEddystoneUrlBeacon;
+  $('#advertisingInterval').parentElement.hidden = isEddystoneUrlBeacon;
+  $('#radioTxPower').parentElement.hidden = isEddystoneUrlBeacon;
+  $('#beaconService').innerHTML = isEddystoneUrlBeacon ? 'Eddystone-URL Configuration' : 'Eddystone Configuration';
+  $('#progressBar').classList.toggle('top', false);
+  $('#progressBar').hidden = true;
+  $('#scanButton').hidden = true;
+  $('body').classList.toggle('config', true);
+  $('#instructions').hidden = true;
+  $('#updateButton').disabled = !isFormValid();
+  $('#container').animate([
+      {opacity: 0, transform: 'translateY(24px)'},
+      {opacity: 1, transform: 'translateY(0)'}],
+      {duration: 400, easing: 'ease-out'});
+  $('#closeButton').animate([{opacity: 0}, {opacity: 1}], 1024);
+  $('#container').hidden = false;
+  $('#closeButton').hidden = false;
+}
 
 $('#container').addEventListener('input', function(event) {
   $('#updateButton').disabled = !isFormValid();
@@ -139,6 +144,7 @@ $('#updateButton').addEventListener('click', function() {
     /* Beacon is locked */
     $('#unlockPassword').parentElement.MaterialTextfield.change('');
     $('#unlockDialog').classList.toggle('reset', false);
+    $('#unlockDialog').classList.toggle('read', false);
     $('#unlockDialog').showModal();
   } else {
     /* Beacon is unlocked */
@@ -170,6 +176,7 @@ $('#resetButton').addEventListener('click', function() {
   if (isBeaconLocked) {
     $('#unlockPassword').parentElement.MaterialTextfield.change('');
     $('#unlockDialog').classList.toggle('reset', true);
+    $('#unlockDialog').classList.toggle('read', false);
     $('#unlockDialog').showModal();
   } else {
     connectBeacon()
@@ -177,7 +184,9 @@ $('#resetButton').addEventListener('click', function() {
   }
 });
 
-$('#closeButton').addEventListener('click', function() {
+$('#closeButton').addEventListener('click', disconnectBeacon);
+
+function disconnectBeacon() {
   if (gattServer && gattServer.connected) {
     gattServer.disconnect();
   }
@@ -188,7 +197,7 @@ $('#closeButton').addEventListener('click', function() {
   $('#scanButton').hidden = false;
   $('#instructions').hidden = false;
   $('body').classList.toggle('config', false);
-});
+}
 
 $('#cancelLockButton').addEventListener('click', onCancelLockDialog);
 $('#lockDialog').addEventListener('cancel', onCancelLockDialog);
@@ -288,7 +297,10 @@ $('#confirmUnlockButton').addEventListener('click', function() {
     }
   })
   .then(() => {
-    if ($('#unlockDialog').classList.contains('reset')) {
+    if ($('#unlockDialog').classList.contains('read')) {
+      return readBeaconConfig()
+      .then(showForm);
+    } else if ($('#unlockDialog').classList.contains('reset')) {
       return resetBeacon();
     } else {
       if (!$('#lock').checked) {
@@ -434,7 +446,13 @@ function updateBeacon(password, oldPassword) {
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
     updateUriLabel(isShortened);
   })
-  .then(readBeaconConfig)
+  .then(() => {
+    if (!isEddystoneUrlBeacon && password) {
+      disconnectBeacon();
+      return Promise.resolve();
+    }
+    return readBeaconConfig();
+  })
   .catch(e => {
     var data = {message: 'Error: ' + e, timeout: 5e3 };
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
@@ -624,56 +642,62 @@ function readBeaconConfig() {
   } else {
     return eddystoneLockStateCharacteristic.readValue().then(value => {
       isBeaconLocked = (value.getUint8(0) == 0);
-      setLock(isBeaconLocked);
-      $('#lock').parentElement.classList.toggle('edited', false);
-      $('#lock').defaultChecked = isBeaconLocked;
-      // TODO: Remove when this is addressed...
-      if (isBeaconLocked) return Promise.reject('Can\'t read characteristics because beacon is locked...');
+      if (!isBeaconLocked) {
+        return readEddystoneBeaconConfig();
+      }
+      /* Beacon is locked */
+      $('#unlockPassword').parentElement.MaterialTextfield.change('');
+      $('#unlockDialog').classList.toggle('read', true);
+      $('#unlockDialog').showModal();
     })
-    .then(() => {
-      return advSlotDataCharacteristic.readValue().then(value => {
-        if (value.getUint8(0) == 0x10) {
-          // Remove frame type byte and advertised TX power at 0m.
-          var data = new DataView(value.buffer, 2);
-          setValue('uri', decodeURL(data));
-        } else {
-          return Promise.reject('ADV Slot Data is not an Eddystone frame URL.');
-        }
-      })
-    })
-    .then(() => {
-      return advancedAdvertisedTxPowerCharacteristic.readValue().then(value => {
-        setValue('advancedAdvertisedTxPower', value.getInt8(0));
-      })
-    })
-    .then(() => {
-      return advertisingIntervalCharacteristic.readValue().then(value => {
-        setValue('advertisingInterval', value.getUint16(0, false /* bigEndian */));
-      })
-    })
-    .then(() => {
-      $('ul[for=radioTxPower]').innerHTML = '';
-      return capabilitiesCharacteristic.readValue().then(value => {
-        for (var i = 6; i < value.buffer.byteLength; i++) {
-          var li = document.createElement('li');
-          li.classList.add('mdl-menu__item');
-          li.textContent = value.getInt8(i);
-          componentHandler.upgradeElement(li);
-          $('ul[for=radioTxPower]').appendChild(li);
-        }
-        getmdlSelect.init('.getmdl-select');
-      })
-    })
-    .then(() => {
-      return radioTxPowerCharacteristic.readValue().then(value => {
-        setValue('radioTxPower', value.getInt8(0));
-      })
-    })
-    .catch(e => {
-      var data = {message: 'Error: ' + e, timeout: 5e3 };
-      $('#snackbar').MaterialSnackbar.showSnackbar(data);
-    });
   }
+}
+
+function readEddystoneBeaconConfig() {
+  setLock(isBeaconLocked);
+  $('#lock').parentElement.classList.toggle('edited', false);
+  $('#lock').defaultChecked = isBeaconLocked;
+  return advSlotDataCharacteristic.readValue().then(value => {
+    if (value.getUint8(0) == 0x10) {
+      // Remove frame type byte and advertised TX power at 0m.
+      var data = new DataView(value.buffer, 2);
+      setValue('uri', decodeURL(data));
+    } else {
+      return Promise.reject('ADV Slot Data is not an Eddystone frame URL.');
+    }
+  })
+  .then(() => {
+    return advancedAdvertisedTxPowerCharacteristic.readValue().then(value => {
+      setValue('advancedAdvertisedTxPower', value.getInt8(0));
+    })
+  })
+  .then(() => {
+    return advertisingIntervalCharacteristic.readValue().then(value => {
+      setValue('advertisingInterval', value.getUint16(0, false /* bigEndian */));
+    })
+  })
+  .then(() => {
+    $('ul[for=radioTxPower]').innerHTML = '';
+    return capabilitiesCharacteristic.readValue().then(value => {
+      for (var i = 6; i < value.buffer.byteLength; i++) {
+        var li = document.createElement('li');
+        li.classList.add('mdl-menu__item');
+        li.textContent = value.getInt8(i);
+        componentHandler.upgradeElement(li);
+        $('ul[for=radioTxPower]').appendChild(li);
+      }
+      getmdlSelect.init('.getmdl-select');
+    })
+  })
+  .then(() => {
+    return radioTxPowerCharacteristic.readValue().then(value => {
+      setValue('radioTxPower', value.getInt8(0));
+    })
+  })
+  .catch(e => {
+    var data = {message: 'Error: ' + e, timeout: 5e3 };
+    $('#snackbar').MaterialSnackbar.showSnackbar(data);
+  });
 }
 
 function setValue(inputId, value) {
