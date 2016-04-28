@@ -65,6 +65,7 @@ var $ = document.querySelector.bind(document);
 
 if (navigator.bluetooth) {
   $('#note').textContent = 'Put your beacon into configuration mode';
+  $('#scanButton').addEventListener('click', onScanButtonClick);
 } else if (navigator.userAgent.includes('Chrome/') &&
           (navigator.userAgent.includes('Android 6') || navigator.userAgent.includes('CrOS'))) {
   $('#note').innerHTML = 'This experiment requires Web Bluetooth.<br/>' +
@@ -79,7 +80,7 @@ if (navigator.bluetooth) {
   $('#scanButton').disabled = true;
 }
 
-$('#scanButton').addEventListener('click', function() {
+function onScanButtonClick() {
   $('#progressBar').hidden = true;
   var options = {filters:[{services:[ EDDYSTONE_URL_CONFIG_SERVICE_UUID ]},
                           {services:[ EDDYSTONE_CONFIG_SERVICE_UUID ]}]};
@@ -94,7 +95,7 @@ $('#scanButton').addEventListener('click', function() {
     $('#progressBar').hidden = true;
     $('#snackbar').MaterialSnackbar.showSnackbar({message: error.message || error});
   });
-});
+}
 
 function showForm() {
   if ($('#unlockDialog').open) {
