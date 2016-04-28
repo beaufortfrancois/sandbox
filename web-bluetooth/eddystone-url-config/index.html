@@ -41,6 +41,7 @@
         #closeButton { margin-right: 128px; }
       }
       #beaconService { text-align: center; padding: 0 !important; text-transform: uppercase; background-color: #448AFF; color: white; line-height: 36px; position: fixed; top: 0; left: 0; width: 100%; font-weight: bold; z-index: 10; }
+      #beaconService:before { background-size: 14px; background-image: url('eddystone-logo.png'); width: 14px; height: 14px; margin-right: 4px; content: ''; display: inline-block; margin-top: 0; }
       #resetButton { margin-left: auto; }
       .firstRow { flex: 1 0 100%; }
       .secondRow { flex: 1 0 33%; }
@@ -69,7 +70,7 @@
       <i class="material-icons">navigate_before</i>
     </button>
 
-    <div id="beaconService"></div>
+    <div id="beaconService" hidden></div>
 
     <form id="container" hidden>
 

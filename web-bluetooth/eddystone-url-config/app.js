@@ -105,6 +105,11 @@ function showForm() {
   $('#advertisingInterval').parentElement.hidden = isEddystoneUrlBeacon;
   $('#radioTxPower').parentElement.hidden = isEddystoneUrlBeacon;
   $('#beaconService').innerHTML = isEddystoneUrlBeacon ? 'Eddystone-URL Configuration' : 'Eddystone Configuration';
+  $('#beaconService').animate([
+      {opacity: 0, transform: 'translateY(-28px)'},
+      {opacity: 1, transform: 'translateY(0)'}],
+      {duration: 400, easing: 'ease-out'});
+  $('#beaconService').hidden = false;
   $('#progressBar').classList.toggle('top', false);
   $('#progressBar').hidden = true;
   $('#scanButton').hidden = true;
@@ -193,6 +198,7 @@ function disconnectBeacon() {
   $('#beaconService').textContent = '';
   $('#progressBar').classList.toggle('top', true);
   $('#container').hidden = true;
+  $('#beaconService').hidden = true;
   $('#closeButton').hidden = true;
   $('#scanButton').hidden = false;
   $('#instructions').hidden = false;
