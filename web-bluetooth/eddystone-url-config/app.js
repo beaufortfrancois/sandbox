@@ -72,7 +72,10 @@ if (navigator.bluetooth) {
                          '<pre id="flag">chrome://flags/#enable-web-bluetooth</pre>'
   $('#scanButton').disabled = true;
 } else  {
-  $('#note').innerHTML = 'Your browser doesn\'t support <a href="https://webbluetoothcg.github.io/web-bluetooth/">Web Bluetooth</a>';
+  $('#note').innerHTML = 'Your browser doesn\'t support <a href="https://webbluetoothcg.github.io/web-bluetooth/">Web Bluetooth</a> ;(';
+  if (!navigator.userAgent.includes('Android')) {
+    $('#note').innerHTML += '<br/>Please check out <a href="market://details?id=no.nordicsemi.android.mcp">nRF Master Control Panel</a>';
+  }
   $('#scanButton').disabled = true;
 }
 
