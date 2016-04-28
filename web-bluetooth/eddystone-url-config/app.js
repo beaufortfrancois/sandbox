@@ -81,17 +81,20 @@ if (navigator.bluetooth) {
 }
 
 function onScanButtonClick() {
+  ga('send', 'event', 'ScanButton', 'click');
   $('#progressBar').hidden = true;
   var options = {filters:[{services:[ EDDYSTONE_URL_CONFIG_SERVICE_UUID ]},
                           {services:[ EDDYSTONE_CONFIG_SERVICE_UUID ]}]};
   navigator.bluetooth.requestDevice(options)
   .then(device => {
+    ga('send', 'event', 'ScanButtonOutcome', 'success');
     beaconDevice = device;
     return connectBeacon();
   })
   .then(readBeaconConfig)
   .then(showForm)
   .catch(error => {
+    ga('send', 'event', 'ScanButtonOutcome', 'fail', error.message || error);
     $('#progressBar').hidden = true;
     $('#snackbar').MaterialSnackbar.showSnackbar({message: error.message || error});
   });
@@ -407,6 +410,7 @@ $('#toggleAdvancedSettings').addEventListener('click', function(event) {
 });
 
 function updateBeacon(password, oldPassword) {
+  ga('send', 'event', 'UpdateButton', 'click', password ? 'lock' : '');
   var isShortened;
   return getEncodedUrl($('#uri').value)
   .then(args => {
@@ -490,6 +494,7 @@ function updateBeacon(password, oldPassword) {
     var data = {message: 'Beacon has been updated.'};
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
     updateUriLabel(isShortened);
+    ga('send', 'event', 'UpdateButtonOutcome', 'success');
   })
   .then(() => {
     if (!isEddystoneUrlBeacon && password) {
@@ -501,6 +506,7 @@ function updateBeacon(password, oldPassword) {
   .catch(e => {
     var data = {message: 'Error: ' + e, timeout: 5e3 };
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
+    ga('send', 'event', 'UpdateButtonOutcome', 'fail', e);
   })
   .then(() => {
     $('#resetButton').disabled = false;
@@ -531,6 +537,7 @@ function updateUriLabel(isShortened) {
 }
 
 function resetBeacon() {
+  ga('send', 'event', 'ResetButton', 'click');
   return Promise.resolve()
   .then(() => {
     if (isEddystoneUrlBeacon) {
@@ -543,11 +550,13 @@ function resetBeacon() {
     updateUriLabel(false /* not shortened */);
     var data = {message: 'Beacon has been reset.'};
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
+    ga('send', 'event', 'ResetButtonOutcome', 'success');
   })
   .then(readBeaconConfig)
   .catch(e => {
     var data = {message: 'Error: ' + e, timeout: 5e3 };
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
+    ga('send', 'event', 'ResetButtonOutcome', 'fail', e);
   })
   .then(() => {
     $('#resetButton').disabled = false;
@@ -557,6 +566,7 @@ function resetBeacon() {
 };
 
 function connectBeacon() {
+  ga('send', 'event', 'ConnectBeacon', 'background');
   $('#progressBar').hidden = false;
   if (gattServer && gattServer.connected) {
     return Promise.resolve();
@@ -566,9 +576,12 @@ function connectBeacon() {
     gattServer = server;
     if (beaconDevice.uuids.includes(EDDYSTONE_URL_CONFIG_SERVICE_UUID)) {
       isEddystoneUrlBeacon = true;
+      ga('send', 'event', 'ConnectBeaconOutcome', 'background', 'Eddystone-URL beacon');
     } else if (beaconDevice.uuids.includes(EDDYSTONE_CONFIG_SERVICE_UUID)) {
       isEddystoneUrlBeacon = false;
+      ga('send', 'event', 'ConnectBeaconOutcome', 'background', 'Eddystone GATT beacon');
     } else {
+      ga('send', 'event', 'ConnectBeaconOutcome', 'background', 'Non Eddystone Beacon');
       return Promise.reject('Beacon is not valid');
     }
     return getCharacteristics();
@@ -863,9 +876,11 @@ function getEncodedUrl(string) {
     if (encoded.length > 18) {
       return getShortUrl(string)
       .then(newString => {
+        ga('send', 'event', 'GetShortUrlOutcome', 'success');
         resolve([encodeURL(newString), true /* shortened */]);
       })
       .catch(e => {
+        ga('send', 'event', 'GetShortUrlOutcome', 'fail', e);
         reject('URL is too long. Please use a shortener.');
       })
     } else {
@@ -875,6 +890,7 @@ function getEncodedUrl(string) {
 };
 
 function getShortUrl(url) {
+  ga('send', 'event', 'GetShortUrl', 'background');
   const apiUrl = 'https://www.googleapis.com/urlshortener/v1/url?key=AIzaSyCswhXTLkWtSysl0ntTIlqsiLVdvfvEc8k';
   var options = {
     method: 'post',
@@ -914,6 +930,7 @@ function getLongUrl(url) {
 }
 
 $('#flag') && $('#flag').addEventListener('click', function() {
+  ga('send', 'event', 'FlagLink', 'click');
   var range = document.createRange();
   range.selectNode(flag);
   window.getSelection().addRange(range);
@@ -924,4 +941,8 @@ $('#flag') && $('#flag').addEventListener('click', function() {
   } catch(err) {
     // User will have to do it manually...
   }
+});
+
+$('#physicalWebLink').addEventListener('click', function() {
+  ga('send', 'event', 'PhysicalWebLink', 'click');
 });
