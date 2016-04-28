@@ -82,12 +82,15 @@ $('#scanButton').addEventListener('click', function() {
                           {services:[ EDDYSTONE_CONFIG_SERVICE_UUID ]}]};
   navigator.bluetooth.requestDevice(options)
   .then(device => {
-    $('#progressBar').hidden = false;
     beaconDevice = device;
     return connectBeacon();
   })
   .then(readBeaconConfig)
-  .then(showForm);
+  .then(showForm)
+  .catch(error => {
+    $('#progressBar').hidden = true;
+    $('#snackbar').MaterialSnackbar.showSnackbar({message: error.message || error});
+  });
 });
 
 function showForm() {
@@ -144,7 +147,6 @@ function isFormValid() {
 $('#updateButton').addEventListener('click', function() {
   $('#resetButton').disabled = true;
   $('#updateButton').disabled = true;
-  $('#progressBar').hidden = false;
   if (isBeaconLocked) {
     /* Beacon is locked */
     $('#unlockPassword').parentElement.MaterialTextfield.change('');
@@ -164,7 +166,8 @@ $('#updateButton').addEventListener('click', function() {
         $('#eddystoneLockStateOldPassword').parentElement.MaterialTextfield.change('');
         $('#eddystoneLockStateNewPassword').parentElement.MaterialTextfield.change('');
         $('#eddystoneLockStatePasswordConfirmation').parentElement.MaterialTextfield.change('');
-        checkEddystoneLockStatePassword();
+        $('#confirmEddystoneLockStateButton').disabled = false;
+        checkEddystoneLockStatePasswords();
         $('#eddystoneLockStateDialog').showModal();
       }
     } else {
@@ -177,7 +180,6 @@ $('#updateButton').addEventListener('click', function() {
 $('#resetButton').addEventListener('click', function() {
   $('#resetButton').disabled = true;
   $('#updateButton').disabled = true;
-  $('#progressBar').hidden = false;
   if (isBeaconLocked) {
     $('#unlockPassword').parentElement.MaterialTextfield.change('');
     $('#unlockDialog').classList.toggle('reset', true);
@@ -253,17 +255,48 @@ $('#confirmEddystoneLockStateButton').addEventListener('click', function() {
   .then(() => { return updateBeacon($('#eddystoneLockStateNewPassword').value, $('#eddystoneLockStateOldPassword').value) })
 });
 
-$('#eddystoneLockStateNewPassword').addEventListener('input', checkEddystoneLockStatePassword);
-$('#eddystoneLockStatePasswordConfirmation').addEventListener('input', checkEddystoneLockStatePassword);
+$('#unlockPassword').addEventListener('input', checkBytesInput);
+$('#eddystoneLockStateOldPassword').addEventListener('input', checkBytesInput);
+$('#eddystoneLockStateNewPassword').addEventListener('input', checkBytesInput);
+$('#eddystoneLockStatePasswordConfirmation').addEventListener('input', checkBytesInput);
 
-function checkEddystoneLockStatePassword() {
+function checkBytesInput(event) {
+  var value = event.target.value;
+  if (value.toLowerCase().startsWith('0x') && value.slice(2).match(/(..)/g)) {
+    var password = value.slice(2).match(/(..)/g).slice(0, 16).map(i => parseInt(i, 16));
+    if (value.length % 2 !== 0 || !/^[0-9A-F]*$/i.test(value.slice(2))) {
+      event.target.setCustomValidity('Not valid.');
+    } else if (password.length > 16) {
+      event.target.setCustomValidity('Too long.');
+    } else {
+      event.target.setCustomValidity('');
+    }
+  } else if (value.length > 16) {
+      event.target.setCustomValidity('Too long.');
+  } else if (value.length === 0) {
+    event.target.setCustomValidity('Empty.');
+  } else {
+    event.target.setCustomValidity('');
+  }
+  if (event.target.id === 'eddystoneLockStatePasswordConfirmation' ||
+      event.target.id === 'eddystoneLockStateNewPassword') {
+    checkEddystoneLockStatePasswords();
+    if (!$('#eddystoneLockStatePasswordConfirmation').validity.valid) {
+      $('#confirmEddystoneLockStateButton').disabled = true;
+      return;
+    }
+  }
+  $('#confirmEddystoneLockStateButton').disabled = !event.target.validity.valid;
+  $('#confirmUnlockButton').disabled = !event.target.validity.valid;
+}
+
+function checkEddystoneLockStatePasswords() {
   if ($('#eddystoneLockStateNewPassword').value === $('#eddystoneLockStatePasswordConfirmation').value) {
     $('#eddystoneLockStatePasswordConfirmation').setCustomValidity('');
   } else {
     $('#eddystoneLockStatePasswordConfirmation').setCustomValidity('Wrong');
   }
   $('#eddystoneLockStatePasswordConfirmation').parentElement.MaterialTextfield.checkValidity();
-  $('#confirmEddystoneLockStateButton').disabled = !$('#eddystoneLockStatePasswordConfirmation').validity.valid;
 }
 
 $('#cancelUnlockButton').addEventListener('click', onCancelUnlockDialog);
@@ -271,6 +304,7 @@ $('#unlockDialog').addEventListener('cancel', onCancelUnlockDialog);
 
 function onCancelUnlockDialog() {
   $('#unlockDialog').close();
+  $('#confirmUnlockButton').disabled = true;
   $('#resetButton').disabled = false;
   $('#updateButton').disabled = false;
   $('#progressBar').hidden = true;
@@ -279,6 +313,7 @@ function onCancelUnlockDialog() {
 $('#confirmUnlockButton').addEventListener('click', function() {
   var password = $('#unlockPassword').value;
   $('#unlockDialog').close();
+  $('#confirmUnlockButton').disabled = true;
   connectBeacon()
   .then(() => {
     if (isEddystoneUrlBeacon) {
@@ -472,12 +507,16 @@ function updateBeacon(password, oldPassword) {
 
 function encodePassword(password) {
   let key = new Uint8Array(16);
-  if (password.includes(',') && password.split(',').map(Number).length) {
-    return new Uint8Array(password.split(',').map(Number).slice(0, 16));
-  }
-  let encodedNewPassword = new TextEncoder().encode(password);
-  for (var i = 0; i < 16; i++) {
-    key[i] = encodedNewPassword[i];
+  if (password.toLowerCase().startsWith('0x')) {
+    let encodedBytes = new Uint8Array(password.slice(2).match(/(..)/g).slice(0, 16).map(i => parseInt(i, 16)));
+    for (var i = 0; i < 16; i++) {
+      key[i] = encodedBytes[i];
+    }
+  } else {
+    let encodedPassword = new TextEncoder().encode(password);
+    for (var i = 0; i < 16; i++) {
+      key[i] = encodedPassword[i];
+    }
   }
   return key;
 }
@@ -514,6 +553,7 @@ function resetBeacon() {
 };
 
 function connectBeacon() {
+  $('#progressBar').hidden = false;
   if (gattServer && gattServer.connected) {
     return Promise.resolve();
   }
