@@ -335,12 +335,20 @@ $('#confirmUnlockButton').addEventListener('click', function() {
       };
       let key = encodePassword(password);
       return eddystoneUnlockCharacteristic.readValue()
-      .then(challengeData => {
-        return encrypt(key, challengeData)
-        .then(reverse)
-        .then(unlockToken => {
-          return eddystoneUnlockCharacteristic.writeValue(unlockToken)
-        })
+      .then(challengeData => encrypt(key, challengeData))
+      .then(reverse)
+      .then(unlockToken => eddystoneUnlockCharacteristic.writeValue(unlockToken))
+      .catch(e => {
+        return Promise.reject('Password is wrong. Please try again.');
+      })
+      .then(() => eddystoneLockStateCharacteristic.readValue())
+      .then(value => {
+        if (value.getUint8(0) == 0) {
+          // Reject if beacon is still locked after unlock attempt
+          return Promise.reject('Password is wrong. Please try again.');
+        } else {
+          return Promise.resolve();
+        }
       })
     }
   })
