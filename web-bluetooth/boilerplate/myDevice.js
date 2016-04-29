@@ -22,7 +22,7 @@
       return navigator.bluetooth.requestDevice({filters:[{services:[ DEVICE_SERVICE_A_UUID ]}]})
       .then(device => {
         this.device = device;
-        return device.connectGATT();
+        return device.gatt.connect();
       })
       .then(server => {
         this.server = server;

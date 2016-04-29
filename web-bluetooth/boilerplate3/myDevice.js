@@ -16,7 +16,7 @@ class BluetoothDevice {
     });
   }
   connect() {
-    return this.device.connectGATT()
+    return this.device.gatt.connect()
     .then(gattServer => {
       //TODO: Remove when gattServer is added to device:wq
       this._gattServer = gattServer;

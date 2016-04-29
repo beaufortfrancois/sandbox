@@ -8,7 +8,7 @@ function go() {
 
   alert('start');
   navigator.bluetooth.requestDevice(options)
-  .then(function(device) { return device.connectGATT()})
+  .then(function(device) { return device.gatt.connect()})
   .then(function(server) { return server.getPrimaryService("0000180f-0000-1000-8000-00805f9b34fb")})
   .then(function(service) { return service.getCharacteristic("00002a19-0000-1000-8000-00805f9b34fb")})
   .then(function(c) { return c.readValue()})

@@ -12,7 +12,7 @@
       navigator.bluetooth.requestDevice({filters:[{services:[ NORDIC_SERVICE ]}]})
       .then(function(device) {
         console.log(device);
-        return device.connectGATT();
+        return device.gatt.connect();
       })
       .then(function(gattServer) {
         console.log(gattServer);

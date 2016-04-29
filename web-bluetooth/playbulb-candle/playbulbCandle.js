@@ -23,7 +23,7 @@
       return navigator.bluetooth.requestDevice({filters:[{services:[ CANDLE_SERVICE_UUID ]}]})
       .then(device => {
         this.device = device;
-        return device.connectGATT();
+        return device.gatt.connect();
       })
       .then(gattServer => {
         //TODO: Remove when gattServer is added to device.
