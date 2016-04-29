@@ -64,7 +64,7 @@ var isBeaconLocked;
 var $ = document.querySelector.bind(document);
 
 if (navigator.bluetooth) {
-  $('#note').textContent = 'Put your beacon into configuration mode';
+  $('#note').textContent = 'Put your beacon into configuration mode and search.';
   $('#scanButton').addEventListener('click', onScanButtonClick);
 } else if (navigator.userAgent.includes('Chrome/') &&
           (navigator.userAgent.includes('Android 6') || navigator.userAgent.includes('CrOS'))) {
