@@ -782,10 +782,10 @@ function setValue(inputId, value) {
   element.defaultValue = value;
   element.classList.toggle('edited', false);
   element.parentElement.MaterialTextfield.change(value);
-  element.parentElement.animate([{color: 'auto'}, {color: '#448AFF'}, {color: 'auto'}], 360);
+  element.parentElement.animate([{color: 'initial'}, {color: '#448AFF'}, {color: 'initial'}], 360);
   var label = element.parentElement.querySelector('label');
   if (label) {
-    label.animate([{color: 'auto'}, {color: '#448AFF'}, {color: 'auto'}], 480);
+    label.animate([{color: '#9e9e9e'}, {color: '#448AFF'}, {color: '#9e9e9e'}], 480);
   }
 }
 
