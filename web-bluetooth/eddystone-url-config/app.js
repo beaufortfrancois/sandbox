@@ -339,13 +339,13 @@ $('#confirmUnlockButton').addEventListener('click', function() {
       .then(reverse)
       .then(unlockToken => eddystoneUnlockCharacteristic.writeValue(unlockToken))
       .catch(e => {
-        return Promise.reject('Password is wrong. Please try again.');
+        return Promise.reject('Wrong password. Please try again.');
       })
       .then(() => eddystoneLockStateCharacteristic.readValue())
       .then(value => {
         if (value.getUint8(0) == 0) {
           // Reject if beacon is still locked after unlock attempt
-          return Promise.reject('Password is wrong. Please try again.');
+          return Promise.reject('Wrong password. Please try again.');
         } else {
           return Promise.resolve();
         }
@@ -372,6 +372,9 @@ $('#confirmUnlockButton').addEventListener('click', function() {
     $('#resetButton').disabled = false;
     $('#updateButton').disabled = false;
     $('#progressBar').hidden = true;
+    if ($('#unlockDialog').classList.contains('read')) {
+      disconnectBeacon();
+    }
   });
 });
 
@@ -478,20 +481,43 @@ function updateBeacon(password, oldPassword) {
         .then(key => lockCharacteristic.writeValue(key))
       } else {
         let oldKey = encodePassword(oldPassword);
-        let newKey = encodePassword(password);
         let reverse = (dataview) => {
           let array = toUint8Array(new Uint8Array(dataview.buffer));
           return new Uint8Array(array.reverse());
         };
-        return encrypt(oldKey, newKey)
+        // Lock beacon without changing the current security key value.
+        return eddystoneLockStateCharacteristic.writeValue(new Uint8Array([0]))
+        .then(() => { isBeaconLocked = true; })
+        // Unlock beacon with the old security key.
+        .then(() => eddystoneUnlockCharacteristic.readValue())
+        .then(challengeData => encrypt(oldKey, challengeData))
         .then(reverse)
-        .then(toUint8Array)
-        .then(e => {
-          let val = [0, ...e];
-          return new Uint8Array(val);
+        .then(unlockToken => eddystoneUnlockCharacteristic.writeValue(unlockToken))
+        .catch(e => {
+          return Promise.reject('Wrong old password. Please try again.');
         })
-        .then(data => {
-          return eddystoneLockStateCharacteristic.writeValue(data)
+        .then(() => eddystoneLockStateCharacteristic.readValue())
+        .then(value => {
+          isBeaconLocked = (value.getUint8(0) == 1);
+          if (!isBeaconLocked) {
+            // Reject if beacon is still locked after unlock attempt
+            return Promise.reject('Wrong old password. Please try again.');
+          } else {
+            return Promise.resolve();
+          }
+        })
+        .then(() => {
+          let newKey = encodePassword(password);
+          return encrypt(oldKey, newKey)
+          .then(reverse)
+          .then(toUint8Array)
+          .then(e => {
+            let val = [0, ...e];
+            return new Uint8Array(val);
+          })
+          .then(data => {
+            return eddystoneLockStateCharacteristic.writeValue(data)
+          })
         })
       }
     } else {
@@ -515,6 +541,9 @@ function updateBeacon(password, oldPassword) {
     var data = {message: 'Error: ' + e, timeout: 5e3 };
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
     ga('send', 'event', 'UpdateButtonOutcome', 'fail', e);
+    if (!isEddystoneUrlBeacon && password) {
+      disconnectBeacon();
+    }
   })
   .then(() => {
     $('#resetButton').disabled = false;
