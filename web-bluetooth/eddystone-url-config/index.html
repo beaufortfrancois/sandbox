@@ -75,6 +75,7 @@
       .byteNote { font-size: small; padding-bottom: 0; }
       #footer { left: 0; right: 0; position: absolute; bottom: 0; text-align: center; line-height: 48px; color: #9e9e9e; }
       #footer a { color: #9e9e9e; }
+      .mdl-dialog { width: 320px; }
     </style>
     <style>
       .getmdl-select .mdl-icon-toggle__label{float:right;margin-top:-30px;color:rgba(0,0,0,.12)}.getmdl-select.is-focused i.mdl-icon-toggle__label{color:rgb(68,138,255)}.getmdl-select .mdl-menu__container{width:100% !important}.getmdl-select .mdl-menu__container .mdl-menu{width:100%}
@@ -201,6 +202,7 @@
 
     <dialog id="eddystoneLockStateDialog" class="mdl-dialog">
       <div class="mdl-dialog__content">
+        <div class="mdl-textfield byteNote">Note: A common default password value is 0x00112233445566778899AABBCCDDEEFF</div>
         <div class="mdl-textfield mdl-js-textfield">
           <input class="mdl-textfield__input" type="text" id="eddystoneLockStateOldPassword" autocapitalize=off>
           <label class="mdl-textfield__label" for="eddystoneLockStateOldPassword">Enter old password...</label>
@@ -213,7 +215,7 @@
           <input class="mdl-textfield__input" type="text" id="eddystoneLockStatePasswordConfirmation" autocapitalize=off>
           <label class="mdl-textfield__label" for="eddystoneLockStatePasswordConfirmation">Confirm new password...</label>
         </div>
-        <div class="mdl-textfield byteNote">Note: You can enter bytes as 0x123456</div>
+        <div class="mdl-textfield byteNote">Tip: You can enter bytes as 0x123456</div>
       </div>
       <div class="mdl-dialog__actions">
         <button id="confirmEddystoneLockStateButton" type="button" class="mdl-button mdl-button--accent">Lock</button>
