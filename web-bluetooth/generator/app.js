@@ -154,7 +154,7 @@ document.querySelector('button').addEventListener('click', function() {
   .then(_ => ${instanceDeviceName}.connect())
   .then(_ => { /* Do something with ${instanceDeviceName} */})
   .catch(error => { console.log(error) });
-}
+});
 `;
 
   return mainTemplate.trim();
