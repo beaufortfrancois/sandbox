@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fido</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+  </head>
+  <body>
+    <button>Click</button>
+    <pre></pre>
+    <script src="u2f.js"></script>
+    <script>
+
+document.querySelector('button').addEventListener('click', function() {
+  fido.request()
+  .then(_ => fido.connect())
+  .then(_ => fido.readBatteryLevel())
+  .then(value => {
+    document.querySelector('pre').textContent = 'Battery Level is ' + value.getUint8(0) + '%';
+  })
+  .catch(error => { console.log(error) });
+});
+
+    </script>
+  </body>
+</html>
