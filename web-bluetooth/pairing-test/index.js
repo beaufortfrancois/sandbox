@@ -6,6 +6,8 @@ function log(text) {
 }
 
 function go() {
+  document.querySelector('pre').textContent = '';
+
   let serviceUuid = document.querySelector('#service-uuid').value;
   if (serviceUuid.startsWith('0x')) {
     serviceUuid = parseInt(serviceUuid);
@@ -17,38 +19,17 @@ function go() {
   .then(function(service) { s = service; return service.getCharacteristics()})
   .then(characteristics => {
     characteristics.forEach(characteristic => {
-      log('> Characteristic UUID:  ' + characteristic.uuid);
-      if (characteristic.properties.broadcast) {
-      log('> Broadcast:            ' + characteristic.properties.broadcast);
-      }
-      if (characteristic.properties.read) {
-      log('> Read:                 ' + characteristic.properties.read);
-      }
-      if (characteristic.properties.writeWithoutResponse) {
-      log('> Write w/o response:   ' +
-        characteristic.properties.writeWithoutResponse);
-      }
-      if (characteristic.properties.write) {
-      log('> Write:                ' + characteristic.properties.write);
-      }
-      if (characteristic.properties.notify) {
-      log('> Notify:               ' + characteristic.properties.notify);
-      }
-      if (characteristic.properties.indicate) {
-      log('> Indicate:             ' + characteristic.properties.indicate);
-      }
-      if (characteristic.properties.authenticatedSignedWrites) {
-      log('> Signed Write:         ' +
-        characteristic.properties.authenticatedSignedWrites);
-      }
-      if (characteristic.properties.reliableWrite) {
-      log('> Queued Write:         ' + characteristic.properties.reliableWrite);
-      }
-      if (characteristic.properties.writableAuxiliaries) {
-      log('> Writable Auxiliaries: ' +
-        characteristic.properties.writableAuxiliaries);
-      }
-      log('');
+      let properties = [];
+      if (characteristic.properties.broadcast) properties.push('Broadcast');
+      if (characteristic.properties.read) properties.push('Read');
+      if (characteristic.properties.writeWithoutResponse) properties.push('Write w/o response');
+      if (characteristic.properties.write) properties.push('Write');
+      if (characteristic.properties.notify) properties.push('Notify');
+      if (characteristic.properties.indicate) properties.push('Indicate');
+      if (characteristic.properties.authenticatedSignedWrites) properties.push('Signed Write');
+      if (characteristic.properties.reliableWrite) properties.push('Queued Write');
+      if (characteristic.properties.writableAuxiliaries) properties.push('Writable Auxiliaries');
+      log(characteristic.uuid + ': ' + properties.join(', '));
     })
   })
   .catch(e => {
