@@ -8,15 +8,14 @@
   </head>
   <body>
     <button id="connect">connect</button>
-    <span id="device"></span>
-    <span id="batteryLevel"></span>
-    <span id="temperature"></span>
-    <br/>
     <label>Top LED Color: <input id="rgb1" type="color"/></label>
     <label>Bottom LED Color: <input id="rgb2" type="color"/></label>
     <label>LED Brightness: <input id="brightness" type="number" min="0" max="100" value="100"></label>
     <label>Time interval: <input id="timeInterval" type="number" min="0"></label>
     <br/>
+    <button id="startRecordingAccelerometer">startRecordingAccelerometer</button>
+    <button id="stopRecordingAccelerometer">stopRecordingAccelerometer</button>
+    <button id="readAccelerationValues">readAccelerationValues</button>
     <button id="setLightEffectOff">setLightEffectOff</button>
     <button id="setLightEffectStop">setLightEffectStop</button>
     <button id="setLightEffectBrightness">setLightEffectBrightness</button>
@@ -27,6 +26,12 @@
     <button id="setLightEffectMagicHandsRandomColor">setLightEffectMagicHandsRandomColor</button>
     <button id="setLightEffectColorChangeOnCatch">setLightEffectColorChangeOnCatch</button>
     <button id="setLightEffectColorChangeOnCatchRandom">setLightEffectColorChangeOnCatchRandom</button>
+    <br/>
+    <pre id="device"></pre>
+    <pre id="status"></pre>
+    <pre id="batteryLevel"></pre>
+    <pre id="celsiusTemperature"></pre>
+    <pre id="ballEvent"></pre>
 
     <script src="juggglow.js"></script>
     <script>
@@ -34,27 +39,73 @@
       document.querySelector('#connect').addEventListener('click', function() {
         document.querySelector('#device').textContent = '';
         document.querySelector('#batteryLevel').textContent = '';
-        juggglow.connect()
-        .then(() => {
-          console.log(juggglow.device);
+        document.querySelector('#celsiusTemperature').textContent = '';
+        document.querySelector('#status').textContent = '';
+        juggglow.request()
+        .then(_ => juggglow.connect())
+        .then(_ => {
           document.querySelector('#device').textContent = juggglow.device.id;
-          return Promise.all([
-            juggglow.getBatteryLevel().then(handleBatteryLevel),
-            juggglow.getTemperature().then(handleTemperature),
-          ]);
+          document.querySelector('#status').textContent = 'Status: Connected at ' + new Date().toLocaleTimeString();
+          juggglow.device.addEventListener('gattserverdisconnected', handleDisconnect);
         })
+        .then(_ => juggglow.startBatteryLevelNotifications(handleBatteryLevelNotifications))
+        .then(_ => juggglow.readBatteryLevel().then(showBatteryLevel))
+        .then(_ => juggglow.startCelsiusTemperatureNotifications(handleCelsiusTemperatureNotifications))
+        .then(_ => juggglow.readCelsiusTemperature().then(showCelsiusTemperature))
+        .then(_ => juggglow.startBallEventNotifications(handleBallEventNotifications))
         .catch(error => {
-          console.error('Argh!', error);
+          document.querySelector('#status').textContent = 'Argh! ' + error ;
         });
       });
 
-      function handleBatteryLevel(batteryLevel) {
+      /* Disconnect */
+
+      function handleDisconnect() {
+        document.querySelector('#status').textContent = 'Status: Disconnected at ' + new Date().toLocaleTimeString();
+      }
+
+      /* Battery Level */
+
+      function handleBatteryLevelNotifications(event) {
+        showBatteryLevel(event.target.value);
+      }
+
+      function showBatteryLevel(value) {
+        let batteryLevel = value.getUint8(0);
         document.querySelector('#batteryLevel').textContent = 'Battery: ' + batteryLevel + '%';
       }
 
-      function handleTemperature(temperature) {
-        document.querySelector('#temperature').textContent = 'Temperature: ' + temperature + 'C';
+      /* Celsius Temperature */
+
+      function handleCelsiusTemperatureNotifications(event) {
+        showCelsiusTemperature(event.target.value);
       }
+
+      function showCelsiusTemperature(value) {
+        let celsiusTemperature = value.getInt8(0);
+        document.querySelector('#celsiusTemperature').textContent = 'Temperature: ' + celsiusTemperature + '°C';
+      }
+
+      /* Ball Event */
+
+      function handleBallEventNotifications(event) {
+        let value = event.target.value;
+        const valueToBallEventType = {
+          0x00: 'idle ',
+          0x01: 'catch',
+          0x02: 'throw',
+          0x03: 'drop '
+        };
+        let type = valueToBallEventType[value.getUint8(0)];
+        let elapsedTime =  (value.getUint8(1) | value.getUint8(2) << 8);
+        let eventCounter = (value.getUint8(3) | value.getUint8(4) << 8);
+        let catchCounter = (value.getUint8(5) | value.getUint8(6) << 8);
+        document.querySelector('#ballEvent').innerHTML += 'BallEvent: ' +
+            'Type: ' + type + ' - Elapsed Time: ' + elapsedTime + 'ms - ' +
+            'Event #' + eventCounter + ' - Catch #' + catchCounter + '\n';
+      }
+
+      /* Light Effect Commands */
 
       document.querySelector('#setLightEffectOff').addEventListener('click', () => {
         juggglow.setLightEffectOff();
@@ -115,6 +166,15 @@
       });
       document.querySelector('#setLightEffectColorChangeOnCatchRandom').addEventListener('click', () => {
         juggglow.setLightEffectColorChangeOnCatchRandom();
+      });
+      document.querySelector('#startRecordingAccelerometer').addEventListener('click', () => {
+        juggglow.startRecordingAccelerometer();
+      });
+      document.querySelector('#stopRecordingAccelerometer').addEventListener('click', () => {
+        juggglow.stopRecordingAccelerometer();
+      });
+      document.querySelector('#readAccelerationValues').addEventListener('click', () => {
+        juggglow.readAccelerationValues();
       });
     </script>
   </body>
