@@ -1,3 +1,5 @@
+/* Eddystone-URL Configuration */
+
 const EDDYSTONE_URL_CONFIG_SERVICE_UUID                      = 'ee0c2080-8786-40ba-ab96-99b91ac981d8';
 const LOCK_STATE_CHARACTERISTIC_UUID                         = 'ee0c2081-8786-40ba-ab96-99b91ac981d8';
 const LOCK_CHARACTERISTIC_UUID                               = 'ee0c2082-8786-40ba-ab96-99b91ac981d8';
@@ -11,9 +13,7 @@ const RESET_CHARACTERISTIC_UUID                              = 'ee0c2089-8786-40
 
 const TX_POWER_MODES = ['Lowest', 'Low', 'Medium', 'High'];
 
-var beaconDevice,
-    gattServer,
-    lockStateCharacteristic,
+var lockStateCharacteristic,
     lockCharacteristic,
     unlockCharacteristic,
     uriDataCharacteristic,
@@ -23,55 +23,160 @@ var beaconDevice,
     beaconPeriodCharacteristic,
     resetCharacteristic;
 
+/* Eddystone Configuration */
+
+const EDDYSTONE_CONFIG_SERVICE_UUID                          = 'a3c87500-8ed3-4bdf-8a39-a01bebede295';
+const CAPABILITIES_CHARACTERISTIC_UUID                       = 'a3c87501-8ed3-4bdf-8a39-a01bebede295';
+const ACTIVE_SLOT_CHARACTERISTIC_UUID                        = 'a3c87502-8ed3-4bdf-8a39-a01bebede295';
+const ADVERTISING_INTERVAL_CHARACTERISTIC_UUID               = 'a3c87503-8ed3-4bdf-8a39-a01bebede295';
+const RADIO_TX_POWER_CHARACTERISTIC_UUID                     = 'a3c87504-8ed3-4bdf-8a39-a01bebede295';
+const ADVANCED_ADVERTISED_TX_POWER_CHARACTERISTIC_UUID       = 'a3c87505-8ed3-4bdf-8a39-a01bebede295';
+const EDDYSTONE_LOCK_STATE_CHARACTERISTIC_UUID               = 'a3c87506-8ed3-4bdf-8a39-a01bebede295';
+const EDDYSTONE_UNLOCK_CHARACTERISTIC_UUID                   = 'a3c87507-8ed3-4bdf-8a39-a01bebede295';
+const PUBLIC_ECDH_KEY_CHARACTERISTIC_UUID                    = 'a3c87508-8ed3-4bdf-8a39-a01bebede295';
+const EID_IDENTITY_KEY_CHARACTERISTIC_UUID                   = 'a3c87509-8ed3-4bdf-8a39-a01bebede295';
+const ADV_SLOT_DATA_CHARACTERISTIC_UUID                      = 'a3c8750a-8ed3-4bdf-8a39-a01bebede295';
+const ADVANCED_FACTORY_RESET_CHARACTERISTIC_UUID             = 'a3c8750b-8ed3-4bdf-8a39-a01bebede295';
+const ADVANCED_REMAIN_CONNECTABLE_CHARACTERISTIC_UUID        = 'a3c8750c-8ed3-4bdf-8a39-a01bebede295';
+
+var capabilitiesCharacteristic,
+    activeSlotCharacteristic,
+    advertisingIntervalCharacteristic,
+    radioTxPowerCharacteristic,
+    advancedAdvertisedTxPowerCharacteristic,
+    eddystoneLockStateCharacteristic,
+    eddystoneUnlockCharacteristic,
+    publicEdchKeyCharacteristic,
+    eidIdentityKeyCharacteristic,
+    advSlotDataCharacteristic,
+    advancedFactoryResetCharacteristic,
+    advancedRemainConnectableCharacteristic;
+
+/* Common */
+
+var beaconDevice,
+    gattServer;
+
+var isEddystoneUrlBeacon;
+
 var isBeaconLocked;
 
 var $ = document.querySelector.bind(document);
 
-$('#scanButton').addEventListener('click', function() {
+if (navigator.bluetooth) {
+  $('#note').textContent = 'Put your beacon into configuration mode and search.';
+  $('#scanButton').addEventListener('click', onScanButtonClick);
+} else if (navigator.userAgent.includes('Chrome/') &&
+          (navigator.userAgent.includes('Android 6') || navigator.userAgent.includes('CrOS'))) {
+  $('#note').innerHTML = 'This experiment requires Web Bluetooth.<br/>' +
+                         'Copy and paste this into the URL bar and enable<br/>' +
+                         '<pre id="flag">chrome://flags/#enable-web-bluetooth</pre>'
+  $('#scanButton').disabled = true;
+} else  {
+  $('#note').innerHTML = 'Your browser doesn\'t support <a href="https://webbluetoothcg.github.io/web-bluetooth/">Web Bluetooth</a> ;(';
+  if (!navigator.userAgent.includes('Android')) {
+    $('#note').innerHTML += '<br/>Please check out <a href="market://details?id=no.nordicsemi.android.mcp">nRF Master Control Panel</a>';
+  }
+  $('#scanButton').disabled = true;
+}
+
+function onScanButtonClick() {
+  ga('send', 'event', 'ScanButton', 'click');
   $('#progressBar').hidden = true;
-  var options = {filters:[{services:[ EDDYSTONE_URL_CONFIG_SERVICE_UUID ]}]};
+  var options = {filters:[{services:[ EDDYSTONE_URL_CONFIG_SERVICE_UUID ]},
+                          {services:[ EDDYSTONE_CONFIG_SERVICE_UUID ]}]};
   navigator.bluetooth.requestDevice(options)
   .then(device => {
-    $('#progressBar').hidden = false;
+    ga('send', 'event', 'ScanButtonOutcome', 'success');
     beaconDevice = device;
     return connectBeacon();
   })
   .then(readBeaconConfig)
-  .then(() => {
+  .then(showForm)
+  .catch(error => {
+    ga('send', 'event', 'ScanButtonOutcome', 'fail', error.message || error);
     $('#progressBar').hidden = true;
-    $('#scanButton').hidden = true;
-    $('#updateButton').disabled = !$('#container').checkValidity();
-    $('#container').animate([
-        {opacity: 0, transform: 'translateY(24px)'},
-        {opacity: 1, transform: 'translateY(0)'}],
-        {duration: 400, easing: 'ease-out'});
-    $('#closeButton').animate([{opacity: 0}, {opacity: 1}], 1024);
-    $('#container').hidden = false;
-    $('#closeButton').hidden = false;
+    $('#snackbar').MaterialSnackbar.showSnackbar({message: error.message || error});
   });
-});
+}
+
+function showForm() {
+  if ($('#unlockDialog').open) {
+    return;
+  }
+  $('#flags').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#period').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#txPowerMode').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#lowest').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#low').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#medium').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#high').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#advancedAdvertisedTxPower').parentElement.hidden = isEddystoneUrlBeacon;
+  $('#advertisingInterval').parentElement.hidden = isEddystoneUrlBeacon;
+  $('#radioTxPower').parentElement.hidden = isEddystoneUrlBeacon;
+  $('#beaconService').innerHTML = isEddystoneUrlBeacon ? 'Eddystone-URL Configuration' : 'Eddystone Configuration';
+  $('#beaconService').animate([
+      {opacity: 0, transform: 'translateY(-28px)'},
+      {opacity: 1, transform: 'translateY(0)'}],
+      {duration: 400, easing: 'ease-out'});
+  $('#beaconService').hidden = false;
+  $('#progressBar').classList.toggle('top', false);
+  $('#progressBar').hidden = true;
+  $('#scanButton').hidden = true;
+  $('body').classList.toggle('config', true);
+  $('#instructions').hidden = true;
+  $('#updateButton').disabled = !isFormValid();
+  $('#container').animate([
+      {opacity: 0, transform: 'translateY(24px)'},
+      {opacity: 1, transform: 'translateY(0)'}],
+      {duration: 400, easing: 'ease-out'});
+  $('#closeButton').animate([{opacity: 0}, {opacity: 1}], 1024);
+  $('#container').hidden = false;
+  $('#closeButton').hidden = false;
+}
 
 $('#container').addEventListener('input', function(event) {
-  $('#updateButton').disabled = !event.target.checkValidity();
+  $('#updateButton').disabled = !isFormValid();
 });
+
+function isFormValid() {
+  if (isEddystoneUrlBeacon) {
+    return $('#uri').checkValidity() &&
+           $('#flags').checkValidity() && $('#period').checkValidity() && $('#txPowerMode').checkValidity() &&
+           $('#lowest').checkValidity() && $('#low').checkValidity() && $('#medium').checkValidity() && $('#high').checkValidity();
+  } else {
+    return $('#uri').checkValidity() &&
+           $('#radioTxPower').checkValidity() &&
+           $('#advertisingInterval').checkValidity() && $('#advancedAdvertisedTxPower').checkValidity();
+  }
+}
 
 $('#updateButton').addEventListener('click', function() {
   $('#resetButton').disabled = true;
   $('#updateButton').disabled = true;
-  $('#progressBar').hidden = false;
   if (isBeaconLocked) {
     /* Beacon is locked */
     $('#unlockPassword').parentElement.MaterialTextfield.change('');
     $('#unlockDialog').classList.toggle('reset', false);
+    $('#unlockDialog').classList.toggle('read', false);
     $('#unlockDialog').showModal();
   } else {
     /* Beacon is unlocked */
     if ($('#lock').checked) {
       /* User wants to lock it */
-      $('#lockPassword').parentElement.MaterialTextfield.change('');
-      $('#lockPasswordConfirmation').parentElement.MaterialTextfield.change('');
-      checkLockPassword();
-      $('#lockDialog').showModal();
+      if (isEddystoneUrlBeacon) {
+        $('#lockPassword').parentElement.MaterialTextfield.change('');
+        $('#lockPasswordConfirmation').parentElement.MaterialTextfield.change('');
+        checkLockPassword();
+        $('#lockDialog').showModal();
+      } else {
+        $('#eddystoneLockStateOldPassword').parentElement.MaterialTextfield.change('');
+        $('#eddystoneLockStateNewPassword').parentElement.MaterialTextfield.change('');
+        $('#eddystoneLockStatePasswordConfirmation').parentElement.MaterialTextfield.change('');
+        $('#confirmEddystoneLockStateButton').disabled = false;
+        checkEddystoneLockStatePasswords();
+        $('#eddystoneLockStateDialog').showModal();
+      }
     } else {
       connectBeacon()
       .then(updateBeacon);
@@ -82,10 +187,10 @@ $('#updateButton').addEventListener('click', function() {
 $('#resetButton').addEventListener('click', function() {
   $('#resetButton').disabled = true;
   $('#updateButton').disabled = true;
-  $('#progressBar').hidden = false;
   if (isBeaconLocked) {
     $('#unlockPassword').parentElement.MaterialTextfield.change('');
     $('#unlockDialog').classList.toggle('reset', true);
+    $('#unlockDialog').classList.toggle('read', false);
     $('#unlockDialog').showModal();
   } else {
     connectBeacon()
@@ -93,20 +198,35 @@ $('#resetButton').addEventListener('click', function() {
   }
 });
 
-$('#closeButton').addEventListener('click', function() {
+$('#closeButton').addEventListener('click', disconnectBeacon);
+
+function disconnectBeacon() {
   if (gattServer && gattServer.connected) {
     gattServer.disconnect();
   }
+  $('#beaconService').textContent = '';
+  $('#progressBar').classList.toggle('top', true);
   $('#container').hidden = true;
+  $('#beaconService').hidden = true;
   $('#closeButton').hidden = true;
   $('#scanButton').hidden = false;
-});
+  $('#instructions').hidden = false;
+  $('body').classList.toggle('config', false);
+}
 
 $('#cancelLockButton').addEventListener('click', onCancelLockDialog);
 $('#lockDialog').addEventListener('cancel', onCancelLockDialog);
 
-function onCancelLockDialog() {
-  $('#lockDialog').close();
+$('#cancelEddystoneLockStateButton').addEventListener('click', onCancelLockDialog);
+$('#eddystoneLockStateDialog').addEventListener('cancel', onCancelLockDialog);
+
+function onCancelLockDialog(event) {
+  if ($('#lockDialog').open) {
+    $('#lockDialog').close();
+  }
+  if ($('#eddystoneLockStateDialog').open) {
+    $('#eddystoneLockStateDialog').close();
+  }
   $('#resetButton').disabled = false;
   $('#updateButton').disabled = false;
   $('#progressBar').hidden = true;
@@ -136,11 +256,62 @@ function checkLockPassword() {
   $('#confirmLockButton').disabled = !$('#lockPasswordConfirmation').validity.valid;
 }
 
+$('#confirmEddystoneLockStateButton').addEventListener('click', function() {
+  $('#eddystoneLockStateDialog').close();
+  connectBeacon()
+  .then(() => { return updateBeacon($('#eddystoneLockStateNewPassword').value, $('#eddystoneLockStateOldPassword').value) })
+});
+
+$('#unlockPassword').addEventListener('input', checkBytesInput);
+$('#eddystoneLockStateOldPassword').addEventListener('input', checkBytesInput);
+$('#eddystoneLockStateNewPassword').addEventListener('input', checkBytesInput);
+$('#eddystoneLockStatePasswordConfirmation').addEventListener('input', checkBytesInput);
+
+function checkBytesInput(event) {
+  var value = event.target.value;
+  if (value.toLowerCase().startsWith('0x') && value.slice(2).match(/(..)/g)) {
+    var password = value.slice(2).match(/(..)/g).slice(0, 16).map(i => parseInt(i, 16));
+    if (value.length % 2 !== 0 || !/^[0-9A-F]*$/i.test(value.slice(2))) {
+      event.target.setCustomValidity('Not valid.');
+    } else if (password.length > 16) {
+      event.target.setCustomValidity('Too long.');
+    } else {
+      event.target.setCustomValidity('');
+    }
+  } else if (value.length > 16) {
+      event.target.setCustomValidity('Too long.');
+  } else if (value.length === 0) {
+    event.target.setCustomValidity('Empty.');
+  } else {
+    event.target.setCustomValidity('');
+  }
+  if (event.target.id === 'eddystoneLockStatePasswordConfirmation' ||
+      event.target.id === 'eddystoneLockStateNewPassword') {
+    checkEddystoneLockStatePasswords();
+    if (!$('#eddystoneLockStatePasswordConfirmation').validity.valid) {
+      $('#confirmEddystoneLockStateButton').disabled = true;
+      return;
+    }
+  }
+  $('#confirmEddystoneLockStateButton').disabled = !event.target.validity.valid;
+  $('#confirmUnlockButton').disabled = !event.target.validity.valid;
+}
+
+function checkEddystoneLockStatePasswords() {
+  if ($('#eddystoneLockStateNewPassword').value === $('#eddystoneLockStatePasswordConfirmation').value) {
+    $('#eddystoneLockStatePasswordConfirmation').setCustomValidity('');
+  } else {
+    $('#eddystoneLockStatePasswordConfirmation').setCustomValidity('Wrong');
+  }
+  $('#eddystoneLockStatePasswordConfirmation').parentElement.MaterialTextfield.checkValidity();
+}
+
 $('#cancelUnlockButton').addEventListener('click', onCancelUnlockDialog);
 $('#unlockDialog').addEventListener('cancel', onCancelUnlockDialog);
 
 function onCancelUnlockDialog() {
   $('#unlockDialog').close();
+  $('#confirmUnlockButton').disabled = true;
   $('#resetButton').disabled = false;
   $('#updateButton').disabled = false;
   $('#progressBar').hidden = true;
@@ -149,11 +320,43 @@ function onCancelUnlockDialog() {
 $('#confirmUnlockButton').addEventListener('click', function() {
   var password = $('#unlockPassword').value;
   $('#unlockDialog').close();
+  $('#confirmUnlockButton').disabled = true;
   connectBeacon()
-  .then(() => generateLock(password))
-  .then(key => unlockCharacteristic.writeValue(key))
   .then(() => {
-    if ($('#unlockDialog').classList.contains('reset')) {
+    if (isEddystoneUrlBeacon) {
+      return generateLock(password)
+      .then(key => {
+        return unlockCharacteristic.writeValue(key);
+      })
+    } else {
+      let reverse = (dataview) => {
+        let array = toUint8Array(new Uint8Array(dataview.buffer));
+        return new Uint8Array(array.reverse());
+      };
+      let key = encodePassword(password);
+      return eddystoneUnlockCharacteristic.readValue()
+      .then(challengeData => encrypt(key, challengeData))
+      .then(reverse)
+      .then(unlockToken => eddystoneUnlockCharacteristic.writeValue(unlockToken))
+      .catch(e => {
+        return Promise.reject('Wrong password. Please try again.');
+      })
+      .then(() => eddystoneLockStateCharacteristic.readValue())
+      .then(value => {
+        if (value.getUint8(0) == 0) {
+          // Reject if beacon is still locked after unlock attempt
+          return Promise.reject('Wrong password. Please try again.');
+        } else {
+          return Promise.resolve();
+        }
+      })
+    }
+  })
+  .then(() => {
+    if ($('#unlockDialog').classList.contains('read')) {
+      return readBeaconConfig()
+      .then(showForm);
+    } else if ($('#unlockDialog').classList.contains('reset')) {
       return resetBeacon();
     } else {
       if (!$('#lock').checked) {
@@ -161,7 +364,7 @@ $('#confirmUnlockButton').addEventListener('click', function() {
       } else {
         return updateBeacon(password);
       }
-    }  
+    }
   })
   .catch(e => {
     var data = {message: 'Error: ' + e, timeout: 5e3 };
@@ -169,6 +372,9 @@ $('#confirmUnlockButton').addEventListener('click', function() {
     $('#resetButton').disabled = false;
     $('#updateButton').disabled = false;
     $('#progressBar').hidden = true;
+    if ($('#unlockDialog').classList.contains('read')) {
+      disconnectBeacon();
+    }
   });
 });
 
@@ -195,41 +401,125 @@ function generateLock(password) {
   .then(webKey => crypto.subtle.exportKey('raw', webKey))
 }
 
+function encrypt(key, data) {
+  return crypto.subtle.importKey('raw', key, {name: 'aes-cbc'}, true, ['encrypt'])
+  .then(k => crypto.subtle.encrypt({name: 'aes-cbc', iv: new Uint8Array(16)}, k, data))
+  .then(encrypted => {
+    let array = toUint8Array(new Uint8Array(encrypted));
+    var half_length = Math.ceil(array.length / 2);
+    return new Uint8Array(array.slice(0, half_length).reverse());
+  });
+}
+
 $('#toggleAdvancedSettings').addEventListener('click', function(event) {
   event.target.hidden = true;
-  $('#txPowerMode').parentElement.classList.remove('firstRow');
-  $('#txPowerMode').parentElement.classList.add('secondRow');
+  if (isEddystoneUrlBeacon) {
+    $('#txPowerMode').parentElement.classList.remove('firstRow');
+    $('#txPowerMode').parentElement.classList.add('secondRow');
+  }
   $('#container').classList.toggle('more', true);
 });
 
-function updateBeacon(password) {
+function updateBeacon(password, oldPassword) {
+  ga('send', 'event', 'UpdateButton', 'click', password ? 'lock' : '');
   var isShortened;
   return getEncodedUrl($('#uri').value)
   .then(args => {
     [encodedUrl, isShortened] = args;
-    return uriDataCharacteristic.writeValue(new Uint8Array(encodedUrl));
+    if (isEddystoneUrlBeacon) {
+      return uriDataCharacteristic.writeValue(new Uint8Array(encodedUrl));
+    } else {
+      // TODO: Document this clearly...
+      encodedUrl.splice(0, 0, 0x10);
+      return advSlotDataCharacteristic.writeValue(new Uint8Array(encodedUrl));
+    }
   })
   .then(() => {
-    var data = new Uint16Array([$('#period').value]);
-    return beaconPeriodCharacteristic.writeValue(data);
+    if (isEddystoneUrlBeacon) {
+      var data = new Uint16Array([$('#period').value]);
+      return beaconPeriodCharacteristic.writeValue(data);
+    } else {
+      var data = new DataView(new ArrayBuffer(2));
+      data.setUint16(0, $('#advertisingInterval').value, false /* bigEndian */);
+      return advertisingIntervalCharacteristic.writeValue(data);
+    }
   })
   .then(() => {
-    var data = new Int8Array([
-        $('#lowest').value,
-        $('#low').value,
-        $('#medium').value,
-        $('#high').value
-      ]);
-    return advertisedTxPowerLevelsCharacteristic.writeValue(data);
+    if (!isEddystoneUrlBeacon) {
+      return Promise.resolve();
+    } else {
+      var data = new Int8Array([
+          $('#lowest').value,
+          $('#low').value,
+          $('#medium').value,
+          $('#high').value
+        ]);
+      return advertisedTxPowerLevelsCharacteristic.writeValue(data);
+    }
   })
   .then(() => {
-    var data = new Uint8Array([TX_POWER_MODES.indexOf($('#txPowerMode').value)]);
-    return txPowerModeCharacteristic.writeValue(data);
+    if (isEddystoneUrlBeacon) {
+      var data = new Uint8Array([TX_POWER_MODES.indexOf($('#txPowerMode').value)]);
+      return txPowerModeCharacteristic.writeValue(data);
+    } else {
+      var data = new Int8Array([$('#radioTxPower').value]);
+      return radioTxPowerCharacteristic.writeValue(data);
+    }
+  })
+  .then(() => {
+    if (isEddystoneUrlBeacon) {
+      return Promise.resolve();
+    } else {
+      var data = new Int8Array([$('#advancedAdvertisedTxPower').value]);
+      return advancedAdvertisedTxPowerCharacteristic.writeValue(data);
+    }
   })
   .then(() => {
     if (password) {
-      return generateLock(password)
-      .then(key => lockCharacteristic.writeValue(key))
+      if (isEddystoneUrlBeacon) {
+        return generateLock(password)
+        .then(key => lockCharacteristic.writeValue(key))
+      } else {
+        let oldKey = encodePassword(oldPassword);
+        let reverse = (dataview) => {
+          let array = toUint8Array(new Uint8Array(dataview.buffer));
+          return new Uint8Array(array.reverse());
+        };
+        // Lock beacon without changing the current security key value.
+        return eddystoneLockStateCharacteristic.writeValue(new Uint8Array([0]))
+        .then(() => { isBeaconLocked = true; })
+        // Unlock beacon with the old security key.
+        .then(() => eddystoneUnlockCharacteristic.readValue())
+        .then(challengeData => encrypt(oldKey, challengeData))
+        .then(reverse)
+        .then(unlockToken => eddystoneUnlockCharacteristic.writeValue(unlockToken))
+        .catch(e => {
+          return Promise.reject('Wrong old password. Please try again.');
+        })
+        .then(() => eddystoneLockStateCharacteristic.readValue())
+        .then(value => {
+          isBeaconLocked = (value.getUint8(0) == 1);
+          if (!isBeaconLocked) {
+            // Reject if beacon is still locked after unlock attempt
+            return Promise.reject('Wrong old password. Please try again.');
+          } else {
+            return Promise.resolve();
+          }
+        })
+        .then(() => {
+          let newKey = encodePassword(password);
+          return encrypt(oldKey, newKey)
+          .then(reverse)
+          .then(toUint8Array)
+          .then(e => {
+            let val = [0, ...e];
+            return new Uint8Array(val);
+          })
+          .then(data => {
+            return eddystoneLockStateCharacteristic.writeValue(data)
+          })
+        })
+      }
     } else {
       return Promise.resolve();
     }
@@ -238,11 +528,22 @@ function updateBeacon(password) {
     var data = {message: 'Beacon has been updated.'};
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
     updateUriLabel(isShortened);
+    ga('send', 'event', 'UpdateButtonOutcome', 'success');
   })
-  .then(readBeaconConfig)
+  .then(() => {
+    if (!isEddystoneUrlBeacon && password) {
+      disconnectBeacon();
+      return Promise.resolve();
+    }
+    return readBeaconConfig();
+  })
   .catch(e => {
     var data = {message: 'Error: ' + e, timeout: 5e3 };
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
+    ga('send', 'event', 'UpdateButtonOutcome', 'fail', e);
+    if (!isEddystoneUrlBeacon && password) {
+      disconnectBeacon();
+    }
   })
   .then(() => {
     $('#resetButton').disabled = false;
@@ -251,22 +552,48 @@ function updateBeacon(password) {
   });
 };
 
+function encodePassword(password) {
+  let key = new Uint8Array(16);
+  if (password.toLowerCase().startsWith('0x')) {
+    let encodedBytes = new Uint8Array(password.slice(2).match(/(..)/g).slice(0, 16).map(i => parseInt(i, 16)));
+    for (var i = 0; i < 16; i++) {
+      key[i] = encodedBytes[i];
+    }
+  } else {
+    let encodedPassword = new TextEncoder().encode(password);
+    for (var i = 0; i < 16; i++) {
+      key[i] = encodedPassword[i];
+    }
+  }
+  return key;
+}
+
 function updateUriLabel(isShortened) {
   $('#uriLabel').classList.toggle('shortened', isShortened);
   $('#uriLabel').textContent = isShortened ? 'URL Shortened' : 'URL';
 }
 
 function resetBeacon() {
-  return resetCharacteristic.writeValue(new Uint8Array([1]))
+  ga('send', 'event', 'ResetButton', 'click');
+  return Promise.resolve()
+  .then(() => {
+    if (isEddystoneUrlBeacon) {
+      return resetCharacteristic.writeValue(new Uint8Array([1]));
+    } else {
+      return advancedFactoryResetCharacteristic.writeValue(new Uint8Array([0x0b]));
+    }
+  })
   .then(() => {
     updateUriLabel(false /* not shortened */);
     var data = {message: 'Beacon has been reset.'};
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
+    ga('send', 'event', 'ResetButtonOutcome', 'success');
   })
   .then(readBeaconConfig)
   .catch(e => {
     var data = {message: 'Error: ' + e, timeout: 5e3 };
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
+    ga('send', 'event', 'ResetButtonOutcome', 'fail', e);
   })
   .then(() => {
     $('#resetButton').disabled = false;
@@ -276,89 +603,198 @@ function resetBeacon() {
 };
 
 function connectBeacon() {
+  ga('send', 'event', 'ConnectBeacon', 'background');
+  $('#progressBar').hidden = false;
   if (gattServer && gattServer.connected) {
     return Promise.resolve();
   }
-  // TODO: Switch to beaconDevice.gatt.connect()
-  return beaconDevice.connectGATT()
+  return beaconDevice.gatt.connect()
   .then(server => {
     gattServer = server;
-    return server.getPrimaryService(EDDYSTONE_URL_CONFIG_SERVICE_UUID);
+    if (beaconDevice.uuids.includes(EDDYSTONE_URL_CONFIG_SERVICE_UUID)) {
+      isEddystoneUrlBeacon = true;
+      ga('send', 'event', 'ConnectBeaconOutcome', 'background', 'Eddystone-URL beacon');
+    } else if (beaconDevice.uuids.includes(EDDYSTONE_CONFIG_SERVICE_UUID)) {
+      isEddystoneUrlBeacon = false;
+      ga('send', 'event', 'ConnectBeaconOutcome', 'background', 'Eddystone GATT beacon');
+    } else {
+      ga('send', 'event', 'ConnectBeaconOutcome', 'background', 'Non Eddystone Beacon');
+      return Promise.reject('Beacon is not valid');
+    }
+    return getCharacteristics();
   })
-  .then(service => {
-    return Promise.all([
-      service.getCharacteristic(LOCK_STATE_CHARACTERISTIC_UUID),
-      service.getCharacteristic(LOCK_CHARACTERISTIC_UUID),
-      service.getCharacteristic(UNLOCK_CHARACTERISTIC_UUID),
-      service.getCharacteristic(URI_DATA_CHARACTERISTIC_UUID),
-      service.getCharacteristic(FLAGS_CHARACTERISTIC_UUID),
-      service.getCharacteristic(ADVERTISED_TX_POWER_LEVELS_CHARACTERISTIC_UUID),
-      service.getCharacteristic(TX_POWER_MODE_CHARACTERISTIC_UUID),
-      service.getCharacteristic(BEACON_PERIOD_CHARACTERISTIC_UUID),
-      service.getCharacteristic(RESET_CHARACTERISTIC_UUID),
-    ]);
-  })
-  .then(characteristics => {
-    [
-      lockStateCharacteristic,
-      lockCharacteristic,
-      unlockCharacteristic,
-      uriDataCharacteristic,
-      flagsCharacteristic,
-      advertisedTxPowerLevelsCharacteristic,
-      txPowerModeCharacteristic,
-      beaconPeriodCharacteristic,
-      resetCharacteristic
-    ] = characteristics;
-  })
-  .catch(e => { 
-    var data = {message: 'Error: ' + e, timeout: 5e3 };
-    $('#snackbar').MaterialSnackbar.showSnackbar(data);
-  });
+}
+
+function getCharacteristics() {
+  if (isEddystoneUrlBeacon) {
+    return gattServer.getPrimaryService(EDDYSTONE_URL_CONFIG_SERVICE_UUID)
+    .then(service => {
+      return Promise.all([
+        service.getCharacteristic(LOCK_STATE_CHARACTERISTIC_UUID),
+        service.getCharacteristic(LOCK_CHARACTERISTIC_UUID),
+        service.getCharacteristic(UNLOCK_CHARACTERISTIC_UUID),
+        service.getCharacteristic(URI_DATA_CHARACTERISTIC_UUID),
+        service.getCharacteristic(FLAGS_CHARACTERISTIC_UUID),
+        service.getCharacteristic(ADVERTISED_TX_POWER_LEVELS_CHARACTERISTIC_UUID),
+        service.getCharacteristic(TX_POWER_MODE_CHARACTERISTIC_UUID),
+        service.getCharacteristic(BEACON_PERIOD_CHARACTERISTIC_UUID),
+        service.getCharacteristic(RESET_CHARACTERISTIC_UUID)
+      ]);
+    })
+    .then(characteristics => {
+      [
+        lockStateCharacteristic,
+        lockCharacteristic,
+        unlockCharacteristic,
+        uriDataCharacteristic,
+        flagsCharacteristic,
+        advertisedTxPowerLevelsCharacteristic,
+        txPowerModeCharacteristic,
+        beaconPeriodCharacteristic,
+        resetCharacteristic
+      ] = characteristics;
+    })
+    .catch(e => {
+      var data = {message: 'Error: ' + e, timeout: 5e3 };
+      $('#snackbar').MaterialSnackbar.showSnackbar(data);
+    });
+  } else {
+    return gattServer.getPrimaryService(EDDYSTONE_CONFIG_SERVICE_UUID)
+    .then(service => {
+      return Promise.all([
+        service.getCharacteristic(CAPABILITIES_CHARACTERISTIC_UUID),
+        service.getCharacteristic(ACTIVE_SLOT_CHARACTERISTIC_UUID),
+        service.getCharacteristic(ADVERTISING_INTERVAL_CHARACTERISTIC_UUID),
+        service.getCharacteristic(RADIO_TX_POWER_CHARACTERISTIC_UUID),
+        service.getCharacteristic(ADVANCED_ADVERTISED_TX_POWER_CHARACTERISTIC_UUID),
+        service.getCharacteristic(EDDYSTONE_LOCK_STATE_CHARACTERISTIC_UUID),
+        service.getCharacteristic(EDDYSTONE_UNLOCK_CHARACTERISTIC_UUID),
+        service.getCharacteristic(PUBLIC_ECDH_KEY_CHARACTERISTIC_UUID),
+        service.getCharacteristic(EID_IDENTITY_KEY_CHARACTERISTIC_UUID),
+        service.getCharacteristic(ADV_SLOT_DATA_CHARACTERISTIC_UUID),
+        service.getCharacteristic(ADVANCED_FACTORY_RESET_CHARACTERISTIC_UUID),
+        service.getCharacteristic(ADVANCED_REMAIN_CONNECTABLE_CHARACTERISTIC_UUID)
+      ]);
+    })
+    .then(characteristics => {
+      [
+        capabilitiesCharacteristic,
+        activeSlotCharacteristic,
+        advertisingIntervalCharacteristic,
+        radioTxPowerCharacteristic,
+        advancedAdvertisedTxPowerCharacteristic,
+        eddystoneLockStateCharacteristic,
+        eddystoneUnlockCharacteristic,
+        publicEdchKeyCharacteristic,
+        eidIdentityKeyCharacteristic,
+        advSlotDataCharacteristic,
+        advancedFactoryResetCharacteristic,
+        advancedRemainConnectableCharacteristic
+      ] = characteristics;
+    })
+    .catch(e => {
+      var data = {message: 'Error: ' + e, timeout: 5e3 };
+      $('#snackbar').MaterialSnackbar.showSnackbar(data);
+    });
+  }
 }
 
 function readBeaconConfig() {
-  return lockStateCharacteristic.readValue().then(value => {
-    value = value.buffer ? value : new DataView(value);
-    isBeaconLocked = (value.getUint8(0) == 1);
-    setLock(isBeaconLocked);
-    $('#lock').parentElement.classList.toggle('edited', false);
-    $('#lock').defaultChecked = isBeaconLocked;
+  if (isEddystoneUrlBeacon) {
+    return lockStateCharacteristic.readValue().then(value => {
+      isBeaconLocked = (value.getUint8(0) == 1);
+      setLock(isBeaconLocked);
+      $('#lock').parentElement.classList.toggle('edited', false);
+      $('#lock').defaultChecked = isBeaconLocked;
+    })
+    .then(() => {
+      return uriDataCharacteristic.readValue().then(value => {
+        setValue('uri', decodeURL(value));
+      })
+    })
+    .then(() => {
+      return flagsCharacteristic.readValue().then(value => {
+        setValue('flags', value.getUint8(0).toString(16));
+      })
+    })
+    .then(() => {
+      return beaconPeriodCharacteristic.readValue().then(value => {
+        setValue('period', value.getUint16(0, true /* littleEndian */));
+      })
+    })
+    .then(() => {
+      return txPowerModeCharacteristic.readValue().then(value => {
+        setValue('txPowerMode', TX_POWER_MODES[value.getUint8(0)]);
+      })
+    })
+    .then(() => {
+      return advertisedTxPowerLevelsCharacteristic.readValue().then(value => {
+        setValue('lowest', value.getInt8(0));
+        setValue('low', value.getInt8(1));
+        setValue('medium', value.getInt8(2));
+        setValue('high', value.getInt8(3));
+      })
+    })
+    .catch(e => {
+      var data = {message: 'Error: ' + e, timeout: 5e3 };
+      $('#snackbar').MaterialSnackbar.showSnackbar(data);
+    });
+  } else {
+    return eddystoneLockStateCharacteristic.readValue().then(value => {
+      isBeaconLocked = (value.getUint8(0) == 0);
+      if (!isBeaconLocked) {
+        return readEddystoneBeaconConfig();
+      }
+      /* Beacon is locked */
+      $('#unlockPassword').parentElement.MaterialTextfield.change('');
+      $('#unlockDialog').classList.toggle('read', true);
+      $('#unlockDialog').showModal();
+    })
+  }
+}
+
+function readEddystoneBeaconConfig() {
+  setLock(isBeaconLocked);
+  $('#lock').parentElement.classList.toggle('edited', false);
+  $('#lock').defaultChecked = isBeaconLocked;
+  return advSlotDataCharacteristic.readValue().then(value => {
+    if (value.getUint8(0) == 0x10) {
+      // Remove frame type byte and advertised TX power at 0m.
+      var data = new DataView(value.buffer, 2);
+      setValue('uri', decodeURL(data));
+    } else {
+      return Promise.reject('ADV Slot Data is not an Eddystone frame URL.');
+    }
   })
   .then(() => {
-    return uriDataCharacteristic.readValue().then(value => {
-      value = value.buffer ? value : new DataView(value);
-      setValue('uri', decodeURL(value));
+    $('ul[for=radioTxPower]').innerHTML = '';
+    return capabilitiesCharacteristic.readValue().then(value => {
+      for (var i = 6; i < value.buffer.byteLength; i++) {
+        var li = document.createElement('li');
+        li.classList.add('mdl-menu__item');
+        li.textContent = value.getInt8(i);
+        componentHandler.upgradeElement(li);
+        $('ul[for=radioTxPower]').appendChild(li);
+      }
+      getmdlSelect.init('.getmdl-select');
     })
   })
   .then(() => {
-    return flagsCharacteristic.readValue().then(value => {
-      value = value.buffer ? value : new DataView(value);
-      setValue('flags', value.getUint8(0).toString(16));
+    return radioTxPowerCharacteristic.readValue().then(value => {
+      setValue('radioTxPower', value.getInt8(0));
     })
   })
   .then(() => {
-    return beaconPeriodCharacteristic.readValue().then(value => {
-      value = value.buffer ? value : new DataView(value);
-      setValue('period', value.getUint16(0, true /* littleEndian */));
+    return advertisingIntervalCharacteristic.readValue().then(value => {
+      setValue('advertisingInterval', value.getUint16(0, false /* bigEndian */));
     })
   })
   .then(() => {
-    return txPowerModeCharacteristic.readValue().then(value => {
-      value = value.buffer ? value : new DataView(value);
-      setValue('txPowerMode', TX_POWER_MODES[value.getUint8(0)]);
+    return advancedAdvertisedTxPowerCharacteristic.readValue().then(value => {
+      setValue('advancedAdvertisedTxPower', value.getInt8(0));
     })
   })
-  .then(() => {
-    return advertisedTxPowerLevelsCharacteristic.readValue().then(value => {
-      value = value.buffer ? value : new DataView(value);
-      setValue('lowest', value.getInt8(0));
-      setValue('low', value.getInt8(1));
-      setValue('medium', value.getInt8(2));
-      setValue('high', value.getInt8(3));
-    })
-  })
-  .catch(e => { 
+  .catch(e => {
     var data = {message: 'Error: ' + e, timeout: 5e3 };
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
   });
@@ -376,6 +812,10 @@ function setValue(inputId, value) {
   element.classList.toggle('edited', false);
   element.parentElement.MaterialTextfield.change(value);
   element.parentElement.animate([{color: 'initial'}, {color: '#448AFF'}, {color: 'initial'}], 360);
+  var label = element.parentElement.querySelector('label');
+  if (label) {
+    label.animate([{color: '#9e9e9e'}, {color: '#448AFF'}, {color: '#9e9e9e'}], 480);
+  }
 }
 
 function setLock(locked) {
@@ -386,6 +826,10 @@ function setLock(locked) {
     $('#lock').parentElement.MaterialCheckbox.uncheck();
     $('#lock').parentElement.querySelector('.mdl-checkbox__label').textContent = 'Unlocked';
   }
+}
+
+function toUint8Array(value) {
+  return Array.prototype.slice.call(new Uint8Array(value.buffer));
 }
 
 const URL_SCHEMES = [
@@ -428,15 +872,15 @@ function encodeURL(url) {
   let encodedUrl = [];
   let position = 0;
   let encoder = new TextEncoder('utf-8');
-  
+
   for (let i = 0 ; i < URL_SCHEMES.length; i++) {
     if (url.startsWith(URL_SCHEMES[i])) {
-      encodedUrl.push(i);      
+      encodedUrl.push(i);
       position = URL_SCHEMES[i].length;
       break;
     }
   }
-  
+
   while (position < url.length) {
     let initialPosition = position;
     for (let i = 0; i < URL_CODES.length; i++) {
@@ -469,10 +913,12 @@ function getEncodedUrl(string) {
     if (encoded.length > 18) {
       return getShortUrl(string)
       .then(newString => {
+        ga('send', 'event', 'GetShortUrlOutcome', 'success');
         resolve([encodeURL(newString), true /* shortened */]);
       })
       .catch(e => {
-        reject(e);
+        ga('send', 'event', 'GetShortUrlOutcome', 'fail', e);
+        reject('URL is too long. Please use a shortener.');
       })
     } else {
       resolve([encoded, false /* non shortened */]);
@@ -481,13 +927,14 @@ function getEncodedUrl(string) {
 };
 
 function getShortUrl(url) {
+  ga('send', 'event', 'GetShortUrl', 'background');
   const apiUrl = 'https://www.googleapis.com/urlshortener/v1/url?key=AIzaSyCswhXTLkWtSysl0ntTIlqsiLVdvfvEc8k';
-  var options = {  
-    method: 'post',  
-    headers: { "Content-type": "application/json" },  
+  var options = {
+    method: 'post',
+    headers: { "Content-type": "application/json" },
     body: JSON.stringify({longUrl: url})
   };
-  
+
   return fetch(apiUrl, options)
   .then(function(response) {
     if (response.status === 200) {
@@ -495,7 +942,7 @@ function getShortUrl(url) {
     } else {
       return Promise.reject(new Error(response.statusText));
     }
-  })  
+  })
   .then(data => data.id)
 }
 
@@ -518,3 +965,21 @@ function getLongUrl(url) {
     }
   });
 }
+
+$('#flag') && $('#flag').addEventListener('click', function() {
+  ga('send', 'event', 'FlagLink', 'click');
+  var range = document.createRange();
+  range.selectNode(flag);
+  window.getSelection().addRange(range);
+  try {
+    if (document.execCommand('copy')) {
+      $('#snackbar').MaterialSnackbar.showSnackbar({message: 'Link copied.'});
+    }
+  } catch(err) {
+    // User will have to do it manually...
+  }
+});
+
+$('#physicalWebLink').addEventListener('click', function() {
+  ga('send', 'event', 'PhysicalWebLink', 'click');
+});

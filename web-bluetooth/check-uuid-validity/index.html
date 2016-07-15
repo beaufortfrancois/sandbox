@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Bluetooth UUID Validity</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+  </head>
+  <body style="max-width: 512px; margin: 48px auto; text-align: center;">
+    <h2>Check Bluetooth UUID Validity</h2>
+    <input oninput=oninput autofocus>
+    <pre style="white-space: pre-line;"></pre>
+    <script>
+      var oninput = event => {
+        if ('BluetoothUUID' in window) {
+          let value = event.target.value;
+          if (value.startsWith('0x')) { value = parseInt(value); }
+          if (value.length == 0) {
+            document.querySelector('pre').textContent = '';
+            return;
+          }
+          let methods = [ 'getCharacteristic', 'getDescriptor', 'getService' ];
+          let lastResult;
+          for (let method of methods) {
+            let [valid, result] = checkValidity(method, value);
+            if (valid) {
+              document.querySelector('pre').textContent = result;
+              return;
+            }
+            lastResult = result;
+          }
+          document.querySelector('pre').textContent = lastResult;
+        } else {
+          document.querySelector('pre').textContent = 'Web Bluetooth is not enabled.';
+        }
+      };
+
+      let checkValidity = (method, uuid) => {
+        try {
+          return [ true, BluetoothUUID[method](uuid) ];
+        } catch (e) {
+          return [ false, e ];
+        }
+      };
+    </script>
+  </body>
+</html>
+

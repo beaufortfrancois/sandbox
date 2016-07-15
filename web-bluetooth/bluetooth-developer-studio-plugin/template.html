@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Connect to {{classDeviceName}}</title>
+  </head>
+  <body>
+    <button>Scan</button>
+    <pre></pre>
+    <script src="{{fileName}}.js"></script>
+    <script>
+      var {{instanceDeviceName}} = new {{classDeviceName}}();
+      document.querySelector('button').addEventListener('click', function() {
+        {{instanceDeviceName}}.request()
+        .then(_ => {{instanceDeviceName}}.connect())
+        .then(_ => { document.querySelector('pre').textContent = 'Connected!'; })
+        .catch(error => { document.querySelector('pre').textContent = error; });
+      });
+    </script>
+  </body>
+</html>

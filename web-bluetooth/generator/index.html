@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Started with Web Bluetooth</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/github.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.1.2/material.grey-blue.min.css">
+    <script src="https://code.getmdl.io/1.1.2/material.min.js"></script>
+
+    <style>
+      body {
+        background-color: #f8f8f8;
+        display: flex;
+        flex-direction: row;
+      }
+      .leftPane { width: calc(480px - 3em); }
+      .leftPane > div { padding-left: 3em; padding-top: 1.2em; }
+      .section-title:first-child {
+        padding-top: 1em;
+      }
+      .section-title {
+        padding-top: .5em;
+        padding-bottom: 1em;
+        font-size: 1.5em;
+        color: #2196f3;
+      }
+      .sub-section-title {
+        padding: 1em 0;
+        color: #2196f3;
+        text-transform: uppercase;
+        font-weight: bold;
+      }
+      pre, code {
+        font-size: 13px;
+        line-height: 16px;
+        font-family: Consolas, "Lucida Console", monospace;
+        margin: 0;
+        white-space: pre;
+      }
+      code {
+        padding-top: 2em !important;
+      }
+      .mdl-textfield__label {
+        color: rgb(158,158,158);
+        font-size: 12px;
+        top: 4px;
+        visibility: visible;
+      }
+      .mdl-checkbox {
+        width: calc(33% - 24px);
+      }
+      #test {
+        position: fixed;
+        display: block;
+        right: 0;
+        bottom: 0;
+        margin-right: 40px;
+        margin-bottom: 40px;
+        z-index: 900;
+      }
+    </style>
+  </head>
+  <body>
+  
+    <div class="leftPane">
+
+      <div>
+
+      <div class="section-title">Get Started with Web Bluetooth</div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="deviceName" required pattern="[a-zA-Z\ ]*">
+        <label class="mdl-textfield__label" for="deviceName">Device Name</label>
+      </div>
+
+      <div class="sub-section-title">Discovery filters</div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="advertisedDeviceName">
+        <label class="mdl-textfield__label" for="advertisedName">Advertising Name</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="advertisedDeviceNamePrefix">
+        <label class="mdl-textfield__label" for="advertisedNamePrefix">Advertising Name Prefix</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="advertisedServices">
+        <label class="mdl-textfield__label" for="advertisedServices">Advertising Service UUID(s)</label>
+      </div>
+
+      <div class="sub-section-title">Characteristic</div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="characteristicName" pattern="[a-zA-Z\ ]*">
+        <label class="mdl-textfield__label" for="characteristicName">Characteristic Name</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="characteristicService">
+        <label class="mdl-textfield__label" for="characteristicService">Service UUID</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="characteristic">
+        <label class="mdl-textfield__label" for="characteristic">Characteristic UUID</label>
+      </div>
+
+      <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="characteristicRead">
+        <input type="checkbox" id="characteristicRead" class="mdl-checkbox__input">
+        <span class="mdl-checkbox__label">Read</span>
+      </label>
+
+      <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="characteristicWrite">
+        <input type="checkbox" id="characteristicWrite" class="mdl-checkbox__input">
+        <span class="mdl-checkbox__label">Write</span>
+      </label>
+
+      <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="characteristicNotify">
+        <input type="checkbox" id="characteristicNotify" class="mdl-checkbox__input">
+        <span class="mdl-checkbox__label">Notify</span>
+      </label>
+
+      </div>
+
+    </div>
+
+    <div>
+
+      <code><pre></pre></code>
+
+      <button id="test"class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
+        <i class="material-icons">autorenew</i>
+      </button>
+
+    </div>
+
+  <script src="app.js"></script>
+  </body>
+</html>

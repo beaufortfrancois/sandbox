@@ -2,7 +2,7 @@ document.getElementById('connect').addEventListener('click', function() {
   navigator.bluetooth.requestDevice({ filters: [{ name: 'Sound Tracker' }]})
   .then(function(device) {
     document.querySelector('#status').textContent = 'connecting...';
-    return device.connectGATT();
+    return device.gatt.connect();
   })
   .then(function(server) {
     // FIXME: Remove this timeout when GattServices property works as intended.

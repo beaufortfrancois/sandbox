@@ -8,7 +8,7 @@ class BluetoothDevice {
   connect() {
     let options = {filters:[{services:[ this.heartRateService._serviceUuid ]}]};
     return navigator.bluetooth.requestDevice(options)
-    .then(device => device.connectGATT())
+    .then(device => device.gatt.connect())
     .then(gattServer => {
       return Promise.all([
         this.deviceInformationService._cacheCharacteristics(gattServer),

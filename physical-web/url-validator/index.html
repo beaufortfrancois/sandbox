@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Physical Web URL Validator</title>
+    <meta name="description" content="Control the color and effects of a PLAYBULB Candle with a Web Bluetooth app.">
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.grey-blue.min.css" />
+    <script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+
+    <style>
+      body { font-family:'Roboto','Helvetica','Arial',sans-serif!important;background-color:#FAFAFA  }
+      form { width: 300px; margin: 0 auto; display: flex; flex-flow: row wrap; padding: 20px; padding-top: 200px }
+      button { margin-left: auto !important; margin-right: auto !important }
+      pre { font-family: "Roboto","Helvetica","Arial",sans-serif; max-width: 600px; margin: 0 auto; white-space: pre-wrap; padding: 0 24px; }
+      h4 { font-weight: bold; padding: 6px; }
+      .error h4 { color: #F44336; border-top: 4px solid } 
+      .success h4 { color: #4CAF50; border-top: 4px solid }
+      .loading { text-align: center }
+    </style>
+  </head>
+  <body>
+
+    <form>
+
+      <div class="mdl-textfield mdl-js-textfield">
+        <input class="mdl-textfield__input" type="url" id="pws-url">
+        <label class="mdl-textfield__label" for="pws-url">Physical Web Service URL</label>
+      </div>
+
+      <div class="mdl-textfield mdl-js-textfield">
+        <input class="mdl-textfield__input" type="url" id="website-url">
+        <label class="mdl-textfield__label" for="website-url">Website URL</label>
+      </div>
+
+      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Validate</button>
+
+    </form>
+
+    <pre></pre>
+
+    <script>
+      var $ = document.querySelector.bind(document);
+      $('button').addEventListener('click', function(e) {
+        if (!$('#pws-url').value || !$('#pws-url').checkValidity()) {
+          log('FAIL', 'You must enter a valid Physical Web Service URL', 'error');
+          return;
+        }
+
+        if (!$('#website-url').value || !$('#website-url').checkValidity()) {
+          log('FAIL', 'You must enter a valid Website URL', 'error');
+          return;
+        }
+
+        log('', 'Loading...', 'loading');
+
+        var body = JSON.stringify({ urls: [{ url: $('#website-url').value }] });
+        var request = new Request($('#pws-url').value);
+
+        fetch(request, { mode: 'cors', method: 'POST', body: body })
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            log(data.error.status, data.error.message, 'error');
+            return;
+          }
+          if (!data.results || data.results.length == 0) {
+            log('AW SNAP!', 'The Physical Web does NOT validate this URL.', 'error');
+            return;
+          }
+          var text = `<b>URL</b>: <a href="${data.results[0].resolvedUrl}">${data.results[0].resolvedUrl}</a><br/>` +
+                     `<b>Title</b>: ${data.results[0].pageInfo.title}<br/>` +
+                     `<b>Description:</b> ${data.results[0].pageInfo.description}<br/>` +
+                     `<b>Icon:</b> <img width="16px" height="16px" src="${data.results[0].pageInfo.icon}"/>`;
+          log('SUCCESS', text, 'success');
+        })
+        .catch(error => {
+          log('FAIL', error, 'error');
+        });
+      });
+
+      function log(title, text, className) {
+        $('pre').innerHTML = '<h4>' + title + '</h4>' + text;
+        $('pre').className = className;
+      }
+    </script>
+  </body>
+</html>
