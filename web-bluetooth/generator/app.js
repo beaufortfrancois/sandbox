@@ -17,32 +17,39 @@ function generateCode(options) {
     }
   }
 
+  var configOptions = '';
   var filterOptions = '"filters": [{\n';
   if (advertisedDeviceName) {
-    filterOptions += '        "name": "' + advertisedDeviceName + '"';
+    configOptions += '   name(){ return "'+ advertisedDeviceName +'"}';
+    filterOptions += '        "name": this.config.name()';
   }
   if (advertisedDeviceNamePrefix) {
     if (filterOptions.length == 0) {
       filterOptions = '"filters": [{\n';
     }
     if (advertisedDeviceName) {
+      configOptions += '\n';
       filterOptions += ',\n';
     }
-    filterOptions += '        "namePrefix": "' + advertisedDeviceNamePrefix + '"';
+    configOptions += '   namePrefix(){ return "'+ advertisedDeviceNamePrefix +'"}';
+    filterOptions += '        "namePrefix": this.config.namePrefix()';
   }
   if (advertisedServices.length) {
     if (filterOptions.length == 0) {
       filterOptions = '"filters": [{\n';
     }
     if (advertisedDeviceName || advertisedDeviceNamePrefix) {
+      configOptions += '\n';
       filterOptions += ',\n';
     }
     filterOptions += '        "services": [';
     Array.from(advertisedServices).forEach((service, index) => {
       if (index >0) {
+        configOptions += '\n';
         filterOptions += ', ';
       }
-      filterOptions += formatUUID(service);
+      configOptions += '   advertisingService'+index+'(){ return "'+formatUUID(service)+'"}';
+      filterOptions += 'Config.advertisingService'+index+'()';
     });
     filterOptions += ']';
   }
@@ -54,17 +61,19 @@ function generateCode(options) {
        (options.characteristicRead || options.characteristicWrite || options.characteristicNotify)) {
 
     if (!Array.from(advertisedServices).includes(options.characteristicServiceUuid)) {
+      configOptions += '\n   service(){ return "'+formatUUID(options.characteristicServiceUuid)+'"}';
       optionalServicesOptions = ',\n      "optionalServices": [';
-      optionalServicesOptions += formatUUID(options.characteristicServiceUuid);
-      optionalServicesOptions += ']';
+      optionalServicesOptions += 'this.config.service()';
+      optionalServicesOptions += ']';      
     }
 
+    configOptions += '\n   charateristic(){ return "'+formatUUID(options.characteristicUuid)+'"}';
     let characteristicName = options.characteristicName.charAt(0).toUpperCase() + options.characteristicName.slice(1);
     if (options.characteristicRead) {
       characteristicMethods += `
   read${characteristicName}() {
-    return this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)})
-    .then(service => service.getCharacteristic(${formatUUID(options.characteristicUuid)}))
+    return this.device.gatt.getPrimaryService(this.config.service())
+    .then(service => service.getCharacteristic(this.config.characteristic())
     .then(characteristic => characteristic.readValue());
   }
 `;
@@ -72,8 +81,8 @@ function generateCode(options) {
     if (options.characteristicWrite) {
       characteristicMethods += `
   write${characteristicName}(data) {
-    return this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)})
-    .then(service => service.getCharacteristic(${formatUUID(options.characteristicUuid)}))
+    return this.device.gatt.getPrimaryService(this.config.service())
+    .then(service => service.getCharacteristic(this.config.characteristic())
     .then(characteristic => characteristic.writeValue(data));
   }
 `;
@@ -81,8 +90,8 @@ function generateCode(options) {
     if (options.characteristicNotify) {
       characteristicMethods += `
   start${characteristicName}Notifications(listener) {
-    return this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)})
-    .then(service => service.getCharacteristic(${formatUUID(options.characteristicUuid)}))
+    return this.device.gatt.getPrimaryService(this.config.service())
+    .then(service => service.getCharacteristic(this.config.characteristic())
     .then(characteristic => {
       return characteristic.startNotifications()
       .then(_ => {
@@ -92,8 +101,8 @@ function generateCode(options) {
   }
 
   stop${characteristicName}Notifications(listener) {
-    return this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)})
-    .then(service => service.getCharacteristic(${formatUUID(options.characteristicUuid)}))
+    return this.device.gatt.getPrimaryService(this.config.service())
+    .then(service => service.getCharacteristic(this.config.characteristic())
     .then(characteristic => {
       return characteristic.stopNotifications()
       .then(_ => {
@@ -106,10 +115,18 @@ function generateCode(options) {
   }
 
   var mainTemplate = `
+  
+class Config{
+   constructor() {
+   }
+
+${configOptions}
+}
 
 class ${classDeviceName} {
 
   constructor() {
+    this.config = new Config();
     this.device = null;
     this.onDisconnected = this.onDisconnected.bind(this);
   }
