@@ -66,16 +66,15 @@ var $ = document.querySelector.bind(document);
 if (navigator.bluetooth) {
   $('#note').textContent = 'Put your beacon into configuration mode and search.';
   $('#scanButton').addEventListener('click', onScanButtonClick);
-} else if (navigator.userAgent.includes('Chrome/') &&
-          (navigator.userAgent.includes('Android 6') || navigator.userAgent.includes('CrOS'))) {
-  $('#note').innerHTML = 'This experiment requires Web Bluetooth.<br/>' +
+} else if (navigator.userAgent.includes('Chrome/')) {
+  $('#note').innerHTML = 'This experiment requires <a href="https://github.com/WebBluetoothCG/web-bluetooth/blob/gh-pages/implementation-status.md#chrome">Web Bluetooth</a>.<br/>' +
                          'Copy and paste this into the URL bar and enable<br/>' +
                          '<pre id="flag">chrome://flags/#enable-web-bluetooth</pre>'
   $('#scanButton').disabled = true;
 } else  {
   $('#note').innerHTML = 'Your browser doesn\'t support <a href="https://webbluetoothcg.github.io/web-bluetooth/">Web Bluetooth</a> ;(';
   if (!navigator.userAgent.includes('Android')) {
-    $('#note').innerHTML += '<br/>Please check out <a href="market://details?id=no.nordicsemi.android.mcp">nRF Master Control Panel</a>';
+    $('#note').innerHTML += '<br/>Check out <a href="market://details?id=no.nordicsemi.android.mcp">nRF Connect</a>.';
   }
   $('#scanButton').disabled = true;
 }
