@@ -803,8 +803,11 @@ function setValue(inputId, value) {
   var element = $('#' + inputId);
   element.oninput = function() {
     event.target.classList.toggle('edited', (event.target.defaultValue !== event.target.value));
-    if (event.target.classList.contains('edited') && event.target.id == 'uri') {
-      updateUriLabel(false /* not shortened */);
+    if (event.target.id == 'uri') {
+      if (event.target.classList.contains('edited')) {
+        updateUriLabel(false /* not shortened */);
+      }
+      $('#uriLabel').textContent = event.target.value.startsWith('http://') ? 'URL (Note: final URL should be HTTPS)' : 'URL';
     }
   };
   element.defaultValue = value;
