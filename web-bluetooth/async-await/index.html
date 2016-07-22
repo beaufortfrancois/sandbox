@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Async/Await</title>
+  </head>
+  <body>
+    <button>Test</button>
+  </body>
+  <script>
+    document.querySelector('button').addEventListener('click', function() {
+
+      async function readBatteryLevel() {
+        try {
+          const device = await navigator.bluetooth.requestDevice({filters: [{services: ['battery_service']}]});
+          const server = await device.gatt.connect();
+          const service = await server.getPrimaryService('battery_service');
+          const characteristic = await service.getCharacteristic('battery_level');
+          const value = await characteristic.readValue();
+          return value.getUint8(0);
+        } catch(e) {
+          console.log(e);
+        }
+      }
+      readBatteryLevel().then(batteryLevel => console.log(batteryLevel));
+
+    });
+  </script>
+</html>
+
