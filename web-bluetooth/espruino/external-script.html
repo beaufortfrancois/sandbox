@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Espruino</title>
+    <meta http-equiv="origin-trial" content="AhPfBaKJmTkrvhdfzA/uhONKFElnyRSx9rbre8R8iaLCwgfBWDwtd8/YddNIjYh96O08ZoT44uzEE9Lu0DcMZw0AAABleyJvcmlnaW4iOiAiaHR0cHM6Ly9iZWF1Zm9ydGZyYW5jb2lzLmdpdGh1Yi5pbzo0NDMiLCAiZmVhdHVyZSI6ICJXZWJCbHVldG9vdGgiLCAiZXhwaXJ5IjogMTQ3MDIyOTIxMX0=">
+  </head>
+  <body>
+    <button>Test</button>
+    <script src="https://espruino.github.io/js/puck.js"></script>
+    <script>
+      document.querySelector('button').addEventListener('click', function() {
+        Puck.write("LED1.set()\n")
+      });
+    </script>
+  </body>
+</html>
+
