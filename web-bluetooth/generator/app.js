@@ -48,7 +48,7 @@ function generateCode(options) {
         configOptions += '\n';
         filterOptions += ', ';
       }
-      configOptions += '   advertisingService'+index+'(){ return "'+formatUUID(service)+'"}';
+      configOptions += '   advertisingService'+index+'(){ return '+formatUUID(service)+'}';
       filterOptions += 'Config.advertisingService'+index+'()';
     });
     filterOptions += ']';
@@ -61,13 +61,13 @@ function generateCode(options) {
        (options.characteristicRead || options.characteristicWrite || options.characteristicNotify)) {
 
     if (!Array.from(advertisedServices).includes(options.characteristicServiceUuid)) {
-      configOptions += '\n   service(){ return "'+formatUUID(options.characteristicServiceUuid)+'"}';
+      configOptions += '\n   service(){ return '+formatUUID(options.characteristicServiceUuid)+'}';
       optionalServicesOptions = ',\n      "optionalServices": [';
       optionalServicesOptions += 'this.config.service()';
       optionalServicesOptions += ']';      
     }
 
-    configOptions += '\n   charateristic(){ return "'+formatUUID(options.characteristicUuid)+'"}';
+    configOptions += '\n   charateristic(){ return '+formatUUID(options.characteristicUuid)+'}';
     let characteristicName = options.characteristicName.charAt(0).toUpperCase() + options.characteristicName.slice(1);
     if (options.characteristicRead) {
       characteristicMethods += `
