@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>No arrow function</title>
+  </head>
+  <body>
+    <button>Test</button>
+    <p></p>
+  </body>
+  <script>
+    document.querySelector('button').addEventListener('click', function() {
+      navigator.bluetooth.requestDevice({filters:[{services:[ 'battery_service' ]}]})
+      .then(function(device) {
+        log('Connecting to GATT Server...');
+        return device.gatt.connect();
+      })
+      .then(function(server) {
+        log('Getting Battery Service...');
+        return server.getPrimaryService('battery_service');
+      })
+      .then(function(service) {
+        log('Getting Battery Level Characteristic...');
+        return service.getCharacteristic('battery_level');
+      })
+      .then(function(characteristic) {
+        log('Reading Battery Level...');
+        return characteristic.readValue();
+      })
+      .then(function(value) {
+        let batteryLevel = value.getUint8(0);
+        log('> Battery Level is ' + batteryLevel + '%');
+      })
+      .catch(function(error) {
+        log('Argh! ' + error);
+      });
+    });
+
+    function log(text) {
+      document.querySelector('p').innerHTML += text + '<br/>'; 
+    }
+  </script>
+</html>
+

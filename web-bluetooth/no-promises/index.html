@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<title>Battery Level</title>
+<body>
+    <button type="button" onclick="onButtonClick()">Get Bluetooth Device's Battery Level</button>
+    <pre id="log"></pre>
+    <script>
+    function onButtonClick() {
+        var options = {filters: [{services: ['battery_service']}]};
+
+        try {
+            log('Requesting Bluetooth Device...');
+            var bluetooth = window.navigator.bluetooth;
+            var device = bluetooth.requestDevice(options);
+
+            log('Connecting to GATT Server on device...');
+            var server = device.gatt.connect();
+
+            log('Getting Battery Service...');
+            var service = server.getPrimaryService('battery_service');
+
+            log('Getting Battery Level Characteristic...');
+            var characteristic = service.getCharacteristic('battery_level');
+
+            log('Reading Battery Level...');
+            var value = characteristic.readValue()[0].charCodeAt(0);
+            log('> Battery Level is ' + value + '%');
+        } catch(err) {
+            log(err);
+        }
+    }
+    function log(text) {
+      document.querySelector('#log').innerHTML += text + '<br/>'; 
+    }
+    </script>
+</body>
+</html>
