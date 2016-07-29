@@ -54,8 +54,7 @@ var capabilitiesCharacteristic,
 
 /* Common */
 
-var beaconDevice,
-    gattServer;
+var beacon;
 
 var isEddystoneUrlBeacon;
 
@@ -87,7 +86,8 @@ function onScanButtonClick() {
   navigator.bluetooth.requestDevice(options)
   .then(device => {
     ga('send', 'event', 'ScanButtonOutcome', 'success');
-    beaconDevice = device;
+    beacon = device;
+    beacon.addEventListener('gattserverdisconnected', onBeaconDisconnected);
     return connectBeacon();
   })
   .then(readBeaconConfig)
@@ -97,6 +97,10 @@ function onScanButtonClick() {
     $('#progressBar').hidden = true;
     $('#snackbar').MaterialSnackbar.showSnackbar({message: error.message || error});
   });
+}
+
+function onBeaconDisconnected() {
+  $('audio').play();
 }
 
 function showForm() {
@@ -200,8 +204,8 @@ $('#resetButton').addEventListener('click', function() {
 $('#closeButton').addEventListener('click', disconnectBeacon);
 
 function disconnectBeacon() {
-  if (gattServer && gattServer.connected) {
-    gattServer.disconnect();
+  if (beacon && beacon.gatt.connected) {
+    beacon.gatt.disconnect();
   }
   $('#beaconService').textContent = '';
   $('#progressBar').classList.toggle('top', true);
@@ -524,30 +528,29 @@ function updateBeacon(password, oldPassword) {
     }
   })
   .then(() => {
-    var data = {message: 'Beacon has been updated.'};
+    $('#progressBar').hidden = true;
+  })
+  .then(() => {
+    ga('send', 'event', 'UpdateButtonOutcome', 'success');
+    // Show success message, wait, and disconnect.
+    var data = {message: 'Beacon has been updated.', timeout: 2e3};
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
     updateUriLabel(isShortened);
-    ga('send', 'event', 'UpdateButtonOutcome', 'success');
-  })
-  .then(() => {
-    if (!isEddystoneUrlBeacon && password) {
+    setTimeout(function() {
+      $('#resetButton').disabled = false;
+      $('#updateButton').disabled = false;
       disconnectBeacon();
-      return Promise.resolve();
-    }
-    return readBeaconConfig();
+    }, 2e3);
   })
   .catch(e => {
+    ga('send', 'event', 'UpdateButtonOutcome', 'fail', e);
     var data = {message: 'Error: ' + e, timeout: 5e3 };
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
-    ga('send', 'event', 'UpdateButtonOutcome', 'fail', e);
+    $('#resetButton').disabled = false;
+    $('#updateButton').disabled = false;
     if (!isEddystoneUrlBeacon && password) {
       disconnectBeacon();
     }
-  })
-  .then(() => {
-    $('#resetButton').disabled = false;
-    $('#updateButton').disabled = false;
-    $('#progressBar').hidden = true;
   });
 };
 
@@ -583,37 +586,42 @@ function resetBeacon() {
     }
   })
   .then(() => {
-    updateUriLabel(false /* not shortened */);
-    var data = {message: 'Beacon has been reset.'};
-    $('#snackbar').MaterialSnackbar.showSnackbar(data);
-    ga('send', 'event', 'ResetButtonOutcome', 'success');
-  })
-  .then(readBeaconConfig)
-  .catch(e => {
-    var data = {message: 'Error: ' + e, timeout: 5e3 };
-    $('#snackbar').MaterialSnackbar.showSnackbar(data);
-    ga('send', 'event', 'ResetButtonOutcome', 'fail', e);
+    $('#progressBar').hidden = true;
   })
   .then(() => {
+    ga('send', 'event', 'ResetButtonOutcome', 'success');
+    updateUriLabel(false /* not shortened */);
+    // Show success message, wait, and disconnect.
+    var data = {message: 'Beacon has been reset.', timeout: 2e3};
+    $('#snackbar').MaterialSnackbar.showSnackbar(data);
+    setTimeout(function() {
+      $('#resetButton').disabled = false;
+      $('#updateButton').disabled = false;
+      disconnectBeacon();
+    }, 2e3);
+  })
+  .catch(e => {
+    ga('send', 'event', 'ResetButtonOutcome', 'fail', e);
+    var data = {message: 'Error: ' + e, timeout: 5e3 };
+    $('#snackbar').MaterialSnackbar.showSnackbar(data);
     $('#resetButton').disabled = false;
     $('#updateButton').disabled = false;
-    $('#progressBar').hidden = true;
   });
+
 };
 
 function connectBeacon() {
-  ga('send', 'event', 'ConnectBeacon', 'background');
   $('#progressBar').hidden = false;
-  if (gattServer && gattServer.connected) {
+  if (beacon && beacon.gatt.connected) {
     return Promise.resolve();
   }
-  return beaconDevice.gatt.connect()
-  .then(server => {
-    gattServer = server;
-    if (beaconDevice.uuids.includes(EDDYSTONE_URL_CONFIG_SERVICE_UUID)) {
+  ga('send', 'event', 'ConnectBeacon', 'background');
+  return beacon.gatt.connect()
+  .then(_ => {
+    if (beacon.uuids.includes(EDDYSTONE_URL_CONFIG_SERVICE_UUID)) {
       isEddystoneUrlBeacon = true;
       ga('send', 'event', 'ConnectBeaconOutcome', 'background', 'Eddystone-URL beacon');
-    } else if (beaconDevice.uuids.includes(EDDYSTONE_CONFIG_SERVICE_UUID)) {
+    } else if (beacon.uuids.includes(EDDYSTONE_CONFIG_SERVICE_UUID)) {
       isEddystoneUrlBeacon = false;
       ga('send', 'event', 'ConnectBeaconOutcome', 'background', 'Eddystone GATT beacon');
     } else {
@@ -626,7 +634,7 @@ function connectBeacon() {
 
 function getCharacteristics() {
   if (isEddystoneUrlBeacon) {
-    return gattServer.getPrimaryService(EDDYSTONE_URL_CONFIG_SERVICE_UUID)
+    return beacon.gatt.getPrimaryService(EDDYSTONE_URL_CONFIG_SERVICE_UUID)
     .then(service => {
       return Promise.all([
         service.getCharacteristic(LOCK_STATE_CHARACTERISTIC_UUID),
@@ -658,7 +666,7 @@ function getCharacteristics() {
       $('#snackbar').MaterialSnackbar.showSnackbar(data);
     });
   } else {
-    return gattServer.getPrimaryService(EDDYSTONE_CONFIG_SERVICE_UUID)
+    return beacon.gatt.getPrimaryService(EDDYSTONE_CONFIG_SERVICE_UUID)
     .then(service => {
       return Promise.all([
         service.getCharacteristic(CAPABILITIES_CHARACTERISTIC_UUID),
