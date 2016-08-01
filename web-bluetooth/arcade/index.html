@@ -1,0 +1,161 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        width: 100vw;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #EEE;
+        color: #757575;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0 3px 4px rgba(0,0,0,0.4);
+        background: #FFF;
+        font-size: 100px;
+        text-align: center;
+        border-radius: 3px;
+      }
+
+      .button {
+          outline: none;
+          font-size: 100px;
+          border-radius: 50%;
+          border: 0;
+          width: 128px;
+          height: 128px;
+          margin: 32px 0;
+          line-height: 128px;
+          display: inline-block;
+          background-color: rgb(255,64,129);
+          color: white;
+      }
+      .button.pressed {
+          opacity: .3;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="container">
+      <div><div class="button" id="reverseX">-</div> X <div class="button" id="forwardX">+</div></div>
+      <div><div class="button" id="reverseY">-</div> Y <div class="button" id="forwardY">+</div></div>
+      <div><div class="button" id="reverseZ">-</div> Z <div class="button" id="forwardZ">+</div></div>
+    </div>
+
+    <script>
+
+      const STOP = 0;
+      const FORWARD = 1;
+      const REVERSE = 2;
+
+      var motorCharacteristic;
+
+      var motorCommand = { x: STOP, y: STOP, z: STOP };
+
+      var queue = [];
+
+      document.getElementById('reverseY').addEventListener('mousedown', event => {
+        event.target.classList.add('pressed');
+        queue.push({'y': REVERSE});
+
+        if (queue.length > 1) {
+          return;
+        }
+        sendMotorCommand();
+      });
+
+      document.getElementById('reverseY').addEventListener('mouseup', event => {
+        event.target.classList.remove('pressed');
+        queue.push({'y': STOP});
+
+        if (queue.length > 1) {
+          return;
+        }
+        sendMotorCommand();
+      });
+
+      document.getElementById('forwardY').addEventListener('mousedown', event => {
+        event.target.classList.add('pressed');
+        queue.push({'y': FORWARD});
+
+        if (queue.length > 1) {
+          return;
+        }
+        sendMotorCommand();
+      });
+
+      document.getElementById('forwardY').addEventListener('mouseup', event => {
+        event.target.classList.remove('pressed');
+        queue.push({'y': STOP});
+
+        if (queue.length > 1) {
+          return;
+        }
+        sendMotorCommand();
+      });
+     
+      function reset() {
+        queue = [];
+        motorCommand = { x: STOP, y: STOP, z: STOP };
+      }
+
+      function sendMotorCommand() {
+        if (!motorCharacteristic) {
+          return navigator.bluetooth.requestDevice({filters: [{name: 'Arcade Machine'}], optionalServices: [ 0x1900 ]})
+          .then(device => device.gatt.connect())
+          .then(server => server.getPrimaryService(0x1900))
+          .then(service => service.getCharacteristic(0x1901))
+          .then(characteristic => {
+            motorCharacteristic = characteristic;
+            return sendMotorCommand();
+          })
+          .catch(e => {
+            reset();
+            console.log(e);
+          });
+        }
+
+        return Promise.resolve()
+        .then(_ => {
+          if (!motorCharacteristic.service.device.gatt.connected) {
+            // Device is not connected anymore, let's reconnect.
+            return motorCharacteristic.service.device.gatt.connect();
+          } 
+        })
+        .then(_ => {
+          motorCommand[Object.keys(queue[0])[0]] = queue[0][Object.keys(queue[0])[0]];
+          console.log(motorCommand);
+          let value = new Uint8Array([motorCommand.x, motorCommand.y, motorCommand.z, 0]);
+          return motorCharacteristic.writeValue(value);
+        })
+        .catch(e => {
+          console.log('Argh', e);
+        })
+        .then(_ => {
+          queue.shift();
+          if (queue.length) {
+            return sendMotorCommand();
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
+  
