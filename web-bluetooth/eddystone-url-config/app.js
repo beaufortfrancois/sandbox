@@ -79,6 +79,8 @@ if (navigator.bluetooth) {
 }
 
 function onScanButtonClick() {
+  // Hack to allow audio to play afterwards
+  $('audio').play(); $('audio').pause();
   ga('send', 'event', 'ScanButton', 'click');
   $('#progressBar').hidden = true;
   var options = {filters:[{services:[ EDDYSTONE_URL_CONFIG_SERVICE_UUID ]},
