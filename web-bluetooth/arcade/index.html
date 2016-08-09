@@ -21,6 +21,7 @@
         justify-content: center;
         background: #EEE;
         color: #757575;
+        user-select: none;
       }
 
       .container {
@@ -34,8 +35,8 @@
       }
 
       .button {
-          outline: none;
-          font-size: 100px;
+          cursor: default;
+          font-size: 16px;
           border-radius: 50%;
           border: 0;
           width: 128px;
@@ -45,6 +46,9 @@
           display: inline-block;
           background-color: rgb(255,64,129);
           color: white;
+          -webkit-user-select: none; /* disable selection/Copy of UIWebView */
+          -webkit-touch-callout: none; /* disable the IOS popup when long-press on a link */
+
       }
       .button.pressed {
           opacity: .3;
@@ -54,16 +58,25 @@
   <body>
 
     <div class="container">
-      <div><div class="button" id="reverseX">-</div> X <div class="button" id="forwardX">+</div></div>
-      <div><div class="button" id="reverseY">-</div> Y <div class="button" id="forwardY">+</div></div>
-      <div><div class="button" id="reverseZ">-</div> Z <div class="button" id="forwardZ">+</div></div>
+      <div>
+        <div class="button" id="forward">FORWARD</div>
+        <div class="button" id="backward">BACKWARD</div>
+      </div>
+      <div>
+        <div class="button" id="left">LEFT</div>
+        <div class="button" id="right">RIGHT</div>
+      </div>
+      <div>
+        <div class="button" id="up">UP</div>
+        <div class="button" id="down">DOWN</div>
+      </div>
     </div>
 
     <script>
 
       const STOP = 0;
-      const FORWARD = 1;
-      const REVERSE = 2;
+      const MINUS = 1;
+      const PLUS = 2;
 
       var motorCharacteristic;
 
@@ -71,52 +84,64 @@
 
       var queue = [];
 
-      document.getElementById('reverseY').addEventListener('mousedown', event => {
+      document.getElementById('down').addEventListener('mousedown', onDownButtonPressed);
+      document.getElementById('down').addEventListener('touchstart', onDownButtonPressed);
+
+      function onDownButtonPressed(event) {
         event.target.classList.add('pressed');
-        queue.push({'y': REVERSE});
+        queue.push({'y': MINUS});
 
         if (queue.length > 1) {
           return;
         }
-        sendMotorCommand();
-      });
+        sendMotorCommands();
+      }
 
-      document.getElementById('reverseY').addEventListener('mouseup', event => {
+      document.getElementById('down').addEventListener('mouseup', onDownButtonReleased);
+      document.getElementById('down').addEventListener('touchend', onDownButtonReleased);
+
+      function onDownButtonReleased(event) {
         event.target.classList.remove('pressed');
         queue.push({'y': STOP});
 
         if (queue.length > 1) {
           return;
         }
-        sendMotorCommand();
-      });
+        sendMotorCommands();
+      }
 
-      document.getElementById('forwardY').addEventListener('mousedown', event => {
+      document.getElementById('up').addEventListener('mousedown', onUpButtonPressed);
+      document.getElementById('up').addEventListener('touchstart', onUpButtonPressed);
+
+      function onUpButtonPressed(event) {
         event.target.classList.add('pressed');
-        queue.push({'y': FORWARD});
+        queue.push({'y': PLUS});
 
         if (queue.length > 1) {
           return;
         }
-        sendMotorCommand();
-      });
+        sendMotorCommands();
+      }
 
-      document.getElementById('forwardY').addEventListener('mouseup', event => {
+      document.getElementById('up').addEventListener('mouseup', onUpButtonReleased);
+      document.getElementById('up').addEventListener('touchend', onUpButtonReleased);
+
+      function onUpButtonReleased(event) {
         event.target.classList.remove('pressed');
         queue.push({'y': STOP});
 
         if (queue.length > 1) {
           return;
         }
-        sendMotorCommand();
-      });
+        sendMotorCommands();
+      }
      
       function reset() {
         queue = [];
         motorCommand = { x: STOP, y: STOP, z: STOP };
       }
 
-      function sendMotorCommand() {
+      function sendMotorCommands() {
         if (!motorCharacteristic) {
           return navigator.bluetooth.requestDevice({filters: [{name: 'Arcade Machine'}], optionalServices: [ 0x1900 ]})
           .then(device => device.gatt.connect())
@@ -124,7 +149,7 @@
           .then(service => service.getCharacteristic(0x1901))
           .then(characteristic => {
             motorCharacteristic = characteristic;
-            return sendMotorCommand();
+            reset();
           })
           .catch(e => {
             reset();
@@ -150,8 +175,9 @@
         })
         .then(_ => {
           queue.shift();
+          // Send pending motor commands if any.
           if (queue.length) {
-            return sendMotorCommand();
+            return sendMotorCommands();
           }
         });
       }
