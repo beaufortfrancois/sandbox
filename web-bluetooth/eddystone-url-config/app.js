@@ -103,6 +103,18 @@ function onScanButtonClick() {
 
 function onBeaconDisconnected() {
   $('audio').play();
+
+  let actionHandler = function(event) {
+    $('#snackbar').MaterialSnackbar.cleanup_();
+    $('#snackbar').MaterialSnackbar.showSnackbar({message: 'Have you tried turning it off and on again?'});
+  };
+  let data = {
+    message: 'Beacon not advertising?',
+    actionHandler: actionHandler,
+    actionText: 'Help',
+    timeout: 8e3
+  };
+  $('#snackbar').MaterialSnackbar.showSnackbar(data);
 }
 
 function showForm() {
