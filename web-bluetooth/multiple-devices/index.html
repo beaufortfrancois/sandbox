@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Multiple Devices</title>
+  </head>
+  <body>
+    <button id="addDevice">Add device</button>
+    <button id="connectAll">Connect all</button>
+    <script>
+      var devices = [];
+
+      document.querySelector('#addDevice').addEventListener('click', function() {
+        navigator.bluetooth.requestDevice({filters: anyDevice()})
+        .then(device => {
+          devices.push(device);
+          console.log(devices.map(device => { return device.name }).join(', ')); 
+        });
+      });
+
+      document.querySelector('#connectAll').addEventListener('click', function() {
+        Promise.all(devices.map(device => {
+          console.log('Connecting to ' + device.name);
+          return device.gatt.connect();
+        })).then(gattServers => {
+          gattServers.forEach(gattServer => {
+            console.log('Connected to ' + gattServer.device.name);
+          });
+        })
+        .catch(e => {
+          console.log(e);
+        });
+      });
+
+      function anyDevice() {
+        // This is the closest we can get for now to get all devices.
+        // https://github.com/WebBluetoothCG/web-bluetooth/issues/234
+        return Array.from('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+            .map(c => ({namePrefix: c}))
+            .concat({name: ''});
+      }
+
+    </script>
+  </body>
+</html>
+
