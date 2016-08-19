@@ -27,16 +27,11 @@
     <form>
 
       <div class="mdl-textfield mdl-js-textfield">
-        <input class="mdl-textfield__input" type="url" id="pws-url">
-        <label class="mdl-textfield__label" for="pws-url">Physical Web Service URL</label>
-      </div>
-
-      <div class="mdl-textfield mdl-js-textfield">
         <input class="mdl-textfield__input" type="url" id="website-url">
         <label class="mdl-textfield__label" for="website-url">Website URL</label>
       </div>
 
-      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Validate</button>
+      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Check Physical Web URL</button>
 
     </form>
 
@@ -45,11 +40,8 @@
     <script>
       var $ = document.querySelector.bind(document);
       $('button').addEventListener('click', function(e) {
-        if (!$('#pws-url').value || !$('#pws-url').checkValidity()) {
-          log('FAIL', 'You must enter a valid Physical Web Service URL', 'error');
-          return;
-        }
-
+        // TODO: Hardcode key
+        var pwsUrl = 'https://physicalweb.googleapis.com/v1alpha1/urls:resolve?key=' + location.hash.substr(1);
         if (!$('#website-url').value || !$('#website-url').checkValidity()) {
           log('FAIL', 'You must enter a valid Website URL', 'error');
           return;
@@ -58,23 +50,23 @@
         log('', 'Loading...', 'loading');
 
         var body = JSON.stringify({ urls: [{ url: $('#website-url').value }] });
-        var request = new Request($('#pws-url').value);
-
-        fetch(request, { mode: 'cors', method: 'POST', body: body })
+        fetch(pwsUrl, { mode: 'cors', method: 'POST', body: body })
         .then(response => response.json())
         .then(data => {
           if (data.error) {
             log(data.error.status, data.error.message, 'error');
             return;
           }
-          if (!data.results || data.results.length == 0) {
-            log('AW SNAP!', 'The Physical Web does NOT validate this URL.', 'error');
+          if (data.unresolvedResults) {
+            var text = 'The Physical Web Service fails to validate <i>' + data.unresolvedResults[0].scannedUrl + '</i>.</br><br/>' +
+                       '<b>Rejection reason:</b> ' + data.unresolvedResults[0].rejectionReason.description;
+            log('AW SNAP!', text, 'error');
             return;
           }
-          var text = `<b>URL</b>: <a href="${data.results[0].resolvedUrl}">${data.results[0].resolvedUrl}</a><br/>` +
-                     `<b>Title</b>: ${data.results[0].pageInfo.title}<br/>` +
-                     `<b>Description:</b> ${data.results[0].pageInfo.description}<br/>` +
-                     `<b>Icon:</b> <img width="16px" height="16px" src="${data.results[0].pageInfo.icon}"/>`;
+          var text = '<b>URL</b>: <a href="' + data.results[0].resolvedUrl + '">' + data.results[0].resolvedUrl + '</a><br/>' +
+                     '<b>Title</b>: ' + data.results[0].pageInfo.title + '<br/>' +
+                     '<b>Description:</b> ' + data.results[0].pageInfo.description + '<br/>' +
+                     '<b>Icon:</b> <img width="16px" height="16px" src="' + data.results[0].pageInfo.icon + '"/>';
           log('SUCCESS', text, 'success');
         })
         .catch(error => {
