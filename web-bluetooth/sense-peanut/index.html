@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sense Peanut</title>
+    <link rel="icon" sizes="192x192" href="../favicon.png">
+  </head>
+  <body>
+    <button id="connect">Connect</button>
+    <button id="startNotifications" disabled>Start Notifications</button>
+    <button id="stopNotifications" disabled>Stop Notifications</button>
+    <button id="battery" disabled>Get Battery</button>
+    <button id="temperature" disabled>Get Temperature</button>
+    <button id="buzz" disabled>Buzz</button>
+    <pre></pre>
+    <script src="sense-peanut.js"></script>
+    <script>
+
+      const factoryKey = new Uint8Array([35, -68, -100, 75, -78, 107, 52, -113, 19, -78, -65, 53, 89, -48, -47, 44]);
+
+      document.querySelector('#connect').addEventListener('click', function() {
+        log('Requesting device...');
+        peanut.connect()
+        .then(_ => { log('Connected to ' + peanut.device.name); })
+        .then(_ => peanut.getInitData())
+        .then(initData => { log('Init Data: ' + JSON.stringify(initData)); })
+        .then(_ => peanut.getMacAddress())
+        .then(macAddress => { log('Mac Address: ' + macAddress); })
+        .then(_ => peanut.getPlainText())
+        .then(clearText => peanut.setFactoryCipher(factoryKey, clearText))
+        .then(_ => peanut.setTime())
+        .then(_ => {
+          log('Successfully authenticated!');
+          document.querySelector('#startNotifications').disabled = false;
+          document.querySelector('#stopNotifications').disabled = false;
+          document.querySelector('#battery').disabled = false;
+          document.querySelector('#temperature').disabled = false;
+          document.querySelector('#buzz').disabled = false;
+         })
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      document.querySelector('#startNotifications').addEventListener('click', function() {
+        log('Starting notifications...');
+        peanut.startNotifications(handleNotifications)
+        .then(_ => {
+          log('Ready to receive notifications.');
+        })
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      document.querySelector('#stopNotifications').addEventListener('click', function() {
+        log('Stopping notifications...');
+        peanut.stopNotifications()
+        .then(_ => {
+          log('Notifications are stopped.');
+        })
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      document.querySelector('#battery').addEventListener('click', function() {
+        log('Getting battery...');
+        peanut.getBattery()
+        .then(data => handleNotifications(data))
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      document.querySelector('#temperature').addEventListener('click', function() {
+        log('Getting temperature...');
+        peanut.getTemperature()
+        .then(data => handleNotifications(data))
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      document.querySelector('#buzz').addEventListener('click', function() {
+        log('Requesting buzz...');
+        peanut.buzz()
+        .then(_ => {
+          log('Buzz!');
+        })
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      function handleNotifications(data) {
+        let timeStamp = new Date(data.timeStamp).toLocaleString();
+        delete(data.timeStamp);
+        log(timeStamp + ' ' + JSON.stringify(data));
+      }
+
+      function log(text) {
+        document.querySelector('pre').innerHTML += text + '<br/>';
+      }
+
+    </script>
+  </body>
+</html>
