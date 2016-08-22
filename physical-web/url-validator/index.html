@@ -13,41 +13,47 @@
 
     <style>
       body { font-family:'Roboto','Helvetica','Arial',sans-serif!important;background-color:#FAFAFA  }
-      form { width: 300px; margin: 0 auto; display: flex; flex-flow: row wrap; padding: 20px; padding-top: 200px }
+      .container { width: 300px; margin: 0 auto; display: flex; flex-flow: row wrap; padding: 20px; padding-top: 100px }
       button { margin-left: auto !important; margin-right: auto !important }
-      pre { font-family: "Roboto","Helvetica","Arial",sans-serif; max-width: 600px; margin: 0 auto; white-space: pre-wrap; padding: 0 24px; }
-      h4 { font-weight: bold; padding: 6px; }
-      .error h4 { color: #F44336; border-top: 4px solid } 
-      .success h4 { color: #4CAF50; border-top: 4px solid }
+      pre { font-family: "Roboto","Helvetica","Arial",sans-serif; max-width: 600px; margin: 0 auto; white-space: pre-wrap; padding: 24px; }
+      h4 { border-bottom: 1px solid rgba(0,0,0,.1); }
+      b { width: 100px; display: inline-block; vertical-align: middle; }
+      .error h4 { color: #F44336; }
+      .success h4 { color: #4CAF50; }
       .loading { text-align: center }
     </style>
   </head>
   <body>
 
-    <form>
+    <div class="container">
 
       <div class="mdl-textfield mdl-js-textfield">
         <input class="mdl-textfield__input" type="url" id="website-url">
-        <label class="mdl-textfield__label" for="website-url">Website URL</label>
+        <label class="mdl-textfield__label" for="website-url">Enter a Website URL...</label>
       </div>
 
       <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Check Physical Web URL</button>
 
-    </form>
+    </div>
 
     <pre></pre>
 
     <script>
       var $ = document.querySelector.bind(document);
-      $('button').addEventListener('click', function(e) {
+      $('input').addEventListener('keyup', function(e) { if (e.keyCode == 13) { validateUrl(); } });
+      $('button').addEventListener('click', validateUrl);
+
+      function validateUrl() {
+        $('button').disabled = true;
+
         // TODO: Hardcode key
         var pwsUrl = 'https://physicalweb.googleapis.com/v1alpha1/urls:resolve?key=' + location.hash.substr(1);
         if (!$('#website-url').value || !$('#website-url').checkValidity()) {
-          log('FAIL', 'You must enter a valid Website URL', 'error');
-          return;
+          log('Fail', 'You must enter a valid Website URL', 'error');
+          return enableButton();
         }
 
-        log('', 'Loading...', 'loading');
+        log('', '', 'loading');
 
         var body = JSON.stringify({ urls: [{ url: $('#website-url').value }] });
         fetch(pwsUrl, { mode: 'cors', method: 'POST', body: body })
@@ -55,24 +61,30 @@
         .then(data => {
           if (data.error) {
             log(data.error.status, data.error.message, 'error');
-            return;
+            return enableButton();
           }
           if (data.unresolvedResults) {
-            var text = 'The Physical Web Service fails to validate <i>' + data.unresolvedResults[0].scannedUrl + '</i>.</br><br/>' +
-                       '<b>Rejection reason:</b> ' + data.unresolvedResults[0].rejectionReason.description;
-            log('AW SNAP!', text, 'error');
-            return;
+            var text = 'The Physical Web Service fails to validate <i>' + data.unresolvedResults[0].scannedUrl + '</i></br><br/>' +
+                       '<b>Reason</b>' + data.unresolvedResults[0].rejectionReason.description;
+            log('Snap!', text, 'error');
+            return enableButton();
           }
-          var text = '<b>URL</b>: <a href="' + data.results[0].resolvedUrl + '">' + data.results[0].resolvedUrl + '</a><br/>' +
-                     '<b>Title</b>: ' + data.results[0].pageInfo.title + '<br/>' +
-                     '<b>Description:</b> ' + data.results[0].pageInfo.description + '<br/>' +
-                     '<b>Icon:</b> <img width="16px" height="16px" src="' + data.results[0].pageInfo.icon + '"/>';
-          log('SUCCESS', text, 'success');
+          var text = '<b>URL</b><a href="' + data.results[0].resolvedUrl + '">' + data.results[0].resolvedUrl + '</a><br/>' +
+                     '<b>Title</b>' + data.results[0].pageInfo.title + '<br/>' +
+                     '<b>Description</b>' + data.results[0].pageInfo.description + '<br/>' +
+                     '<b>Icon</b><img width="16px" height="16px" src="' + data.results[0].pageInfo.icon + '"/>';
+          log('Success', text, 'success');
+          enableButton();
         })
         .catch(error => {
-          log('FAIL', error, 'error');
+          log('Fail', error, 'error');
+          enableButton();
         });
-      });
+      }
+
+      function enableButton() {
+        $('button').disabled = false;
+      }
 
       function log(title, text, className) {
         $('pre').innerHTML = '<h4>' + title + '</h4>' + text;
