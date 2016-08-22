@@ -90,6 +90,12 @@
         $('pre').innerHTML = '<h4>' + title + '</h4>' + text;
         $('pre').className = className;
       }
+
+      var params = new URLSearchParams(location.search);
+      if (params.has('url')) {
+        $('input').value = params.get('url');
+      }
+
     </script>
   </body>
 </html>
