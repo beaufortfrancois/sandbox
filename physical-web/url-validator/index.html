@@ -46,8 +46,7 @@
       function validateUrl() {
         $('button').disabled = true;
 
-        // TODO: Hardcode key
-        var pwsUrl = 'https://physicalweb.googleapis.com/v1alpha1/urls:resolve?key=' + location.hash.substr(1);
+        var pwsUrl = 'https://physicalweb.googleapis.com/v1alpha1/urls:resolve?key=AIzaSyCF2edaCQxYmDY7piMQFzQJhmZXppjo4uQ';
         if (!$('#website-url').value || !$('#website-url').checkValidity()) {
           log('Fail', 'You must enter a valid Website URL', 'error');
           return enableButton();
