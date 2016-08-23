@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>React Playground</title>
+</head>
+<body>
+
+<button>Read Heart Rate Measurement</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/4.1.0/rx.all.min.js"></script>
+<script>
+
+var source = Rx.Observable.create(observer => {
+  
+  function handleNotifications(event) {
+    let value = event.target.value;
+    if (value.getUint8(0) & 0x01) {
+      observer.onNext(value.getUint16(1, /*littleEndian=*/true));
+    } else {
+      observer.onNext(value.getUint8(1));
+    }
+  }
+
+  observer.onNext('Requesting device...');
+  navigator.bluetooth.requestDevice({filters: [{services: ['heart_rate']}]})
+  .then(device => {
+    observer.onNext('Connecting to GATT Server...');
+    return device.gatt.connect();
+  })
+  .then(server => {
+    observer.onNext('Getting Heart Rate Service...');
+    return server.getPrimaryService('heart_rate');
+  })
+  .then(service => {
+    observer.onNext('Getting Heart Rate Measurement Characteristic...');
+    return service.getCharacteristic('heart_rate_measurement');
+  })
+  .then(characteristic => {
+    observer.onNext('Starting Notifications...');
+    return characteristic.startNotifications();
+  })
+  .then(characteristic => {
+    characteristic.addEventListener('characteristicvaluechanged', handleNotifications);
+  })
+  .catch(error => {
+    observer.onError(error);
+  });
+  
+  return function tearDown() {
+    /* What to do there? */
+    console.log('disposal called');
+  };
+});
+
+function onButtonClick() {
+  var sub = source.subscribe(
+    step => { console.log(step); },
+    err => { console.error(err); },
+    _ => { console.info('done'); });
+
+  // What would happen if I were to call dispose()?
+  // setTimeout(function() { sub.dispose() }, 2000);
+}
+
+document.querySelector('button').addEventListener('click', onButtonClick);
+
+</script>
+
+</body>
+</html>
