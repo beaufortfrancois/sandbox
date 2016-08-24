@@ -8,6 +8,10 @@
     <meta http-equiv="origin-trial" content="AulMBS2+qNasSwpzVi5H8skPQCzLzO8iQJ+2aS1knicPtNqMJAd38nk983Cuir/YcG07xgWMnNa6oOOdXTnBKQcAAABleyJvcmlnaW4iOiAiaHR0cHM6Ly9iZWF1Zm9ydGZyYW5jb2lzLmdpdGh1Yi5pbzo0NDMiLCAiZmVhdHVyZSI6ICJXZWJCbHVldG9vdGgiLCAiZXhwaXJ5IjogMTQ3NDAzOTkxMn0=">
   </head>
   <body>
+    <select id="colors">
+      <option value="blue">Blue Peanut</option>
+      <option value="green" selected>Green Peanut</option>
+    </select>
     <button id="connect">Connect</button>
     <button id="startNotifications" disabled>Start Notifications</button>
     <button id="stopNotifications" disabled>Stop Notifications</button>
@@ -18,9 +22,15 @@
     <script src="sense-peanut.js"></script>
     <script>
 
-      const factoryKey = new Uint8Array([35, -68, -100, 75, -78, 107, 52, -113, 19, -78, -65, 53, 89, -48, -47, 44]);
+      var $ = document.querySelector.bind(document);
+
+      const factoryKeys = {
+        'blue': new Uint8Array([35, -68, -100, 75, -78, 107, 52, -113, 19, -78, -65, 53, 89, -48, -47, 44]),
+        'green': new Uint8Array([-116, 74, 87, -45, -61, -88, -124, 15, -52, -117, 110, 31, 69, -44, -82, -21]),
+      };
 
       document.querySelector('#connect').addEventListener('click', function() {
+        const factoryKey = factoryKeys[$('#colors').options[$('#colors').options.selectedIndex].value];
         log('Requesting device...');
         peanut.connect()
         .then(_ => { log('Connected to ' + peanut.device.name); })
