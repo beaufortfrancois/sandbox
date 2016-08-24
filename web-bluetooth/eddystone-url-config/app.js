@@ -73,7 +73,7 @@ if (navigator.bluetooth) {
 } else  {
   $('#note').innerHTML = 'Your browser doesn\'t support <a href="https://webbluetoothcg.github.io/web-bluetooth/">Web Bluetooth</a> ;(';
   if (!navigator.userAgent.includes('Android')) {
-    $('#note').innerHTML += '<br/>Check out <a href="market://details?id=no.nordicsemi.android.mcp">nRF Connect</a>.';
+    $('#note').innerHTML += '<br/>Check out <a href="market://details?id=no.nordicsemi.android.nrfbeacon.nearby">nRF Beacon for Eddystone</a>.';
   }
   $('#scanButton').disabled = true;
 }
