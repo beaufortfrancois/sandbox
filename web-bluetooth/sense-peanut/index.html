@@ -6,22 +6,48 @@
     <title>Sense Peanut</title>
     <link rel="icon" sizes="192x192" href="../favicon.png">
     <meta http-equiv="origin-trial" content="AulMBS2+qNasSwpzVi5H8skPQCzLzO8iQJ+2aS1knicPtNqMJAd38nk983Cuir/YcG07xgWMnNa6oOOdXTnBKQcAAABleyJvcmlnaW4iOiAiaHR0cHM6Ly9iZWF1Zm9ydGZyYW5jb2lzLmdpdGh1Yi5pbzo0NDMiLCAiZmVhdHVyZSI6ICJXZWJCbHVldG9vdGgiLCAiZXhwaXJ5IjogMTQ3NDAzOTkxMn0=">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="https://code.getmdl.io/1.2.0/material.blue-indigo.min.css" />
+    <script defer src="https://code.getmdl.io/1.2.0/material.min.js"></script>
+    <style>
+      #dashboard { padding: 12px }
+      #chart { padding: 24px; padding-bottom: 0; }
+      #resetStats { float: right; }
+      #console {
+        height: 100px;
+        overflow-y: overlay;
+        font-family: "DejaVu Sans Mono", "Everson Mono", FreeMono, Menlo, Terminal, monospace;
+        font-size: small;
+        background-color: #212121;
+        color: #AEEA00;
+        padding: 12px 4px;
+        margin: 0;
+        line-height: 16px;
+      }
+    </style>
   </head>
   <body>
-    <select id="colors">
-      <option value="blue">Blue Peanut</option>
-      <option value="green" selected>Green Peanut</option>
-    </select>
-    <button id="connect">Connect</button>
-    <button id="startNotifications" disabled>Start Notifications</button>
-    <button id="stopNotifications" disabled>Stop Notifications</button>
-    <button id="battery" disabled>Get Battery</button>
-    <button id="temperature" disabled>Get Temperature</button>
-    <button id="buzz" disabled>Buzz</button>
-    <pre></pre>
+    <div id="dashboard">
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="connectBluePeanut" data-color="blue">Connect my Blue Peanut</button>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="connectGreenPeanut" data-color="green">Connect my Green Peanut</button>
+
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="temperature" disabled>Get Temperature</button>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="battery" disabled>Get Battery</button>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="buzz" disabled>Buzz</button>
+
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="startNotifications" disabled>Start Notifications</button>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="stopNotifications" disabled>Stop Notifications</button>
+      <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored" id="resetStats">
+        <i class="material-icons">delete_forever</i>
+      </button>
+    </div>
+
+    <div id="console"></div>
+
+    <div id="chart"></div>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="sense-peanut.js"></script>
     <script>
-
       var $ = document.querySelector.bind(document);
 
       const factoryKeys = {
@@ -29,9 +55,13 @@
         'green': new Uint8Array([-116, 74, 87, -45, -61, -88, -124, 15, -52, -117, 110, 31, 69, -44, -82, -21]),
       };
 
-      document.querySelector('#connect').addEventListener('click', function() {
-        const factoryKey = factoryKeys[$('#colors').options[$('#colors').options.selectedIndex].value];
-        log('Requesting device...');
+      document.querySelector('#connectBluePeanut').addEventListener('click', onConnectButtonClick);
+      document.querySelector('#connectGreenPeanut').addEventListener('click', onConnectButtonClick);
+
+      function onConnectButtonClick(event) {
+        let color = event.target.dataset.color;
+        const factoryKey = factoryKeys[color];
+        log('Requesting ' + color + ' peanut...');
         peanut.connect()
         .then(_ => { log('Connected to ' + peanut.device.name); })
         .then(_ => peanut.getInitData())
@@ -50,7 +80,7 @@
           document.querySelector('#buzz').disabled = false;
          })
         .catch(e => { log('Error: ' + e); });
-      });
+      }
 
       document.querySelector('#startNotifications').addEventListener('click', function() {
         log('Starting notifications...');
@@ -93,15 +123,76 @@
         .catch(e => { log('Error: ' + e); });
       });
 
+      document.querySelector('#resetStats').addEventListener('click', function() {
+        localStorage.clear();
+        updateChart();
+      });
+
       function handleNotifications(data) {
-        let timeStamp = new Date(data.timeStamp).toLocaleString();
-        delete(data.timeStamp);
+        if (data.temperatureCelsius) {
+          //TODO: Don't use localStorage.
+          localStorage.setItem(data.timeStampMs, data.temperatureCelsius);
+          updateChart(data.timeStampMs, data.temperatureCelsius);
+        }
+        let timeStamp = new Date(data.timeStampMs).toLocaleString();
+        delete(data.timeStampMs);
         log(timeStamp + ' ' + JSON.stringify(data));
       }
 
       function log(text) {
-        document.querySelector('pre').innerHTML += text + '<br/>';
+        document.querySelector('#console').innerHTML += text + '<br/>';
+        document.querySelector('#console').scrollTop += 100;
       }
+
+      /* Charts stuff */
+
+      google.charts.load('current', {packages: ['corechart', 'line']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      var chart, data, options;
+
+      function drawChart() {
+        chart = new google.charts.Line($('#chart'));
+
+        data = new google.visualization.DataTable();
+        data.addColumn('datetime', 'Time');
+        data.addColumn('number', 'Temperature');
+        for ( var i = 0, len = localStorage.length; i < len; ++i ) {
+          let dateTime = new Date(parseInt(localStorage.key(i)));
+          let temperature = parseFloat(localStorage.getItem(localStorage.key(i)));
+          data.addRows([ [dateTime, temperature] ]);
+        }
+
+        options = {
+          chart: {
+            title: 'Peanut temperature',
+            subtitle: 'in Celsius',
+          },
+          hAxis: {
+            title: ' '
+          },
+          legend: {
+            position: 'none'
+          },
+          width: window.innerWidth - 48,
+          height: 500
+        };
+
+        if (localStorage.length) {
+          chart.draw(data, google.charts.Line.convertOptions(options));
+        }
+      }
+
+      function updateChart(timeStampMs, temperatureCelsius) {
+        data.addRows([ [new Date(timeStampMs), temperatureCelsius] ]);
+        chart.draw(data, options);
+      }
+
+      window.onresize = function() {
+        options.width = window.innerWidth - 48;
+        chart.draw(data, options);
+      }
+
 
     </script>
   </body>

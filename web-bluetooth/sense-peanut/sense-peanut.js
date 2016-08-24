@@ -169,7 +169,7 @@ class Peanut {
 
   _parseNotifications(value) {
     let data = {
-      timeStamp: this._parseTimestamp(value)
+      timeStampMs: this._parseTimestamp(value)
     };
     switch (value.getUint8(0)) {
       case 1:
@@ -194,7 +194,7 @@ class Peanut {
   _parseTimestamp(value) {
     let timeStampSeconds = value.getUint8(2) | value.getUint8(3) << 8 | value.getUint8(4) << 16 | value.getUint8(5) << 24;
     let counterId = value.getUint8(1);
-    return new Date(timeStampSeconds * 1000 + counterId);
+    return timeStampSeconds * 1000 + counterId;
   }
 
   _parseBatteryData(value) {
@@ -210,7 +210,7 @@ class Peanut {
   }
 
   _parseTemperatureData(value) {
-    return (((value.getUint8(6) | (value.getUint8(7) << 8)) / 100) - 273.15).toFixed(2) + 'C';
+    return parseFloat((((value.getUint8(6) | (value.getUint8(7) << 8)) / 100) - 273.15).toFixed(2));
   }
 
   _parseTouchData(value) {
