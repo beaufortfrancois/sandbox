@@ -171,6 +171,41 @@ function isFormValid() {
 $('#updateButton').addEventListener('click', function() {
   $('#resetButton').disabled = true;
   $('#updateButton').disabled = true;
+  isPhysicalWebUrlValid($('#uri').value)
+  .then(_ => { onUpdateButtonClick(); })
+  .catch(error => {
+    $('#errorMessageWarningDialog').textContent = error;
+    $('#warningDialog').showModal();
+  });
+});
+
+$('#continueWarningDialogButton').addEventListener('click', function() {
+  onUpdateButtonClick();
+  $('#warningDialog').close();
+});
+
+$('#cancelWarningDialogButton').addEventListener('click', function() {
+  $('#resetButton').disabled = false;
+  $('#updateButton').disabled = false;
+  $('#warningDialog').close();
+});
+
+function isPhysicalWebUrlValid(url) {
+  let pwsUrl = 'https://physicalweb.googleapis.com/v1alpha1/urls:resolve?key=AIzaSyCF2edaCQxYmDY7piMQFzQJhmZXppjo4uQ';
+  let body = JSON.stringify({ urls: [{ url: url }] });
+  return fetch(pwsUrl, { mode: 'cors', method: 'POST', body: body })
+  .then(response => response.json())
+  .then(data => {
+    if (data.error) {
+      return Promise.reject(data.error.message);
+    }
+    if (data.unresolvedResults) {
+      return Promise.reject(data.unresolvedResults[0].rejectionReason.description);
+    }
+  });
+}
+
+function onUpdateButtonClick() {
   if (isBeaconLocked) {
     /* Beacon is locked */
     $('#unlockPassword').parentElement.MaterialTextfield.change('');
@@ -199,7 +234,7 @@ $('#updateButton').addEventListener('click', function() {
       .then(updateBeacon);
     }
   }
-});
+}
 
 $('#resetButton').addEventListener('click', function() {
   $('#resetButton').disabled = true;
@@ -829,7 +864,6 @@ function setValue(inputId, value) {
       if (event.target.classList.contains('edited')) {
         updateUriLabel(false /* not shortened */);
       }
-      $('#uriLabel').textContent = event.target.value.startsWith('http://') ? 'URL (Note: final URL should be HTTPS)' : 'URL';
     }
   };
   element.defaultValue = value;

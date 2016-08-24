@@ -76,12 +76,12 @@
       .edited, .edited span.mdl-checkbox__box-outline { border-color: #448AFF !important; }
       .edited.mdl-checkbox.is-checked span.mdl-checkbox__tick-outline { background-color: #448AFF !important; }
       .shortened { color: #4CAF50 !important; font-weight: bold; text-transform: uppercase; }
-      #httpsNote { font-style: italic; color: #757575; }
       .byteNote { font-size: small; padding-bottom: 0; }
       #footer { left: 0; right: 0; position: absolute; bottom: 0; text-align: center; line-height: 48px; color: #9e9e9e; }
       #footer a { color: #9e9e9e; }
       .mdl-dialog { width: 320px; }
       #eddystoneLockStateDialog:after { content: "BETA"; position: absolute; width: 80px; height: 25px; background: #FF5722; top: 7px; left: -20px; text-align: center; font-weight: bold; color: #fff; line-height: 27px; transform: rotate(-45deg); }
+      #errorMessageWarningDialog { font-style: italic; font-size: small; }
     </style>
     <style>
       .getmdl-select .mdl-icon-toggle__label{float:right;margin-top:-30px;color:rgba(0,0,0,.12)}.getmdl-select.is-focused i.mdl-icon-toggle__label{color:rgb(68,138,255)}.getmdl-select .mdl-menu__container{width:100% !important}.getmdl-select .mdl-menu__container .mdl-menu{width:100%}
@@ -171,8 +171,6 @@
       <button type="button" id="resetButton" class="mdl-button mdl-js-button">Reset</button>
       <button type="button" id="updateButton" disabled class="mdl-button mdl-js-button mdl-button--accent">Update</button>
 
-      <div id="httpsNote" class="note">Note: Modern browsers such as Chrome will only<br/>surface HTTPS URLs via the Physical Web.</div>
-
     </form>
 
     <dialog id="unlockDialog" class="mdl-dialog">
@@ -226,6 +224,17 @@
       <div class="mdl-dialog__actions">
         <button id="confirmEddystoneLockStateButton" type="button" class="mdl-button mdl-button--accent">Lock</button>
         <button id="cancelEddystoneLockStateButton" type="button" class="mdl-button">Cancel</button>
+      </div>
+    </dialog>
+
+    <dialog id="warningDialog" class="mdl-dialog">
+      <div class="mdl-dialog__content">
+        <div class="mdl-textfield">The Physical Web Service fails to validate this URL:</div>
+        <div class="mdl-textfield" id="errorMessageWarningDialog"></div>
+      </div>
+      <div class="mdl-dialog__actions">
+        <button id="cancelWarningDialogButton" type="button" class="mdl-button mdl-button--accent">Cancel</button>
+        <button id="continueWarningDialogButton" type="button" class="mdl-button">Continue</button>
       </div>
     </dialog>
 
