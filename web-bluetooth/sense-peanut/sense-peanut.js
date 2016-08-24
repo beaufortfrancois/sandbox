@@ -39,8 +39,7 @@ class Peanut {
         service.getCharacteristic('a2cb1256-6ba8-48de-98b6-d5989f26a203')
       ]))
       .then(characteristics => {
-        this._commandCharacteristic = characteristics[0];
-        this._ackCharacteristic = characteristics[1];
+        [this._commandCharacteristic, this._ackCharacteristic] = characteristics;
       });
     });
   }
