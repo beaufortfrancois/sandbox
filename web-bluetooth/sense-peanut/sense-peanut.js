@@ -149,7 +149,7 @@ class Peanut {
     .then(_ => {
       this._ackCharacteristic.oncharacteristicvaluechanged = event => {
         this._ackAndParseNotifications(event.target.value)
-        .then(data => listener(data));
+        .then(data => listener(data, this));
       };
     });
   }
@@ -230,5 +230,3 @@ class Peanut {
     console.log('Device is disconnected.');
   }
 }
-
-var peanut = new Peanut();

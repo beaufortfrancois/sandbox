@@ -12,7 +12,6 @@
     <style>
       #dashboard { padding: 12px }
       #chart { padding: 24px; padding-bottom: 0; }
-      #resetStats { float: right; }
       #console {
         height: 100px;
         overflow-y: overlay;
@@ -28,8 +27,10 @@
   </head>
   <body>
     <div id="dashboard">
-      <button class="mdl-button mdl-js-button mdl-button--primary" id="connectBluePeanut" data-color="blue">Connect my Blue Peanut</button>
-      <button class="mdl-button mdl-js-button mdl-button--primary" id="connectGreenPeanut" data-color="green">Connect my Green Peanut</button>
+      <div style="float: right">
+        <button class="mdl-button mdl-js-button" id="connectBluePeanut" data-color="blue">Connect my Blue Peanut</button>
+        <button class="mdl-button mdl-js-button" id="connectGreenPeanut" data-color="green">Connect my Green Peanut</button>
+      </div>
 
       <button class="mdl-button mdl-js-button mdl-button--primary" id="temperature" disabled>Get Temperature</button>
       <button class="mdl-button mdl-js-button mdl-button--primary" id="battery" disabled>Get Battery</button>
@@ -37,9 +38,6 @@
 
       <button class="mdl-button mdl-js-button mdl-button--primary" id="startNotifications" disabled>Start Notifications</button>
       <button class="mdl-button mdl-js-button mdl-button--primary" id="stopNotifications" disabled>Stop Notifications</button>
-      <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored" id="resetStats">
-        <i class="material-icons">delete_forever</i>
-      </button>
     </div>
 
     <div id="console"></div>
@@ -50,20 +48,23 @@
     <script>
       var $ = document.querySelector.bind(document);
 
-      var peanutIds = {};
+      var bluePeanut = new Peanut();
+      var greenPeanut = new Peanut();
+      var activePeanut;
 
       const factoryKeys = {
         'blue': new Uint8Array([35, -68, -100, 75, -78, 107, 52, -113, 19, -78, -65, 53, 89, -48, -47, 44]),
         'green': new Uint8Array([-116, 74, 87, -45, -61, -88, -124, 15, -52, -117, 110, 31, 69, -44, -82, -21]),
       };
 
-      document.querySelector('#connectBluePeanut').addEventListener('click', onConnectButtonClick);
-      document.querySelector('#connectGreenPeanut').addEventListener('click', onConnectButtonClick);
+      $('#connectBluePeanut').addEventListener('click', onConnectButtonClick);
+      $('#connectGreenPeanut').addEventListener('click', onConnectButtonClick);
 
       function onConnectButtonClick(event) {
         let color = event.target.dataset.color;
         const factoryKey = factoryKeys[color];
         log('Requesting ' + color + ' peanut...');
+        let peanut = color === 'blue' ? bluePeanut : greenPeanut;
         peanut.connect()
         .then(_ => { log('Connected to ' + peanut.device.name); })
         .then(_ => peanut.getInitData())
@@ -75,19 +76,21 @@
         .then(_ => peanut.setTime())
         .then(_ => {
           log('Successfully authenticated!');
-          document.querySelector('#startNotifications').disabled = false;
-          document.querySelector('#stopNotifications').disabled = false;
-          document.querySelector('#battery').disabled = false;
-          document.querySelector('#temperature').disabled = false;
-          document.querySelector('#buzz').disabled = false;
-          peanutIds[color] = peanut.device.id;
+          $('#startNotifications').disabled = false;
+          $('#stopNotifications').disabled = false;
+          $('#battery').disabled = false;
+          $('#temperature').disabled = false;
+          $('#buzz').disabled = false;
+          $('#connectBluePeanut').classList.toggle('mdl-button--primary', color === 'blue');
+          $('#connectGreenPeanut').classList.toggle('mdl-button--primary', color !== 'blue');
+          activePeanut = peanut;
          })
         .catch(e => { log('Error: ' + e); });
       }
 
       document.querySelector('#startNotifications').addEventListener('click', function() {
         log('Starting notifications...');
-        peanut.startNotifications(handleNotifications)
+        activePeanut.startNotifications(handleNotifications)
         .then(_ => {
           log('Ready to receive notifications.');
         })
@@ -96,7 +99,7 @@
 
       document.querySelector('#stopNotifications').addEventListener('click', function() {
         log('Stopping notifications...');
-        peanut.stopNotifications()
+        activePeanut.stopNotifications()
         .then(_ => {
           log('Notifications are stopped.');
         })
@@ -105,33 +108,28 @@
 
       document.querySelector('#battery').addEventListener('click', function() {
         log('Getting battery...');
-        peanut.getBattery()
-        .then(data => handleNotifications(data))
+        activePeanut.getBattery()
+        .then(data => handleNotifications(data, activePeanut))
         .catch(e => { log('Error: ' + e); });
       });
 
       document.querySelector('#temperature').addEventListener('click', function() {
         log('Getting temperature...');
-        peanut.getTemperature()
-        .then(data => handleNotifications(data))
+        activePeanut.getTemperature()
+        .then(data => handleNotifications(data, activePeanut))
         .catch(e => { log('Error: ' + e); });
       });
 
       document.querySelector('#buzz').addEventListener('click', function() {
         log('Requesting buzz...');
-        peanut.buzz()
+        activePeanut.buzz()
         .then(_ => {
           log('Buzz!');
         })
         .catch(e => { log('Error: ' + e); });
       });
 
-      document.querySelector('#resetStats').addEventListener('click', function() {
-        localStorage.clear();
-        updateChart();
-      });
-
-      function handleNotifications(data) {
+      function handleNotifications(data, peanut) {
         if (data.temperatureCelsius) {
           let item = {
             deviceId: peanut.device.id,
@@ -139,7 +137,7 @@
           }
           //TODO: Don't use localStorage.
           localStorage.setItem(data.timeStampMs, JSON.stringify(item));
-          updateChart(data.timeStampMs, data.temperatureCelsius);
+          updateChart(peanut, data.timeStampMs, data.temperatureCelsius);
         }
         let timeStamp = new Date(data.timeStampMs).toLocaleString();
         delete(data.timeStampMs);
@@ -163,8 +161,8 @@
 
         data = new google.visualization.DataTable();
         data.addColumn('datetime', 'Time');
-        data.addColumn('number', 'Blue Peanut Temperature');
-        data.addColumn('number', 'Green Peanut Temperature');
+        data.addColumn('number', 'Blue Peanut');
+        data.addColumn('number', 'Green Peanut');
         for ( var i = 0, len = localStorage.length; i < len; ++i ) {
           let dateTime = new Date(parseInt(localStorage.key(i)));
           let item = JSON.parse(localStorage.getItem(localStorage.key(i)));
@@ -179,7 +177,7 @@
             console.log(item);
           }
           let temperature = parseFloat(item.temperatureCelsius);
-          if (item.deviceId === peanutIds['blue']) {
+          if (bluePeanut.device && item.deviceId === bluePeanut.device.id) {
             data.addRows([ [dateTime, temperature, undefined] ]);
           } else {
             data.addRows([ [dateTime, undefined, temperature] ]);
@@ -188,7 +186,7 @@
 
         options = {
           chart: {
-            title: 'Peanut temperature',
+            title: 'Peanuts temperature',
             subtitle: 'in Celsius',
           },
           hAxis: {
@@ -196,7 +194,7 @@
           },
           colors:['#283593', '#8BC34A'],
           legend: {
-            position: 'left'
+            position: 'none'
           },
           width: window.innerWidth - 48,
           height: 500
@@ -207,9 +205,9 @@
         }
       }
 
-      function updateChart(timeStampMs, temperature) {
+      function updateChart(peanut, timeStampMs, temperature) {
         let dateTime = new Date(timeStampMs);
-        if (peanut.device.id === peanutIds['blue']) {
+        if (bluePeanut.device && peanut.device.id === bluePeanut.device.id) {
           data.addRows([ [dateTime, temperature, undefined] ]);
         } else {
           data.addRows([ [dateTime, undefined, temperature] ]);
