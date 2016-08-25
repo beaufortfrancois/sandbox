@@ -50,6 +50,8 @@
     <script>
       var $ = document.querySelector.bind(document);
 
+      var peanutIds = {};
+
       const factoryKeys = {
         'blue': new Uint8Array([35, -68, -100, 75, -78, 107, 52, -113, 19, -78, -65, 53, 89, -48, -47, 44]),
         'green': new Uint8Array([-116, 74, 87, -45, -61, -88, -124, 15, -52, -117, 110, 31, 69, -44, -82, -21]),
@@ -78,6 +80,7 @@
           document.querySelector('#battery').disabled = false;
           document.querySelector('#temperature').disabled = false;
           document.querySelector('#buzz').disabled = false;
+          peanutIds[color] = peanut.device.id;
          })
         .catch(e => { log('Error: ' + e); });
       }
@@ -130,8 +133,12 @@
 
       function handleNotifications(data) {
         if (data.temperatureCelsius) {
+          let item = {
+            deviceId: peanut.device.id,
+            temperatureCelsius: data.temperatureCelsius,
+          }
           //TODO: Don't use localStorage.
-          localStorage.setItem(data.timeStampMs, data.temperatureCelsius);
+          localStorage.setItem(data.timeStampMs, JSON.stringify(item));
           updateChart(data.timeStampMs, data.temperatureCelsius);
         }
         let timeStamp = new Date(data.timeStampMs).toLocaleString();
@@ -156,11 +163,27 @@
 
         data = new google.visualization.DataTable();
         data.addColumn('datetime', 'Time');
-        data.addColumn('number', 'Temperature');
+        data.addColumn('number', 'Blue Peanut Temperature');
+        data.addColumn('number', 'Green Peanut Temperature');
         for ( var i = 0, len = localStorage.length; i < len; ++i ) {
           let dateTime = new Date(parseInt(localStorage.key(i)));
-          let temperature = parseFloat(localStorage.getItem(localStorage.key(i)));
-          data.addRows([ [dateTime, temperature] ]);
+          let item = JSON.parse(localStorage.getItem(localStorage.key(i)));
+          // TODO: Remove when importation doesn't matter...
+          if (typeof(item) === 'number') {
+            let newItem = {
+              deviceId: 'default',
+              temperatureCelsius: item
+            }
+            localStorage.setItem(localStorage.key(i), JSON.stringify(newItem));
+            item = newItem;
+            console.log(item);
+          }
+          let temperature = parseFloat(item.temperatureCelsius);
+          if (item.deviceId === peanutIds['blue']) {
+            data.addRows([ [dateTime, temperature, undefined] ]);
+          } else {
+            data.addRows([ [dateTime, undefined, temperature] ]);
+          }
         }
 
         options = {
@@ -171,8 +194,9 @@
           hAxis: {
             title: ' '
           },
+          colors:['#283593', '#8BC34A'],
           legend: {
-            position: 'none'
+            position: 'left'
           },
           width: window.innerWidth - 48,
           height: 500
@@ -183,8 +207,13 @@
         }
       }
 
-      function updateChart(timeStampMs, temperatureCelsius) {
-        data.addRows([ [new Date(timeStampMs), temperatureCelsius] ]);
+      function updateChart(timeStampMs, temperature) {
+        let dateTime = new Date(timeStampMs);
+        if (peanut.device.id === peanutIds['blue']) {
+          data.addRows([ [dateTime, temperature, undefined] ]);
+        } else {
+          data.addRows([ [dateTime, undefined, temperature] ]);
+        }
         chart.draw(data, options);
       }
 
