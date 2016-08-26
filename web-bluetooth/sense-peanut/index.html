@@ -160,64 +160,75 @@
 
       /* Charts stuff */
 
-      google.charts.load('current', {packages: ['corechart', 'line']});
+      google.charts.load('current', {packages: ['corechart']});
       google.charts.setOnLoadCallback(drawChart);
 
-      var chart, data, options;
+      var chart, bluePeanutData, greenPeanutData, peanutsData, options;
 
       function drawChart() {
-        chart = new google.charts.Line($('#chart'));
+        chart = new google.visualization.LineChart($('#chart'));
 
-        data = new google.visualization.DataTable();
-        data.addColumn('datetime', 'Time');
-        data.addColumn('number', 'Blue Peanut');
-        data.addColumn('number', 'Green Peanut');
+        bluePeanutData = new google.visualization.DataTable();
+        bluePeanutData.addColumn('datetime', 'Time');
+        bluePeanutData.addColumn('number', 'Blue Peanut');
+
+        greenPeanutData = new google.visualization.DataTable();
+        greenPeanutData.addColumn('datetime', 'Time');
+        greenPeanutData.addColumn('number', 'Green Peanut');
+
         for (var i = 0, len = localStorage.length; i < len; i++) {
           let dateTime = new Date(parseInt(localStorage.key(i)));
           let item = JSON.parse(localStorage.getItem(localStorage.key(i)));
           let temperature = parseFloat(item.temperatureCelsius);
           if (item.peanutColor === 'blue') {
-            data.addRows([ [dateTime, temperature, undefined] ]);
+            bluePeanutData.addRows([ [dateTime, temperature] ]);
           } else {
-            data.addRows([ [dateTime, undefined, temperature] ]);
+            greenPeanutData.addRows([ [dateTime, temperature] ]);
           }
         }
 
         options = {
-          chart: {
-            title: 'Peanuts temperature',
-            subtitle: 'in Celsius',
+          interpolateNulls: true,
+          fontName: 'Roboto',
+          curveType: 'function',
+          colors:['#283593', '#8BC34A'],
+          width: window.innerWidth - 48,
+          height: window.innerHeight - 220,
+          lineWidth: 3,
+          vAxis: {
+            format: '#.## °C'
           },
           hAxis: {
-            title: ' '
-          },
-          colors:['#283593', '#8BC34A'],
-          legend: {
-            position: 'none'
-          },
-          width: window.innerWidth - 48,
-          height: 500
+            gridlines: {
+              color: '#fff'
+            }
+          }
         };
 
         if (localStorage.length) {
-          chart.draw(data, google.charts.Line.convertOptions(options));
+          peanutsData = google.visualization.data.join(bluePeanutData, greenPeanutData, 'full', [[0, 0]], [1], [1]);
+
+          chart.draw(peanutsData, options);
         }
       }
 
       function updateChart(peanut, timeStampMs, temperature) {
         let dateTime = new Date(timeStampMs);
         if (bluePeanut.device && peanut.device.id === bluePeanut.device.id) {
-          data.addRows([ [dateTime, temperature, undefined] ]);
+          bluePeanutData.addRows([ [dateTime, temperature] ]);
+          bluePeanutData.sort([{'column': 0}]);
         } else {
-          data.addRows([ [dateTime, undefined, temperature] ]);
+          greenPeanutData.addRows([ [dateTime, temperature] ]);
+          greenPeanutData.sort([{'column': 0}]);
         }
-        data.sort([{'column': 0}]);
-        chart.draw(data, options);
+        peanutsData = google.visualization.data.join(bluePeanutData, greenPeanutData, 'full', [[0, 0]], [1], [1]);
+        chart.draw(peanutsData, options);
       }
 
       window.onresize = function() {
         options.width = window.innerWidth - 48;
-        chart.draw(data, options);
+        options.height = window.innerHeight - 220;
+        chart.draw(peanutsData, options);
       }
 
 
