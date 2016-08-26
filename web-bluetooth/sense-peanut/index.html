@@ -28,8 +28,8 @@
   <body>
     <div id="dashboard">
       <div style="float: right">
-        <button class="mdl-button mdl-js-button" id="connectBluePeanut" data-color="blue">Connect my Blue Peanut</button>
-        <button class="mdl-button mdl-js-button" id="connectGreenPeanut" data-color="green">Connect my Green Peanut</button>
+        <button class="mdl-button mdl-js-button" id="connectBluePeanut" data-color="blue">Blue Peanut (0C:11:08)</button>
+        <button class="mdl-button mdl-js-button" id="connectGreenPeanut" data-color="green">Green Peanut (06:13:18)</button>
       </div>
 
       <button class="mdl-button mdl-js-button mdl-button--primary" id="temperature" disabled>Get Temperature</button>
@@ -132,7 +132,7 @@
       function handleNotifications(data, peanut) {
         if (data.temperatureCelsius) {
           let item = {
-            deviceId: peanut.device.id,
+            peanutColor: getPeanutColor(peanut.device.id),
             temperatureCelsius: data.temperatureCelsius,
           }
           //TODO: Don't use localStorage.
@@ -141,7 +141,16 @@
         }
         let timeStamp = new Date(data.timeStampMs).toLocaleString();
         delete(data.timeStampMs);
+        data.peanutColor = getPeanutColor(peanut.device.id);
         log(timeStamp + ' ' + JSON.stringify(data));
+      }
+
+      function getPeanutColor(deviceId) {
+        if (bluePeanut.device && deviceId === bluePeanut.device.id) {
+          return 'blue';
+        } else {
+          return 'green';
+        }
       }
 
       function log(text) {
@@ -163,21 +172,11 @@
         data.addColumn('datetime', 'Time');
         data.addColumn('number', 'Blue Peanut');
         data.addColumn('number', 'Green Peanut');
-        for ( var i = 0, len = localStorage.length; i < len; ++i ) {
+        for (var i = 0, len = localStorage.length; i < len; i++) {
           let dateTime = new Date(parseInt(localStorage.key(i)));
           let item = JSON.parse(localStorage.getItem(localStorage.key(i)));
-          // TODO: Remove when importation doesn't matter...
-          if (typeof(item) === 'number') {
-            let newItem = {
-              deviceId: 'default',
-              temperatureCelsius: item
-            }
-            localStorage.setItem(localStorage.key(i), JSON.stringify(newItem));
-            item = newItem;
-            console.log(item);
-          }
           let temperature = parseFloat(item.temperatureCelsius);
-          if (bluePeanut.device && item.deviceId === bluePeanut.device.id) {
+          if (item.peanutColor === 'blue') {
             data.addRows([ [dateTime, temperature, undefined] ]);
           } else {
             data.addRows([ [dateTime, undefined, temperature] ]);
@@ -212,6 +211,7 @@
         } else {
           data.addRows([ [dateTime, undefined, temperature] ]);
         }
+        data.sort([{'column': 0}]);
         chart.draw(data, options);
       }
 
