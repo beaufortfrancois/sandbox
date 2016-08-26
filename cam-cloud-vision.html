@@ -1,0 +1,33 @@
+<html>
+<body>
+  <video autoplay></video>
+  <pre></pre>
+  <script>
+    document.querySelector('body').addEventListener('click', event => {
+      navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        let video = document.querySelector('video');
+        video.srcObject = stream;
+        setInterval(_ => {
+          let canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext('2d').drawImage(video, 0, 0);
+          let b64data = canvas.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, '');
+          let body = JSON.stringify({ 
+            requests: [{ image: {content: b64data}, features: [{'type': 'FACE_DETECTION'}] }]
+          });
+          let cloudVisionApiUrl = 'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyCaB6hXqAGL98qjW8TlSqiY0mm6MjRoX2g';
+          return fetch(cloudVisionApiUrl, { mode: 'cors', method: 'POST', body: body })
+          .then(response => response.json())
+          .then(data => {
+            document.querySelector('pre').innerHTML = Object.keys(data.responses[0].faceAnnotations[0])
+              .filter(key => { return key.endsWith('Likelihood') })
+              .map(key => { return key + ': ' + data.responses[0].faceAnnotations[0][key] + '<br/>'});
+          });
+        }, 1e3);
+      });
+    });
+  </script>
+</body>
+</html>
