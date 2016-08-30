@@ -1,3 +1,5 @@
+/* Check out https://www.npmjs.com/package/web-bluetooth-utils as well */
+
 /* BluetoothRemoteGATTCharacteristic helpers */
 
 BluetoothRemoteGATTCharacteristic.prototype.getFloat32Value = function(byteOffset, littleEndian = true) {
@@ -20,8 +22,8 @@ BluetoothRemoteGATTCharacteristic.prototype.getInt8Value = function(byteOffset) 
   return this.value.getInt8(byteOffset);
 };
 
-BluetoothRemoteGATTCharacteristic.prototype.getStringValue = function(utfLabel = 'utf8') {
-  var decoder = new TextDecoder(utfLabel);
+BluetoothRemoteGATTCharacteristic.prototype.getStringValue = function(encoding = 'utf8') {
+  var decoder = new TextDecoder(encoding);
   return decoder.decode(this.value);
 };
 
