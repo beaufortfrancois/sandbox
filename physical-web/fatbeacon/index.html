@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>FatBeacon Playground</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; }
+    iframe { float: right; width: 50%; height: 100%; background-color: #ECEFF1; border: 0; }
+    div { width: calc(50% - 48px); padding: 24px }
+    pre { overflow-x: auto; }
+  </style>
+</head>
+<body style="margin: 0">
+
+<iframe sandbox></iframe>
+<div>
+  <button>Read FatBeacon Web Page</button>
+  <pre></pre>
+</div>
+
+<script>
+
+const PHYSICAL_WEB_BEACON_SERVICE_UUID = '0000feaa-0000-1000-8000-00805f9b34fb';
+const FATBEACON_SERVICE_UUID           = 'ae5946d4-e587-4ba8-b6a5-a97cca6affd3';
+const FATBEACON_CHARACTERISTIC_UUID    = 'd1a517f0-2499-46ca-9ccc-809bc1c966fa';
+
+let fatBeaconValue;
+let byteLength;
+let lastHtml;
+
+function onButtonClick() {
+  log('Requesting FatBeacon device...');
+  navigator.bluetooth.requestDevice({
+    filters: [{services: [PHYSICAL_WEB_BEACON_SERVICE_UUID]}],
+    optionalServices: [FATBEACON_SERVICE_UUID]})
+  .then(device => {
+    log('Connecting to GATT Server...');
+    device.addEventListener('gattserverdisconnected', onGattServerDisconnected);
+    return device.gatt.connect();
+  })
+  .then(server => {
+    log('Getting FatBeacon Service...');
+    return server.getPrimaryService(FATBEACON_SERVICE_UUID);
+  })
+  .then(service => {
+    log('Getting FatBeacon Characteristic...');
+    return service.getCharacteristic(FATBEACON_CHARACTERISTIC_UUID);
+  })
+  .then(characteristic => {
+    log('Reading FatBeacon Web Page...');
+    characteristic.addEventListener('characteristicvaluechanged',
+        handleFatBeaconCharacteristicChanged);
+    fatBeaconValue = '';
+    byteLength = 0;
+    return characteristic.readValue();
+  })
+  .catch(error => {
+    log(error);
+  });
+}
+
+function handleFatBeaconCharacteristicChanged(event) {
+  let decoder = new TextDecoder();
+  let html = decoder.decode(event.target.value);
+
+  if (html) {
+    byteLength += event.target.value.byteLength;
+    fatBeaconValue += decoder.decode(event.target.value);
+    log('Reading FatBeacon Web Page...');
+    return event.target.readValue()
+      .catch(error => {
+        log(error);
+        success(); /* FIXME: Remove when bug is fixed */
+      });
+  }
+
+  success();
+}
+
+function success() {
+  log('> FatBeacon Web Page size is ' + byteLength + ' bytes.');
+  document.querySelector('iframe').srcdoc = fatBeaconValue;
+}
+
+function onGattServerDisconnected(event) {
+  log('> FatBeacon device is disconnected');
+}
+
+function log(text) {
+  document.querySelector('pre').textContent += text + '\r\n';
+}
+
+document.querySelector('button').addEventListener('click', onButtonClick);
+
+</script>
+
+</body>
+</html>
