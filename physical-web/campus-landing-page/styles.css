@@ -22,6 +22,10 @@ html, body {
 main > .mdl-layout__tab-panel {
   padding: 48px 8px;
 }
+.mdl-layout__header-row {
+  justify-content: center;
+  padding: 0 16px;
+}
 .mdl-card {
   height: auto;
   display: flex;
@@ -69,4 +73,12 @@ section > header{
   display: flex;
   align-items: center;
   justify-content: center;
+  background-position: 50% 50%;
+  background-size: cover;
+}
+.hungry {
+  background-image: url(images/hungry.png);
+}
+.lost {
+  background-image: url(images/lost.png);
 }
