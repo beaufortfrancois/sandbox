@@ -49,13 +49,18 @@ function onButtonClick() {
     log('Reading FatBeacon Web Page...');
     characteristic.addEventListener('characteristicvaluechanged',
         handleFatBeaconCharacteristicChanged);
-    fatBeaconValue = '';
-    byteLength = 0;
+    reset();
     return characteristic.readValue();
   })
   .catch(error => {
     log(error);
   });
+}
+
+function reset() {
+  fatBeaconValue = '';
+  byteLength = 0;
+  document.querySelector('iframe').srcdoc = fatBeaconValue;
 }
 
 function handleFatBeaconCharacteristicChanged(event) {
