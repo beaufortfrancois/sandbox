@@ -9,12 +9,8 @@ function GattInterface(brain) {
 
 	var self = this;
 	var modalIsCanceled = false;
-	var VENDING_SERVICE_UUID = '0000feaa-0000-1000-8000-00805f9b34fb';
-	var DISPENSE_ITEM_CHARACTERISTIC_UUID = '0000feaa-0000-2000-8000-00805f9b34fb';
-	var vendingMachineBluetoothDevice = null;
-	var vendingMachineGattServer = null;
-	var vendingMachineDispenseItemGattCharacteristic = null;
-	var VENDING_MACHINE_BLE_NAME = 'CANDY BOT 9000';
+	var vendingMachine = document.querySelector('platinum-bluetooth-device');
+	var dispenseItem = document.querySelector('platinum-bluetooth-characteristic');
 
 	self.init = function() {
 		// Make sure web bluetooth is available
@@ -29,11 +25,7 @@ function GattInterface(brain) {
 
 	// Check to see whether we can use web bluetooth
 	self.checkIfWebBluetoothIsEnabled = function() {
-		// Check if it listed in the navigator object
-		if (navigator.bluetooth == undefined) {
-			return false;
-		} 
-		return true;
+		return vendingMachine.supported;
 	}
 
 	// Setup the modal that will ask the user if they want to connect
@@ -67,15 +59,10 @@ function GattInterface(brain) {
 	self.findVendingMachine = function() {
 		console.log('findVendingMachine')
 
-		// Look for a device with the given name and services
-		navigator.bluetooth.requestDevice({
-		  //filters: [{services: [VENDING_SERVICE_UUID]}]
-		  filters: [{name: VENDING_MACHINE_BLE_NAME}],
-		  optionalServices: [VENDING_SERVICE_UUID]
-		  }).then(function(device) {
-		  	// Save a reference to the device
+		// Look for the vending machine
+		vendingMachine.request()
+		  .then(function(device) {
 		  	console.log('found device:', device);
-		  	vendingMachineBluetoothDevice = device;
 		  	// Tell the vending machine manager about it
 		  	brain.getVendingManager().onVendingMachineFound();
 		  });
@@ -83,7 +70,7 @@ function GattInterface(brain) {
 
 	// Determine if the vending machine has yet been found
 	self.checkIfHaveFoundVendingMachine = function() {
-		if (vendingMachineBluetoothDevice != null) {
+		if (vendingMachine.device != null) {
 			return true;
 		}
 		return false;
@@ -97,49 +84,25 @@ function GattInterface(brain) {
 		console.log('dispenseItem');
 
 		// If we haven't found the vending machine
-		if (vendingMachineBluetoothDevice == null) {
+		if (self.checkIfHaveFoundVendingMachine() === false) {
 			// Try to find it again and exit here
 			self.findVendingMachine();
 			return;
 		}
 
-		// Connect to the vending machine gatt server
-		vendingMachineBluetoothDevice.connectGATT().then(function(bluetoothGattRemoteServer) {
-			if (bluetoothGattRemoteServer != null) {
-				console.log('found gatt server:', bluetoothGattRemoteServer);
-				// Save a reference to the gatt server
-				vendingMachineGattServer = bluetoothGattRemoteServer;
-				return vendingMachineGattServer.getPrimaryService(VENDING_SERVICE_UUID);
-			} else {
-				console.log('error:  could not connect to gatt server');
-			}
-		}).then(function(bluetoothGattService) {
-			if (bluetoothGattService != null) {
-				console.log('connected to gatt service:', bluetoothGattService);
-				return Promise.all([bluetoothGattService.getCharacteristic(DISPENSE_ITEM_CHARACTERISTIC_UUID)]);
-			} else {
-				console.log('error:  could not connect to gatt service');
-			}
-		}).then(function(bluetoothGattCharacteristics) {
-			if (bluetoothGattCharacteristics != null) {
-				if (bluetoothGattCharacteristics.length > 0) {
-					// Get the dispense candy characteristic
-					vendingMachineDispenseItemGattCharacteristic = bluetoothGattCharacteristics[0];
-					console.log('found gatt characteristic:', vendingMachineDispenseItemGattCharacteristic);
-					// Write the dispense candy value to the characteristic
-					var newValue = 1;
-					var valueArray = new Uint8Array(1);
-					valueArray[0] = newValue;
-					vendingMachineDispenseItemGattCharacteristic.writeValue(valueArray).then(function() {
-						console.log('dispense item charateristic write:', newValue, 'success!');
-						// Disconnect since we are done
-						// This allows other client to connect to the gatt server
-						vendingMachineGattServer.disconnect();
-					});
-				}
-			} else {
-				console.log('error:  could not find gatt characteristics');
-			}
+		// Write the dispense candy value to the characteristic
+		var newValue = 1;
+		dispenseItem.write(new Uint8Array([newValue]))
+		.then(function() {
+			console.log('dispense item charateristic write:', newValue, 'success!');
+		})
+		.catch(function(error) {
+			console.log(error);
+		})
+		.then(function() {
+			// Disconnect since we are done
+			// This allows other client to connect to the gatt server
+			vendingMachine.disconnect();
 		});
 	};
 
