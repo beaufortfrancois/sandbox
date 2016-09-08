@@ -666,11 +666,13 @@ function connectBeacon() {
   }
   ga('send', 'event', 'ConnectBeacon', 'background');
   return beacon.gatt.connect()
-  .then(_ => {
-    if (beacon.uuids.includes(EDDYSTONE_URL_CONFIG_SERVICE_UUID)) {
+  .then(_ => beacon.gatt.getPrimaryServices())
+  .then(services => {
+    let serviceUuids = services.map(service => service.uuid);
+    if (serviceUuids.includes(EDDYSTONE_URL_CONFIG_SERVICE_UUID)) {
       isEddystoneUrlBeacon = true;
       ga('send', 'event', 'ConnectBeaconOutcome', 'background', 'Eddystone-URL beacon');
-    } else if (beacon.uuids.includes(EDDYSTONE_CONFIG_SERVICE_UUID)) {
+    } else if (serviceUuids.includes(EDDYSTONE_CONFIG_SERVICE_UUID)) {
       isEddystoneUrlBeacon = false;
       ga('send', 'event', 'ConnectBeaconOutcome', 'background', 'Eddystone GATT beacon');
     } else {
