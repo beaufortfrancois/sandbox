@@ -1,0 +1,96 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>CANDY BOT 9000!</title>
+    <meta name="description" content="One Tap. Limitless Candy."/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="icon" type="image/png" href="/mobileClient/images/favicon.png" />
+
+    <script src="mobileClient/bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+    
+    <link rel="import" href="mobileClient/bower_components/paper-button/paper-button.html">
+    <link rel="import" href="mobileClient/bower_components/paper-header-panel/paper-header-panel.html">
+    <link rel="import" href="mobileClient/bower_components/paper-styles/color.html">
+    <link rel="import" href="mobileClient/bower_components/paper-dialog/paper-dialog.html">
+    <link rel="import" href="mobileClient/bower_components/paper-fab/paper-fab.html">
+    <link rel="import" href="mobileClient/bower_components/paper-toast/paper-toast.html">
+    <link rel="import" href="mobileClient/bower_components/iron-icons/iron-icons.html" >
+    
+    <link rel="stylesheet" href="mobileClient/bower_components/paper-styles/demo.css">
+    <link rel="stylesheet" type="text/css" href="mobileClient/styles.css">
+
+
+    <style is="custom-style">
+      
+      paper-fab {
+        --paper-fab-background: #68efad;
+      }
+
+      paper-header-panel {
+        background-color: #9C27B0;
+      }
+      
+    </style>
+
+  </head>
+
+
+  <body>
+
+    <paper-dialog modal id="connectModal">
+      <h2>Welcome!</h2>
+      <div>Connect to CANDY BOT 9000?</div>
+      <div class="buttons">
+          <paper-button id="connectModalCancelButton" dialog-dismiss>DISMISS</paper-button>
+          <paper-button dialog-confirm>CONNECT</paper-button>
+      </div>
+    </paper-dialog>
+
+    <div id="container">
+
+      <paper-header-panel class="foo">
+        <div class="paper-header">CANDY BOT 9000</div>
+        <div class="content">
+
+        <img id="vendImage" src="mobileClient/images/tinyvend.png"></img>
+
+
+          <!--
+          <div id="welcomeText">
+            Tap the button to dispense your tasty treat
+          </div>
+          -->
+
+          <!--<paper-fab id="dispenseItemButton" icon="star"></paper-fab>-->
+          <paper-fab id="dispenseItemButton" src="mobileClient/images/star.png"></paper-fab>
+
+          <div id="paymentAuthorizingText">
+            Authorizing...
+          </div>
+
+          <paper-toast id="toast" text="Authorized! Dispensing item..."></paper-toast>
+
+        </div>
+      </paper-header-panel>
+
+
+    </div>
+    
+    
+    <script src="mobileClient/modules/utils/CSSPlugin.min.js"></script>
+    <script src="mobileClient/modules/utils/EasePack.min.js"></script>
+    <script src="mobileClient/modules/utils/TweenLite.min.js"></script>
+    <script src="mobileClient/modules/core/vendingManager.js"></script>
+    <script src="mobileClient/modules/core/gattInterface.js"></script>
+    <script src="mobileClient/modules/core/brain.js"></script>
+    <script src="mobileClient/main.js"></script>
+
+    <script>
+      init();
+    </script>
+
+  </body>
+</html>
