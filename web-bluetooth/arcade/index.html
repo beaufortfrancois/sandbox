@@ -53,23 +53,27 @@
       .button.pressed {
           opacity: .3;
       }
+      pre {
+          font-size: small;
+      }
     </style>
   </head>
   <body>
 
     <div class="container">
       <div>
-        <div class="button" id="forward">FORWARD</div>
-        <div class="button" id="backward">BACKWARD</div>
+        <div class="button" data-x="1" id="backward">BACKWARD</div>
+        <div class="button" data-x="2" id="forward">FORWARD</div>
       </div>
       <div>
-        <div class="button" id="left">LEFT</div>
-        <div class="button" id="right">RIGHT</div>
+        <div class="button" data-y="1" id="right">RIGHT</div>
+        <div class="button" data-y="2" id="left">LEFT</div>
       </div>
       <div>
-        <div class="button" id="up">UP</div>
-        <div class="button" id="down">DOWN</div>
+        <div class="button" data-z="1" id="down">DOWN</div>
+        <div class="button" data-z="2" id="up">UP</div>
       </div>
+      <pre><pre>
     </div>
 
     <script>
@@ -84,25 +88,34 @@
 
       var queue = [];
 
-      document.getElementById('down').addEventListener('mousedown', onDownButtonPressed);
-      document.getElementById('down').addEventListener('touchstart', onDownButtonPressed);
+      var buttons = document.querySelectorAll('.button');
+      for (let button of buttons) {
+        button.addEventListener('mousedown', onButtonPressed);
+        button.addEventListener('mouseup', onButtonReleased);
+      }
 
-      function onDownButtonPressed(event) {
+      function onButtonPressed(event) {
         event.target.classList.add('pressed');
-        queue.push({'y': MINUS});
 
-        if (queue.length > 1) {
-          return;
-        }
-        sendMotorCommands();
+        let axis = Object.keys(event.target.dataset)[0];
+        let command = {};
+        command[axis] = parseInt(event.target.dataset[axis]);
+
+        pushCommand(command);
       }
 
-      document.getElementById('down').addEventListener('mouseup', onDownButtonReleased);
-      document.getElementById('down').addEventListener('touchend', onDownButtonReleased);
-
-      function onDownButtonReleased(event) {
+      function onButtonReleased(event) {
         event.target.classList.remove('pressed');
-        queue.push({'y': STOP});
+
+        let axis = Object.keys(event.target.dataset)[0];
+        let command = {};
+        command[axis] = STOP;
+
+        pushCommand(command);
+      }
+
+      function pushCommand(command) {
+        queue.push(command);
 
         if (queue.length > 1) {
           return;
@@ -110,31 +123,6 @@
         sendMotorCommands();
       }
 
-      document.getElementById('up').addEventListener('mousedown', onUpButtonPressed);
-      document.getElementById('up').addEventListener('touchstart', onUpButtonPressed);
-
-      function onUpButtonPressed(event) {
-        event.target.classList.add('pressed');
-        queue.push({'y': PLUS});
-
-        if (queue.length > 1) {
-          return;
-        }
-        sendMotorCommands();
-      }
-
-      document.getElementById('up').addEventListener('mouseup', onUpButtonReleased);
-      document.getElementById('up').addEventListener('touchend', onUpButtonReleased);
-
-      function onUpButtonReleased(event) {
-        event.target.classList.remove('pressed');
-        queue.push({'y': STOP});
-
-        if (queue.length > 1) {
-          return;
-        }
-        sendMotorCommands();
-      }
      
       function reset() {
         queue = [];
@@ -150,10 +138,11 @@
           .then(characteristic => {
             motorCharacteristic = characteristic;
             reset();
+            log('Ready');
           })
           .catch(e => {
             reset();
-            console.log(e);
+            log(e);
           });
         }
 
@@ -166,12 +155,12 @@
         })
         .then(_ => {
           motorCommand[Object.keys(queue[0])[0]] = queue[0][Object.keys(queue[0])[0]];
-          console.log(motorCommand);
+          log(JSON.stringify(motorCommand));
           let value = new Uint8Array([motorCommand.x, motorCommand.y, motorCommand.z, 0]);
           return motorCharacteristic.writeValue(value);
         })
         .catch(e => {
-          console.log('Argh', e);
+          log('Argh', e);
         })
         .then(_ => {
           queue.shift();
@@ -180,6 +169,10 @@
             return sendMotorCommands();
           }
         });
+      }
+
+      function log(text) {
+        document.querySelector('pre').textContent = text;
       }
     </script>
   </body>
