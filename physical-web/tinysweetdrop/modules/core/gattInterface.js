@@ -28,27 +28,17 @@ function GattInterface(brain) {
 		return vendingMachine.supported;
 	}
 
-	// Setup the modal that will ask the user if they want to connect
-	// to the vending machine
+	// Setup the modal that will ask the user if they want to connect to
+	// the vending machine
 	self.initConnectModal = function() {
-    	var modalIsCanceled = false;
-    	// Reference the modal and cancel button
+		// Reference the modal button
 		var connectModal = document.querySelector('#connectModal');
-    	var connectModalCancelButton = document.querySelector('#connectModalCancelButton');
-    	// Listen for a touch event on the cancel button
-    	connectModalCancelButton.addEventListener('touchstart', function() {
-    		// Save that the modal was canceled
-    		modalIsCanceled = true;
-    	})
-    	// Listen for when the modal is closed
-    	// which can happen if the user touches away from the modal
-		connectModal.addEventListener('iron-overlay-closed', function(event) {
-			// If the modal was canceled then exit
-	      	if (modalIsCanceled == true) {
-	        	return;
-	      	}
-	      	// Otherwise look for the vending machine advertisement broadcast
-			self.findVendingMachine();
+		connectModal.addEventListener('opened-changed', function(event) {
+			// If it is closed and user hit dialog-confirm element
+			if(!connectModal.opened && connectModal.closingReason.confirmed) {
+				// Look for the vending machine advertisement broadcast
+				self.findVendingMachine();
+			}
 		});
 
 		// Show the modal to the user
