@@ -54,7 +54,8 @@
 
         log('', '', 'loading');
 
-        var body = JSON.stringify({ urls: [{ url: $('#website-url').value }] });
+        var websiteUrl = $('#website-url').value.trim();
+        var body = JSON.stringify({ urls: [{ url: websiteUrl }] });
         fetch(pwsUrl, { mode: 'cors', method: 'POST', body: body })
         .then(response => response.json())
         .then(data => {

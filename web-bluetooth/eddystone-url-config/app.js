@@ -192,7 +192,7 @@ $('#cancelWarningDialogButton').addEventListener('click', function() {
 
 function isPhysicalWebUrlValid(url) {
   let pwsUrl = 'https://physicalweb.googleapis.com/v1alpha1/urls:resolve?key=AIzaSyCF2edaCQxYmDY7piMQFzQJhmZXppjo4uQ';
-  let body = JSON.stringify({ urls: [{ url: url }] });
+  let body = JSON.stringify({ urls: [{ url: url.trim() }] });
   return fetch(pwsUrl, { mode: 'cors', method: 'POST', body: body })
   .then(response => response.json())
   .then(data => {
