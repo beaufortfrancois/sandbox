@@ -149,7 +149,7 @@ You can also use changes in `value` to drive characteristic writes when
 <platinum-bluetooth-device services-filter='["heart_rate"]'>
   <platinum-bluetooth-service service='heart_rate'>
     <platinum-bluetooth-characteristic characteristic='heart_rate_control_point'
-                                              auto-write>
+                                       auto-write>
     </platinum-bluetooth-characteristic>
   </platinum-bluetooth-service>
 </platinum-bluetooth-device>
