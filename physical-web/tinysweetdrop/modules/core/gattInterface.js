@@ -92,7 +92,7 @@ function GattInterface(brain) {
 		.then(function() {
 			// Disconnect since we are done
 			// This allows other client to connect to the gatt server
-			//vendingMachine.disconnect();
+			vendingMachine.disconnect();
 		});
 	};
 
