@@ -286,10 +286,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * @return {Promise<BluetoothGATTRemoteServer>}
        */
       _connectToDevice: function() {
-        if (this._server && this._server.connected) {
-          // Resolve promise if device is already connected.
-          return Promise.resolve(this._server);
-        }
         if (!this._device) {
           return Promise.reject(new Error('Bluetooth device is not connected.'));
         }
@@ -308,11 +304,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * @return {Promise<BluetoothGATTService>}
        */
       _getPrimaryService: function() {
-        if (this._server && this._server.connected && this._service &&
-            this._service.uuid === BluetoothUUID.getService(this.service)) {
-          // Resolve promise if primary service is already discovered.
-          return Promise.resolve(this._service);
-        }
         if (!this._server || !this._server.connected) {
           return Promise.reject(new Error('Bluetooth GATT Remote server is not connected.'));
         }
@@ -334,11 +325,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * @return {Promise<BluetoothGATTCharacteristic>}
        */
       _getCharacteristic: function() {
-        if (this._characteristic &&
-            this._characteristic.uuid === BluetoothUUID.getCharacteristic(this.characteristic)) {
-          // Resolve promise if characteristic is already _.
-          return Promise.resolve(this._characteristic);
-        }
         if (!this._service) {
           return Promise.reject(new Error('Bluetooth GATT Primary Service is not connected.'));
         }
