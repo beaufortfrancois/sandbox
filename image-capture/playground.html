@@ -1,0 +1,109 @@
+<style>
+  video { float: right; }
+  canvas { float: left; clear: right; }
+  pre { clear: both; padding: 12px 0; }
+</style>
+
+<button id="getPhotoCapabilities">getPhotoCapabilities</button>
+<button id="grabFrameButton">grabFrame</button>
+<button id="takePhotoButton">takePhoto</button>
+<button id="grabFrameAndTakePhotoButton">grabFrame & takePhoto</button>
+<video autoplay width="160" height="90"></video>
+<br/><br/>
+<input id="zoom" type="range" hidden/>
+
+<script>
+var imageCapture;
+var constraints = {
+  video: {
+    width: { exact: 1280 },
+    height: { exact: 720 }
+  }
+};
+navigator.mediaDevices.getUserMedia(constraints)
+.then(mediaStream => {
+  imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
+  document.querySelector('video').srcObject = mediaStream;
+  initZoomRange();
+})
+.catch(error => {
+  console.log(error);
+});
+
+function initZoomRange() {
+  imageCapture.getPhotoCapabilities()
+  .then(photoCapabilities => {
+    document.querySelector('#zoom').min = photoCapabilities.zoom.min;
+    document.querySelector('#zoom').value = photoCapabilities.zoom.value;
+    document.querySelector('#zoom').max = photoCapabilities.zoom.max;
+    document.querySelector('#zoom').oninput = function(event) {
+      imageCapture.setOptions({zoom: event.target.value});
+    }
+    document.querySelector('#zoom').hidden = false;
+  });
+}
+
+document.querySelector('#getPhotoCapabilities').addEventListener('click', getPhotoCapabilities);
+document.querySelector('#grabFrameButton').addEventListener('click', grabFrame);
+document.querySelector('#takePhotoButton').addEventListener('click', takePhoto);
+document.querySelector('#grabFrameAndTakePhotoButton').addEventListener('click', grabFrameAndTakePhoto);
+
+function getPhotoCapabilities() {
+  imageCapture.getPhotoCapabilities()
+  .then(photoCapabilities => {
+    let pre = document.createElement('pre');
+    for (let photoCapabilityName in photoCapabilities) {
+      pre.innerText += `${photoCapabilityName}: `;
+      let photoCapability = photoCapabilities[photoCapabilityName];
+      if (photoCapability.toString() === '[object MediaSettingsRange]') {
+        pre.innerText += `{ min: ${photoCapability.min}, current: ${photoCapability.current}, max: ${photoCapability.max} }\r\n`;
+      } else {
+        pre.innerText += `${photoCapability}\r\n`;
+      }
+    }
+    document.body.appendChild(pre);
+  })
+  .catch(error => {
+    console.log(error);
+  });
+  
+}
+
+function grabFrame() {
+  return imageCapture.grabFrame()
+  .then(imageBitmap => appendCanvas(imageBitmap))
+  .catch(error => {
+    console.log(error);
+  });
+}
+
+function takePhoto() {
+  return imageCapture.takePhoto()
+  .then(blob => createImageBitmap(blob))
+  .then(imageBitmap => appendCanvas(imageBitmap))
+  .catch(error => {
+    console.log(error);
+  });
+}
+
+function grabFrameAndTakePhoto() {
+  return grabFrame()
+  .then(_ => takePhoto());
+}
+
+function appendCanvas(imageBitmap) {
+  let canvas = document.createElement('canvas');
+  canvas.width = imageBitmap.width;
+  canvas.height = imageBitmap.height;
+  canvas.style.height = '180';
+  
+  let context = canvas.getContext('2d');
+  context.drawImage(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height);
+  context.font = canvas.height / 12 + 'px Cousine';
+  context.fillStyle = 'deeppink';
+  context.textBaseline = 'top';
+  context.fillText(`${canvas.width}x${canvas.height}`, 0, 0);
+  document.body.appendChild(canvas);
+}
+
+</script>
