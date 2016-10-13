@@ -1,16 +1,27 @@
+<title>Image Capture Playground</title>
 <style>
-  video { float: right; }
+  body { margin: 0 auto; }
+  #dashboard { position: fixed; width: 100%; background: white; z-index: 1; padding: 8px; }
+  #shots { position: absolute; top: 200px; padding: 8px }
+  video { float: right; box-shadow: 0 0 0px 1px black; margin-right: 16px; }
   canvas { float: left; clear: right; }
   pre { clear: both; padding: 12px 0; }
+  input { margin: 12px }
+  input:after { content: attr(data-label); display: block; position: fixed; width: 129px; margin-top: -18px; text-align: center; }
+  input[disabled] { opacity: .5 }
+}
 </style>
 
-<button id="getPhotoCapabilities">getPhotoCapabilities</button>
-<button id="grabFrameButton">grabFrame</button>
-<button id="takePhotoButton">takePhoto</button>
-<button id="grabFrameAndTakePhotoButton">grabFrame & takePhoto</button>
-<video autoplay width="160" height="90"></video>
-<br/><br/>
-<input id="zoom" type="range" hidden/>
+<div id="dashboard">
+  <button id="getPhotoCapabilities">getPhotoCapabilities</button>
+  <button id="grabFrameButton">grabFrame</button>
+  <button id="takePhotoButton">takePhoto</button>
+  <button id="grabFrameAndTakePhotoButton">grabFrame & takePhoto</button>
+  <video autoplay width="160" height="90"></video>
+  <br/><br/><br/>
+  <div id="controls"></div>
+</div>
+<div id="shots"></div>
 
 <script>
 var imageCapture;
@@ -24,23 +35,43 @@ navigator.mediaDevices.getUserMedia(constraints)
 .then(mediaStream => {
   imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
   document.querySelector('video').srcObject = mediaStream;
-  initZoomRange();
+  // Remove when https://bugs.chromium.org/p/chromium/issues/detail?id=655522 is fixed.
+  if (!new URL(location).searchParams.has('hideControls')) {
+    initControls();
+  }
 })
 .catch(error => {
   console.log(error);
 });
 
-function initZoomRange() {
+function initControls() {
+  document.querySelector('#controls').innerHTML = '';
   imageCapture.getPhotoCapabilities()
   .then(photoCapabilities => {
-    document.querySelector('#zoom').min = photoCapabilities.zoom.min;
-    document.querySelector('#zoom').value = photoCapabilities.zoom.value;
-    document.querySelector('#zoom').max = photoCapabilities.zoom.max;
-    document.querySelector('#zoom').oninput = function(event) {
-      imageCapture.setOptions({zoom: event.target.value});
+    for (photoCapabilityName in photoCapabilities) {
+      let photoCapability = photoCapabilities[photoCapabilityName];
+      if (photoCapability.toString() === '[object MediaSettingsRange]') {
+        addInputRange(photoCapabilityName, photoCapabilities);
+      }
     }
-    document.querySelector('#zoom').hidden = false;
   });
+}
+
+function addInputRange(capabilityName, photoCapabilities) {
+  let range = photoCapabilities[capabilityName];
+  let input = document.createElement('input');
+  input.type = 'range';
+  input.min = range.min;
+  input.max = range.max;
+  input.disabled = !range.max;
+  input.value = range.current;
+  input.oninput = function(event) {
+    let options = {};
+    options[capabilityName] = event.target.value;
+    imageCapture.setOptions(options);
+  }
+  input.dataset['label'] = capabilityName;
+  document.querySelector('#controls').appendChild(input);
 }
 
 document.querySelector('#getPhotoCapabilities').addEventListener('click', getPhotoCapabilities);
@@ -61,7 +92,7 @@ function getPhotoCapabilities() {
         pre.innerText += `${photoCapability}\r\n`;
       }
     }
-    document.body.appendChild(pre);
+    document.querySelector('#shots').appendChild(pre);
   })
   .catch(error => {
     console.log(error);
@@ -103,7 +134,7 @@ function appendCanvas(imageBitmap) {
   context.fillStyle = 'deeppink';
   context.textBaseline = 'top';
   context.fillText(`${canvas.width}x${canvas.height}`, 0, 0);
-  document.body.appendChild(canvas);
+  document.querySelector('#shots').appendChild(canvas);
 }
 
 </script>
