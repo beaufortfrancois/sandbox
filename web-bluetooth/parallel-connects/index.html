@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Parallel connects</title>
+  </head>
+  <body>
+    <button>Test</button>
+  </body>
+  <script>
+
+    document.querySelector('button').addEventListener('click', function() {
+      navigator.bluetooth.requestDevice({filters:[{services:[ 'battery_service' ]}]})
+      .then(device => {
+        device.gatt.connect().then(readBatteryLevel);
+        device.gatt.connect().then(readBatteryLevel);
+        device.gatt.connect().then(readBatteryLevel);
+      });
+    });
+
+    function readBatteryLevel(server) {
+      server.getPrimaryService('battery_service')
+      .then(service => service.getCharacteristic('battery_level'))
+      .then(characteristic => characteristic.readValue())
+      .then(value => console.log('Battery level is ', value.getUint8(0)));
+    }
+
+  </script>
+</html>
+
