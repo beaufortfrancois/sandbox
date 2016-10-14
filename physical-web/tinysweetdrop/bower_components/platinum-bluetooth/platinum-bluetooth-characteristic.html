@@ -353,8 +353,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var self = this;
         return this._characteristic.readValue()
           .then(function(value) {
-            // In Chrome 50+, a DataView is returned instead of an ArrayBuffer.
-            value = value.buffer ? value : new DataView(value);
             self.value = value;
             return self.value;
           });
@@ -378,8 +376,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         * Save value when characteristic value changed in a notification session.
         **/
       _handleValueChanged: function(event) {
-        // In Chrome 50+, a DataView is returned instead of an ArrayBuffer.
-        this.value = event.target.value.buffer ? event.target.value : new DataView(event.target.value);
+        this.value = event.target.value;
       },
 
       /**
