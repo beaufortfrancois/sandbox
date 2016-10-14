@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>getCharacteristics with same UUID</title>
+  </head>
+  <body>
+    <button>Test</button>
+  </body>
+  <script>
+
+    document.querySelector('button').addEventListener('click', function() {
+      navigator.bluetooth.requestDevice({filters:[{
+        services: ['battery_service']
+      }]})
+      .then(device => device.gatt.connect())
+      .then(server => server.getPrimaryService('battery_service'))
+      .then(service => service.getCharacteristics('battery_level'))
+      .then(characteristics => {
+        console.log(characteristics);
+        let [a,b] = characteristics;
+
+        return Promise.resolve()
+        .then(_ => a.readValue())
+        .then(v => console.log(v.getUint8(0)))
+        .then(_ => b.readValue())
+        .then(v => console.log(v.getUint8(0)));
+      });
+    });
+
+  </script>
+</html>
+
