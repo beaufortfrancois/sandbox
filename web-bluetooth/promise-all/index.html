@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Promise.all</title>
+  </head>
+  <body>
+    <p>Intended to be tested with a nearby Bluetooth device advertising Heart Rate service.</p>
+    <button id="scan">scan</button>
+    <button id="connect">connect</button>
+    <button id="getPrimaryService">getPrimaryService</button>
+    <button id="getCharacteristic">getCharacteristic</button>
+    <button id="readValue">readValue</button>
+    <button id="writeValue">writeValue</button>
+    <button id="startNotifications">startNotifications</button>
+    <button id="stopNotifications">stopNotifications</button>
+    <button id="disconnect">disconnect</button>
+    <script>
+      var $ = document.querySelector.bind(document);
+
+      var device;
+
+      $('#scan').addEventListener('click', async event => {
+        device = await navigator.bluetooth.requestDevice({
+            filters: [{services: ['heart_rate']}]});
+        console.log(device);
+      });
+
+      $('#connect').addEventListener('click', async event => {
+        const result = await Promise.all([
+          device.gatt.connect(),
+          device.gatt.connect(),
+        ]);
+        console.log('Promise.all connect: OK', result);
+      });
+       
+      $('#getPrimaryService').addEventListener('click', async event => {
+        await device.gatt.connect();
+        const result = await Promise.all([
+          device.gatt.getPrimaryService('heart_rate'),
+          device.gatt.getPrimaryService('heart_rate'),
+        ]);
+        console.log('Promise.all getPrimaryService: OK', result);
+      });
+       
+      $('#getCharacteristic').addEventListener('click', async event => {
+        await device.gatt.connect();
+        const service = await device.gatt.getPrimaryService('heart_rate');
+        const result = await Promise.all([
+          service.getCharacteristic('heart_rate_measurement'),
+          service.getCharacteristic('heart_rate_measurement'),
+        ]);
+        console.log('Promise.all getCharacteristic: OK', result);
+      });
+
+      $('#readValue').addEventListener('click', async event => {
+        await device.gatt.connect();
+        const service = await device.gatt.getPrimaryService('heart_rate');
+        const characteristic = await service.getCharacteristic('heart_rate_measurement');
+        const result = await Promise.all([
+          characteristic.readValue(),
+          characteristic.readValue(),
+        ]);
+        console.log('Promise.all readValue: OK', result);
+      });
+
+      $('#writeValue').addEventListener('click', async event => {
+        await device.gatt.connect();
+        const service = await device.gatt.getPrimaryService('heart_rate');
+        const characteristic = await service.getCharacteristic('heart_rate_control_point');
+        const value = new Uint8Array([1]);
+        const result = await Promise.all([
+          characteristic.writeValue(value),
+          characteristic.writeValue(value),
+        ]);
+        console.log('Promise.all writeValue: OK', result);
+      });
+
+      $('#startNotifications').addEventListener('click', async event => {
+        await device.gatt.connect();
+        const service = await device.gatt.getPrimaryService('heart_rate');
+        const characteristic = await service.getCharacteristic('heart_rate_measurement');
+        const result = await Promise.all([
+          characteristic.startNotifications(),
+          characteristic.startNotifications(),
+        ]);
+        console.log('Promise.all startNotifications: OK', result);
+      });
+       
+      $('#stopNotifications').addEventListener('click', async event => {
+        await device.gatt.connect();
+        const service = await device.gatt.getPrimaryService('heart_rate');
+        const characteristic = await service.getCharacteristic('heart_rate_measurement');
+        const result = await Promise.all([
+          characteristic.stopNotifications(),
+          characteristic.stopNotifications(),
+        ]);
+        console.log('Promise.all stopNotifications: OK', result);
+      });
+
+      $('#disconnect').addEventListener('click', async event => {
+        await Promise.all([
+          device.gatt.disconnect(),
+          device.gatt.disconnect(),
+        ]);
+        console.log('Promise.all disconnect: OK');
+      });
+       
+      function anyDevice() {
+        // This is the closest we can get for now to get all devices.
+        // https://github.com/WebBluetoothCG/web-bluetooth/issues/234
+        return Array.from('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+            .map(c => ({namePrefix: c}))
+            .concat({name: ''});
+      }
+
+    </script>
+  </body>
+</html>
