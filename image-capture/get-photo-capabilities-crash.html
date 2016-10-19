@@ -1,0 +1,23 @@
+<html>
+  <body>
+    <script>
+      (async function() {
+        const stream = await navigator.mediaDevices.getUserMedia({video: true});
+
+        if (!new URL(location).searchParams.has('ImageCapture')) {
+          return;
+        }
+
+        const imageCapture = new ImageCapture(stream.getVideoTracks()[0]);
+        console.log(imageCapture);
+
+        if (!new URL(location).searchParams.has('getPhotoCapabilities')) {
+          return;
+        }
+
+        const photoCapabilities = await imageCapture.getPhotoCapabilities();
+        console.log(photoCapabilities);
+      })();
+    </script>
+  </body>
+</html>
