@@ -63,6 +63,7 @@ function addInputRange(capabilityName, photoCapabilities) {
   input.type = 'range';
   input.min = range.min;
   input.max = range.max;
+  input.step = range.step;
   input.disabled = !range.max;
   input.value = range.current;
   input.oninput = function(event) {
@@ -87,7 +88,7 @@ function getPhotoCapabilities() {
       pre.innerText += `${photoCapabilityName}: `;
       let photoCapability = photoCapabilities[photoCapabilityName];
       if (photoCapability.toString() === '[object MediaSettingsRange]') {
-        pre.innerText += `{ min: ${photoCapability.min}, current: ${photoCapability.current}, max: ${photoCapability.max} }\r\n`;
+        pre.innerText += `{ min: ${photoCapability.min}, current: ${photoCapability.current}, max: ${photoCapability.max}, step: ${photoCapability.step} }\r\n`;
       } else {
         pre.innerText += `${photoCapability}\r\n`;
       }
