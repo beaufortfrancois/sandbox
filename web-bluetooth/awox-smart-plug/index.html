@@ -1,0 +1,141 @@
+<html>
+    <title>SmartPLUG - AwoX</title>
+    <meta http-equiv="origin-trial" content="Ao5NdvNhP9/pFEkMycQm8A0sAXMWGoJ4CIjwG3OV7OWhh+k6mSUhTCfTsDWfrYvRWFtO5BKzempetjV6f1rsKgQAAABleyJvcmlnaW4iOiAiaHR0cHM6Ly9iZWF1Zm9ydGZyYW5jb2lzLmdpdGh1Yi5pbzo0NDMiLCAiZmVhdHVyZSI6ICJXZWJCbHVldG9vdGgiLCAiZXhwaXJ5IjogMTQ3ODg3MjM0Mn0=">
+<body>
+
+<button onclick="getLedState()">getLedState</button>
+
+<button onclick="turnOn()">turnOn</button>
+<button onclick="turnOff()">turnOff</button>
+
+<button onclick="getPowerConsumption()">getPowerConsumption</button>
+<button disabled onclick="getPowerConsumptionHourly()">getPowerConsumptionHourly</button>
+<button disabled onclick="getPowerConsumptionDaily()">getPowerConsumptionDaily</button>
+<button disabled onclick="getSchedule()">getSchedule</button>
+
+<pre id="$led"></pre>
+<pre id="$power"></pre>
+
+<script>
+var bluetoothDevice;
+
+async function requestDevice() {
+  if (bluetoothDevice) {
+    return;
+  }
+  bluetoothDevice = await navigator.bluetooth.requestDevice({filters: [{services: [0xfff0]}]});
+}
+
+async function connectDevice() {
+  /* Connect to device */
+  const server = await bluetoothDevice.gatt.connect();
+  /* Listen to state changes */
+  const service = await server.getPrimaryService(0xfff0);
+  const stateCharacteristic = await service.getCharacteristic(0xfff4);
+  await stateCharacteristic.startNotifications();
+  stateCharacteristic.addEventListener('characteristicvaluechanged',
+      handleStateChanged);
+}
+
+function getPacket(command, data) {
+  let packet = new ArrayBuffer(data.length + 7);
+  let dataview = new DataView(packet);
+  dataview.setUint8(0, 0x0f); // Packet Start
+  dataview.setUint8(1, data.length + 3);
+  dataview.setUint8(2, command);
+  dataview.setUint8(3, 0x00); // Packet Id
+  for (let i = 0; i < data.length; i++) {
+    dataview.setUint8(4 + i, data[i]);
+  }
+  let checksum = command + 1;
+  for (let i = 0; i < data.length; i++) {
+    checksum += data[i];
+  }
+  dataview.setUint8(4 + data.length, checksum & 0xff);
+  dataview.setUint8(5 + data.length, 0xff); // Packet End
+  dataview.setUint8(6 + data.length, 0xff); // Packed End
+  return dataview;
+}
+
+function handleStateChanged(event) {
+  const command = event.target.value.getUint8(2);
+  const data = new DataView(event.target.value.buffer, 4);
+
+  switch (command) {
+    /* Power consumption */
+    case 4:
+      const powerState = (data.getUint8(0) ? 'ON' : 'OFF');
+      const powerConsumption = data.getUint32(1);
+      $power.innerHTML = `${powerState} - ${powerConsumption}W`;
+      break;
+    /* LED state */
+    case 16:
+      const ledState = (data.getUint8(0) ? 'ON' : 'OFF');
+      $led.innerHTML = `${ledState}`;
+      break;
+    default:
+      console.log('Unknown event: ' + debug(data));
+  }
+}
+
+function debug(data) {
+  let a = [];
+  for (let i = 0; i < event.target.value.byteLength; i++) {
+    a.push('0x' + ('00' + event.target.value.getUint8(i).toString(16)).slice(-2));
+  }
+  return a.join(' ');
+}
+
+async function turnOn() {  
+  const packet = getPacket(3, [0x01, 0x00, 0x00]);
+  await _write(packet);
+}
+
+async function turnOff() {  
+  const packet = getPacket(3, [0x00, 0x00, 0x00]);
+  await _write(packet);
+}
+
+async function getPowerConsumption() {
+  const packet = getPacket(4, [0x00, 0x00]);
+  await _write(packet);
+}
+
+async function getPowerConsumptionHourly() {
+  const packet = getPacket(10, [0x00, 0x00]);
+  await _write(packet);
+}
+
+async function getPowerConsumptionDaily() {
+  const packet = getPacket(11, [0x00, 0x00]);
+  await _write(packet);
+}
+
+async function getSchedule() {
+  const packet = getPacket(7, [0x00, 0x00]);
+  await _write(packet);
+}
+
+async function getLedState() {
+  const packet = getPacket(16, [0x00, 0x00]);
+  await _write(packet);
+}
+
+async function setLedState() {
+  /*
+  const packet = getPacket(15, [0x00, 0x00]);
+  await _write(packet);
+  */
+}
+
+async function _write(value) {
+  await requestDevice();
+  await connectDevice();
+  const service = await bluetoothDevice.gatt.getPrimaryService(0xfff0);
+  const controlCharacteristic = await service.getCharacteristic(0xfff3);
+  await controlCharacteristic.writeValue(value);
+}
+</script>
+
+</body>
+</html>
