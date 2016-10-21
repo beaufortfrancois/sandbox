@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>🚀 Change your Bluetooth candle 🕯 color!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background-color: rgb(250, 250, 250);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      audio {
+        box-shadow: 0 4px 8px #ccc;
+        padding: 16px;
+      }
+      button {
+        font-size: 60px;
+        background: none;
+        border: none;
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <audio hidden preload controls="play" loop src="https://xxyzzzq.github.io/sandbox/media/tetris.mp3"></audio>
+    <button>🕯</button>
+  </body>
+  <script>
+    const $audio = document.querySelector('audio');
+    const $button = document.querySelector('button');
+
+    $button.onclick = async event => {
+      $audio.play(); $audio.pause(); // Hack for mobile to allow future audio.play()...
+
+      const device = await navigator.bluetooth.requestDevice({filters:[{services:[0xFF02]}]});
+      const server = await device.gatt.connect();
+      const service = await device.gatt.getPrimaryService(0xFF02);
+      const colorCharacteristic = await service.getCharacteristic(0xFFFC);
+
+      $audio.onplay = async event => {
+        const colorData = new Uint8Array([0, 0, 255, 0]);
+        await colorCharacteristic.writeValue(colorData);
+      }
+      $audio.onpause = async event => {
+        const colorData = new Uint8Array([0, 0, 0, 255]);
+        await colorCharacteristic.writeValue(colorData);
+      }
+      $audio.play();
+      $audio.volume = 0;
+      $audio.hidden = false;
+      $button.hidden = true;
+    }
+  </script>
+</html>
+
