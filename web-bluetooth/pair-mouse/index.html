@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pair MX Mouse</title>
+    <meta http-equiv="origin-trial" content="Ao5NdvNhP9/pFEkMycQm8A0sAXMWGoJ4CIjwG3OV7OWhh+k6mSUhTCfTsDWfrYvRWFtO5BKzempetjV6f1rsKgQAAABleyJvcmlnaW4iOiAiaHR0cHM6Ly9iZWF1Zm9ydGZyYW5jb2lzLmdpdGh1Yi5pbzo0NDMiLCAiZmVhdHVyZSI6ICJXZWJCbHVldG9vdGgiLCAiZXhwaXJ5IjogMTQ3ODg3MjM0Mn0=">
+  </head>
+  <body>
+    <button>Pair MX Mouse</button>
+  </body>
+  <script>
+    document.querySelector('button').addEventListener('click', function() {
+      navigator.bluetooth.requestDevice({filters:[{namePrefix: 'MX' }]})
+      .then(device => device.gatt.connect());
+    });
+  </script>
+</html>
+
