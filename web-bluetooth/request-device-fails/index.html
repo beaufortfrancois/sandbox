@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>requestDevice fails to show chooser</title>
+    <meta http-equiv="origin-trial" content="Ao5NdvNhP9/pFEkMycQm8A0sAXMWGoJ4CIjwG3OV7OWhh+k6mSUhTCfTsDWfrYvRWFtO5BKzempetjV6f1rsKgQAAABleyJvcmlnaW4iOiAiaHR0cHM6Ly9iZWF1Zm9ydGZyYW5jb2lzLmdpdGh1Yi5pbzo0NDMiLCAiZmVhdHVyZSI6ICJXZWJCbHVldG9vdGgiLCAiZXhwaXJ5IjogMTQ3ODg3MjM0Mn0=">
+  </head>
+  <body>
+    <a href="#clicked">Show Bluetooth chooser from a link navigation</a>
+  </body>
+  <script>
+    document.querySelector('a').onclick = event => {
+      console.log(event);
+      navigator.bluetooth.requestDevice({filters:[{services: ['battery_service'] }]});
+    }
+    window.onpopstate = event => {
+      console.log(event);
+    }
+    window.onhashchange = event => {
+      console.log(event);
+    }
+  </script>
+</html>
+
