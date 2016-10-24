@@ -8,9 +8,11 @@
 <button onclick="turnOn()">turnOn</button>
 <button onclick="turnOff()">turnOff</button>
 
+<button onclick="turnOffLed()">turnOffLed</button>
+
 <button onclick="getPowerConsumption()">getPowerConsumption</button>
-<button disabled onclick="getPowerConsumptionHourly()">getPowerConsumptionHourly</button>
-<button disabled onclick="getPowerConsumptionDaily()">getPowerConsumptionDaily</button>
+<button onclick="getPowerConsumptionHourly()">getPowerConsumptionHourly</button>
+<button onclick="getPowerConsumptionDaily()">getPowerConsumptionDaily</button>
 <button disabled onclick="getSchedule()">getSchedule</button>
 
 <pre id="$led"></pre>
@@ -68,10 +70,14 @@ function handleStateChanged(event) {
       const powerConsumption = data.getUint32(1);
       $power.innerHTML = `${powerState} - ${powerConsumption}W`;
       break;
+    /* Turned off LED */
+    case 15:
+      $led.innerHTML = 'LED turned OFF';
+      break;
     /* LED state */
     case 16:
       const ledState = (data.getUint8(0) ? 'ON' : 'OFF');
-      $led.innerHTML = `${ledState}`;
+      $led.innerHTML = `LED ${ledState}`;
       break;
     default:
       console.log('Unknown event: ' + debug(data));
@@ -80,8 +86,9 @@ function handleStateChanged(event) {
 
 function debug(data) {
   let a = [];
-  for (let i = 0; i < event.target.value.byteLength; i++) {
-    a.push('0x' + ('00' + event.target.value.getUint8(i).toString(16)).slice(-2));
+  console.log(data.byteLength);
+  for (let i = 0; i < data.byteLength; i++) {
+    a.push('0x' + ('00' + data.getUint8(i).toString(16)).slice(-2));
   }
   return a.join(' ');
 }
@@ -121,11 +128,15 @@ async function getLedState() {
   await _write(packet);
 }
 
-async function setLedState() {
-  /*
+async function turnOnLed() {
   const packet = getPacket(15, [0x00, 0x00]);
   await _write(packet);
-  */
+  // Somehow disconnect 10 seconds after...
+}
+
+async function turnOffLed() {
+  const packet = getPacket(15, [0x01, 0x00]);
+  await _write(packet);
 }
 
 async function _write(value) {
