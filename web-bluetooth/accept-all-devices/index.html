@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>acceptAllDevices playground</title>
+    <meta http-equiv="origin-trial" content="Ao5NdvNhP9/pFEkMycQm8A0sAXMWGoJ4CIjwG3OV7OWhh+k6mSUhTCfTsDWfrYvRWFtO5BKzempetjV6f1rsKgQAAABleyJvcmlnaW4iOiAiaHR0cHM6Ly9iZWF1Zm9ydGZyYW5jb2lzLmdpdGh1Yi5pbzo0NDMiLCAiZmVhdHVyZSI6ICJXZWJCbHVldG9vdGgiLCAiZXhwaXJ5IjogMTQ3ODg3MjM0Mn0=">
+  </head>
+  <body>
+    <input type="checkbox" checked>acceptAllDevices
+    <button id="scan">Scan</button>
+    <button id="scanWithFilters">Scan (with filters)</button>
+    <button id="scanWithOptionalServices">Scan (with optional services)</button>
+    <button id="scanWithFiltersAndOptionalServices">Scan (with filters and optional services)</button>
+  </body>
+  <script>
+    const $ = document.querySelector.bind(document);
+
+    $('#scan').onclick = async event => {
+      const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: $('input').value});
+      await connectAndGetPrimaryServices(device);
+    }
+    $('#scanWithFilters').onclick = async event => {
+      const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: $('input').value,
+          filters: [{services: ['battery_service']}]});
+      await connectAndGetPrimaryServices(device);
+    }
+    $('#scanWithOptionalServices').onclick = async event => {
+      const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: $('input').value,
+          optionalServices: ['battery_service']});
+      await connectAndGetPrimaryServices(device);
+    }
+    $('#scanWithFiltersAndOptionalServices').onclick = async event => {
+      const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: $('input').value,
+          filters: [{services: ['battery_service']}],
+          optionalServices: ['device_information']});
+      await connectAndGetPrimaryServices(device);
+    }
+
+    async function connectAndGetPrimaryServices(device) {
+      await device.gatt.connect();
+      const services = device.gatt.getPrimaryServices();
+      console.log(services);
+    } 
+  </script>
+</html>
+
