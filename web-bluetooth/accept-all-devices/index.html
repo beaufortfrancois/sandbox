@@ -16,32 +16,32 @@
 
     $('#scan').onclick = async event => {
       const device = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: $('input').value});
+          acceptAllDevices: $('input').checked});
       await connectAndGetPrimaryServices(device);
     }
     $('#scanWithFilters').onclick = async event => {
       const device = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: $('input').value,
+          acceptAllDevices: $('input').checked,
           filters: [{services: ['battery_service']}]});
       await connectAndGetPrimaryServices(device);
     }
     $('#scanWithOptionalServices').onclick = async event => {
       const device = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: $('input').value,
+          acceptAllDevices: $('input').checked,
           optionalServices: ['battery_service']});
       await connectAndGetPrimaryServices(device);
     }
     $('#scanWithFiltersAndOptionalServices').onclick = async event => {
       const device = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: $('input').value,
+          acceptAllDevices: $('input').checked,
           filters: [{services: ['battery_service']}],
-          optionalServices: ['device_information']});
+          optionalServices: ['generic_attribute']});
       await connectAndGetPrimaryServices(device);
     }
 
     async function connectAndGetPrimaryServices(device) {
       await device.gatt.connect();
-      const services = device.gatt.getPrimaryServices();
+      const services = await device.gatt.getPrimaryServices();
       console.log(services);
     } 
   </script>
