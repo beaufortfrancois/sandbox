@@ -35,7 +35,7 @@
       const device = await navigator.bluetooth.requestDevice({
           acceptAllDevices: $('input').checked,
           filters: [{services: ['battery_service']}],
-          optionalServices: ['generic_attribute']});
+          optionalServices: ['device_information']});
       await connectAndGetPrimaryServices(device);
     }
 
