@@ -8,7 +8,9 @@
     <input type="checkbox" checked>acceptAllDevices
     <button id="scan">Scan</button>
     <button id="scanWithFilters">Scan (with filters)</button>
+    <button id="scanWithBlacklistFilters">Scan (with blacklist filters)</button>
     <button id="scanWithOptionalServices">Scan (with optional services)</button>
+    <button id="scanWithBlacklistOptionalServices">Scan (with blacklist optional services)</button>
     <button id="scanWithFiltersAndOptionalServices">Scan (with filters and optional services)</button>
   </body>
   <script>
@@ -25,10 +27,22 @@
           filters: [{services: ['battery_service']}]});
       await connectAndGetPrimaryServices(device);
     }
+    $('#scanWithBlacklistFilters').onclick = async event => {
+      const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: $('input').checked,
+          filters: [{services: ['battery_service', 'human_interface_device']}]});
+      await connectAndGetPrimaryServices(device);
+    }
     $('#scanWithOptionalServices').onclick = async event => {
       const device = await navigator.bluetooth.requestDevice({
           acceptAllDevices: $('input').checked,
           optionalServices: ['battery_service']});
+      await connectAndGetPrimaryServices(device);
+    }
+    $('#scanWithBlacklistOptionalServices').onclick = async event => {
+      const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: $('input').checked,
+          optionalServices: ['battery_service', 'human_interface_device']});
       await connectAndGetPrimaryServices(device);
     }
     $('#scanWithFiltersAndOptionalServices').onclick = async event => {
