@@ -61,48 +61,149 @@ function generateCode(options) {
 
     let characteristicName = options.characteristicName.charAt(0).toUpperCase() + options.characteristicName.slice(1);
     if (options.characteristicRead) {
-      characteristicMethods += `
+      if (options.asyncAwait) {
+        characteristicMethods += `
+  async read${characteristicName}() {
+    const service = await this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)});
+    const characteristic = await service.getCharacteristic(${formatUUID(options.characteristicUuid)});
+    await characteristic.readValue();
+  }
+`;
+      } else {
+        characteristicMethods += `
   read${characteristicName}() {
     return this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)})
     .then(service => service.getCharacteristic(${formatUUID(options.characteristicUuid)}))
     .then(characteristic => characteristic.readValue());
   }
 `;
+      }
     }
     if (options.characteristicWrite) {
-      characteristicMethods += `
+      if (options.asyncAwait) {
+        characteristicMethods += `
+  async write${characteristicName}(data) {
+    const service = await this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)});
+    const characteristic = await service.getCharacteristic(${formatUUID(options.characteristicUuid)});
+    await characteristic.writeValue(data);
+  }
+`;
+      } else {
+        characteristicMethods += `
   write${characteristicName}(data) {
     return this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)})
     .then(service => service.getCharacteristic(${formatUUID(options.characteristicUuid)}))
     .then(characteristic => characteristic.writeValue(data));
   }
 `;
+      }
     }
     if (options.characteristicNotify) {
+      if (options.asyncAwait) {
+        characteristicMethods += `
+  async start${characteristicName}Notifications(listener) {
+    const service = await this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)});
+    const characteristic = await service.getCharacteristic(${formatUUID(options.characteristicUuid)}));
+    await characteristic.startNotifications();
+    characteristic.addEventListener('characteristicvaluechanged', listener);
+  }
+
+  async stop${characteristicName}Notifications(listener) {
+    const service = await this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)});
+    const characteristic = await service.getCharacteristic(${formatUUID(options.characteristicUuid)}));
+    await characteristic.stopNotifications();
+    characteristic.removeEventListener('characteristicvaluechanged', listener);
+  }
+`;
+      } else {
       characteristicMethods += `
   start${characteristicName}Notifications(listener) {
     return this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)})
     .then(service => service.getCharacteristic(${formatUUID(options.characteristicUuid)}))
-    .then(characteristic => {
-      return characteristic.startNotifications()
-      .then(_ => {
-        characteristic.addEventListener('characteristicvaluechanged', listener);
-      });
-    });
+    .then(characteristic => characteristic.startNotifications())
+    .then(characteristic => characteristic.addEventListener('characteristicvaluechanged', listener));
   }
 
   stop${characteristicName}Notifications(listener) {
     return this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)})
     .then(service => service.getCharacteristic(${formatUUID(options.characteristicUuid)}))
-    .then(characteristic => {
-      return characteristic.stopNotifications()
-      .then(_ => {
-        characteristic.removeEventListener('characteristicvaluechanged', listener);
-      });
+    .then(characteristic => characteristic.stopNotifications())
+    .then(characteristic => characteristic.removeEventListener('characteristicvaluechanged', listener));
+  }
+`;
+      }
+    }
+  }
+
+  if (options.asyncAwait) {
+    var requestMethod = `
+  async request() {
+    let options = {
+      ${filterOptions}${optionalServicesOptions}
+    };
+    this.device = await navigator.bluetooth.requestDevice(options);
+    if (!this.device) {
+      throw "No device selected";
+    }
+    this.device.addEventListener('gattserverdisconnected', this.onDisconnected);
+  }
+`;
+  } else {
+    var requestMethod = `
+  request() {
+    let options = {
+      ${filterOptions}${optionalServicesOptions}
+    };
+    return navigator.bluetooth.requestDevice(options)
+    .then(device => {
+      this.device = device;
+      this.device.addEventListener('gattserverdisconnected', this.onDisconnected);
     });
   }
 `;
+  }
+
+  if (options.asyncAwait) {
+    var connectMethod = `
+  async connect() {
+    if (!this.device) {
+      return Promise.reject('Device is not connected.');
     }
+    await this.device.gatt.connect();
+  }
+`;
+  } else {
+    var connectMethod = `
+  connect() {
+    if (!this.device) {
+      return Promise.reject('Device is not connected.');
+    }
+    return this.device.gatt.connect();
+  }
+`;
+  }
+
+  if (options.asyncAwait) {
+    var onClick = `
+document.querySelector('button').addEventListener('click', async event => {
+  try {
+    await ${instanceDeviceName}.request();
+    await ${instanceDeviceName}.connect();
+    /* Do something with ${instanceDeviceName}... */
+  } catch(error) {
+    console.log(error);
+  }
+});
+`;
+  } else {
+    var onClick = `
+document.querySelector('button').addEventListener('click', event => {
+  ${instanceDeviceName}.request()
+  .then(_ => ${instanceDeviceName}.connect())
+  .then(_ => { /* Do something with ${instanceDeviceName}... */})
+  .catch(error => { console.log(error) });
+});
+`;
   }
 
   var mainTemplate = `
@@ -113,33 +214,14 @@ class ${classDeviceName} {
     this.device = null;
     this.onDisconnected = this.onDisconnected.bind(this);
   }
-
-  request() {
-    let options = {
-      ${filterOptions}${optionalServicesOptions}
-    };
-    return navigator.bluetooth.requestDevice(options)
-    .then(device => {
-      this.device = device;
-      this.device.addEventListener('gattserverdisconnected', this.onDisconnected);
-      return device;
-    });
-  }
-
-  connect() {
-    if (!this.device) {
-      return Promise.reject('Device is not connected.');
-    } else {
-      return this.device.gatt.connect();
-    }
-  }
+  ${requestMethod}
+  ${connectMethod}
   ${characteristicMethods}
   disconnect() {
     if (!this.device) {
       return Promise.reject('Device is not connected.');
-    } else {
-      return this.device.gatt.disconnect();
     }
+    return this.device.gatt.disconnect();
   }
 
   onDisconnected() {
@@ -148,13 +230,7 @@ class ${classDeviceName} {
 }
 
 var ${instanceDeviceName} = new ${classDeviceName}();
-
-document.querySelector('button').addEventListener('click', function() {
-  ${instanceDeviceName}.request()
-  .then(_ => ${instanceDeviceName}.connect())
-  .then(_ => { /* Do something with ${instanceDeviceName} */})
-  .catch(error => { console.log(error) });
-});
+${onClick}
 `;
 
   return mainTemplate.trim();
@@ -186,6 +262,7 @@ function updateCodePreview() {
   }
 
   $('code').innerText = generateCode({
+     asyncAwait: $('#asyncAwait').checked,
      classDeviceName: classDeviceName,
      instanceDeviceName: instanceDeviceName,
      advertisedServices: advertisedServices,
@@ -201,6 +278,7 @@ function updateCodePreview() {
   hljs.highlightBlock($('code'));
 }
 
+$('#asyncAwait').addEventListener('change', updateCodePreview);
 $('#deviceName').addEventListener('input', updateCodePreview);
 $('#advertisedDeviceName').addEventListener('input', updateCodePreview);
 $('#advertisedDeviceNamePrefix').addEventListener('input', updateCodePreview);
