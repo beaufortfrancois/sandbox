@@ -146,8 +146,7 @@ function generateCode(options) {
       throw "No device selected";
     }
     this.device.addEventListener('gattserverdisconnected', this.onDisconnected);
-  }
-`;
+  }`;
   } else {
     var requestMethod = `
   request() {
@@ -159,8 +158,7 @@ function generateCode(options) {
       this.device = device;
       this.device.addEventListener('gattserverdisconnected', this.onDisconnected);
     });
-  }
-`;
+  }`;
   }
 
   if (options.asyncAwait) {
@@ -170,8 +168,7 @@ function generateCode(options) {
       return Promise.reject('Device is not connected.');
     }
     await this.device.gatt.connect();
-  }
-`;
+  }`;
   } else {
     var connectMethod = `
   connect() {
@@ -179,8 +176,7 @@ function generateCode(options) {
       return Promise.reject('Device is not connected.');
     }
     return this.device.gatt.connect();
-  }
-`;
+  }`;
   }
 
   if (options.asyncAwait) {

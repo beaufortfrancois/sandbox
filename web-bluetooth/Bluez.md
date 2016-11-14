@@ -15,11 +15,13 @@ sudo apt-get -y install automake autotools-dev bison check clang flex lcov libca
 cd ~/Downloads/
 git clone git://git.kernel.org/pub/scm/bluetooth/bluez.git
 cd bluez/
-./bootstrap-configure --disable-systemd --disable-android
+./bootstrap && ./configure --localstatedir=/var --enable-datafiles --enable-library --disable-systemd --disable-obex --enable-sixaxis
 make
 
 exit
 ```
+
+See https://chromium.googlesource.com/chromiumos/overlays/chromiumos-overlay/+/master/net-wireless/bluez/bluez-9999.ebuild
 
 ## Replace BlueZ
 
@@ -30,6 +32,9 @@ stop bluetoothd
 
 cp /home/chronos/user/Downloads/bluez/src/bluetoothd /usr/local/
 cp /home/chronos/user/Downloads/bluez/client/bluetoothctl /usr/local/
+
+umount /usr/libexec/bluetooth/bluetoothd
+umount /usr/bin/bluetoothctl
 
 mount --bind /usr/local/bluetoothd /usr/libexec/bluetooth/bluetoothd
 mount --bind /usr/local/bluetoothctl /usr/bin/bluetoothctl
