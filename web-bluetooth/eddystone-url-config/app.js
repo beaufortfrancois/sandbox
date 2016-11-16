@@ -885,10 +885,8 @@ function setValue(inputId, value) {
 function setLock(locked) {
   if (locked) {
     $('#lock').parentElement.MaterialCheckbox.check();
-    $('#lock').parentElement.querySelector('.mdl-checkbox__label').textContent = 'Locked';
   } else {
     $('#lock').parentElement.MaterialCheckbox.uncheck();
-    $('#lock').parentElement.querySelector('.mdl-checkbox__label').textContent = 'Unlocked';
   }
 }
 

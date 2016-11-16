@@ -79,7 +79,7 @@
       .byteNote { font-size: small; padding-bottom: 0; }
       #footer { left: 0; right: 0; position: absolute; bottom: 0; text-align: center; line-height: 48px; color: #9e9e9e; }
       #footer a { color: #9e9e9e; }
-      .mdl-dialog { width: 320px; }
+      .mdl-dialog { width: 320px; overflow: auto; }
       #eddystoneLockStateDialog:after { content: "BETA"; position: absolute; width: 80px; height: 25px; background: #FF5722; top: 7px; left: -20px; text-align: center; font-weight: bold; color: #fff; line-height: 27px; transform: rotate(-45deg); }
       #errorMessageWarningDialog { font-style: italic; font-size: small; }
     </style>
@@ -163,7 +163,7 @@
 
       <label for="lock" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect advancedSetting">
         <input type="checkbox" id="lock" class="mdl-checkbox__input">
-        <span class="mdl-checkbox__label"></span>
+        <span class="mdl-checkbox__label">Locked</span>
       </label>
 
       <div id="toggleAdvancedSettings">Advanced settings...</div>
