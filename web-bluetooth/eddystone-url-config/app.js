@@ -816,12 +816,20 @@ function readEddystoneBeaconConfig() {
   $('#lock').parentElement.classList.toggle('edited', false);
   $('#lock').defaultChecked = isBeaconLocked;
   return advSlotDataCharacteristic.readValue().then(value => {
-    if (value.getUint8(0) == 0x10) {
-      // Remove frame type byte and advertised TX power at 0m.
-      var data = new DataView(value.buffer, 2);
-      setValue('uri', decodeURL(data));
+    const eddystoneFrameTypesMap = {
+      0x00: 'UID',
+      0x10: 'URL',
+      0x20: 'TLM',
+      0x30: 'EID',
+      0x40: 'Reserved'
+    }
+    const eddystoneFrameType = eddystoneFrameTypesMap[value.getUint8(0)];
+    if (eddystoneFrameType === 'URL') {
+        // Remove frame type byte and advertised TX power at 0m.
+        var data = new DataView(value.buffer, 2);
+        setValue('uri', decodeURL(data));
     } else {
-      return Promise.reject('ADV Slot Data is not an Eddystone frame URL.');
+      return Promise.reject(eddystoneFrameType + ' frame is not supported yet. Sorry.');
     }
   })
   .then(() => {
@@ -851,10 +859,6 @@ function readEddystoneBeaconConfig() {
     return advancedAdvertisedTxPowerCharacteristic.readValue().then(value => {
       setValue('advancedAdvertisedTxPower', value.getInt8(0));
     })
-  })
-  .catch(e => {
-    var data = {message: 'Error: ' + e, timeout: 5e3 };
-    $('#snackbar').MaterialSnackbar.showSnackbar(data);
   });
 }
 
