@@ -619,6 +619,7 @@ function updateBeacon(password, oldPassword) {
     }, 2e3);
   })
   .catch(e => {
+    $('#progressBar').hidden = true;
     ga('send', 'event', 'UpdateButtonOutcome', 'fail', e);
     var data = {message: 'Error: ' + e, timeout: 5e3 };
     $('#snackbar').MaterialSnackbar.showSnackbar(data);
