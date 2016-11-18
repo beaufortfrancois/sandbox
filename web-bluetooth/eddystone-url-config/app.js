@@ -857,7 +857,10 @@ function readEddystoneBeaconConfig() {
         var data = new DataView(value.buffer, 2);
         setValue('uri', decodeURL(data));
     } else {
-      return Promise.reject(eddystoneFrameType + ' frame is not supported yet. Sorry.');
+      // Instead of rejecting there, we let user override slot with a URL.
+      setValue('uri', 'https://...');
+      var data = {message: eddystoneFrameType + ' frame is not supported yet.', timeout: 5e3 };
+      $('#snackbar').MaterialSnackbar.showSnackbar(data);
     }
   })
   .then(() => {
