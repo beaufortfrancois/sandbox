@@ -47,7 +47,6 @@
       #flag { display: inline; font-weight: bold; letter-spacing: -.5px; }
       #container { max-width: 420px; margin: 0 auto; display: flex; flex-flow: row wrap; padding: 20px; margin-left: 0; align-self: center; margin-top: auto; margin-bottom: auto; padding-top: 48px; }
       #container > div { padding: 20px 4px; }
-      #container > label { margin: 12px 0px; }
       @media (max-width: 700px) {
         #container { margin-left: auto }
         #closeButton { position: fixed; display: block; left: 0; bottom: 0; margin-left: 40px; margin-bottom: 40px; z-index: 900; }
@@ -77,6 +76,7 @@
       .edited.mdl-checkbox.is-checked span.mdl-checkbox__tick-outline { background-color: #448AFF !important; }
       .shortened { color: #4CAF50 !important; font-weight: bold; text-transform: uppercase; }
       .byteNote { font-size: small; padding-bottom: 0; }
+      .byteNote pre { margin: 0 !important; }
       #footer { left: 0; right: 0; position: absolute; bottom: 0; text-align: center; line-height: 48px; color: #9e9e9e; }
       #footer a { color: #9e9e9e; }
       .mdl-dialog { width: 320px; overflow: auto; }
@@ -166,6 +166,11 @@
         <span class="mdl-checkbox__label">Locked</span>
       </label>
 
+      <label for="changePassword" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect advancedSetting">
+        <input type="checkbox" id="changePassword" class="mdl-checkbox__input">
+        <span class="mdl-checkbox__label">Change Password</span>
+      </label>
+
       <div id="toggleAdvancedSettings">Advanced settings...</div>
 
       <button type="button" id="resetButton" class="mdl-button mdl-js-button">Reset</button>
@@ -179,7 +184,7 @@
           <input class="mdl-textfield__input" type="text" id="unlockPassword" autocapitalize=off>
           <label class="mdl-textfield__label" for="unlockPassword">Enter password...</label>
         </div>
-        <div class="mdl-textfield byteNote">Note: You can enter bytes as 0x123456</div>
+       <div class="mdl-textfield byteNote">Note: A common default password is <pre>0x00112233445566778899aabbccddeeff</pre></div>
       </div>
       <div class="mdl-dialog__actions">
         <button id="confirmUnlockButton" type="button" class="mdl-button mdl-button--accent" disabled>Unlock</button>
@@ -206,7 +211,6 @@
 
     <dialog id="eddystoneLockStateDialog" class="mdl-dialog">
       <div class="mdl-dialog__content">
-        <div class="mdl-textfield byteNote">Note: A common default password value is 0x00112233445566778899AABBCCDDEEFF</div>
         <div class="mdl-textfield mdl-js-textfield">
           <input class="mdl-textfield__input" type="text" id="eddystoneLockStateOldPassword" autocapitalize=off>
           <label class="mdl-textfield__label" for="eddystoneLockStateOldPassword">Enter old password...</label>
@@ -219,7 +223,7 @@
           <input class="mdl-textfield__input" type="text" id="eddystoneLockStatePasswordConfirmation" autocapitalize=off>
           <label class="mdl-textfield__label" for="eddystoneLockStatePasswordConfirmation">Confirm new password...</label>
         </div>
-        <div class="mdl-textfield byteNote">Tip: You can enter bytes as 0x123456</div>
+        <div class="mdl-textfield byteNote">Note: A common default password is <pre>0x00112233445566778899aabbccddeeff</pre></div>
       </div>
       <div class="mdl-dialog__actions">
         <button id="confirmEddystoneLockStateButton" type="button" class="mdl-button mdl-button--accent">Lock</button>

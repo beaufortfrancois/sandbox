@@ -52,6 +52,8 @@ var capabilitiesCharacteristic,
     advancedFactoryResetCharacteristic,
     advancedRemainConnectableCharacteristic;
 
+const DEFAULT_PASSWORD = '0x00112233445566778899aabbccddeeff';
+
 /* Common */
 
 var beacon;
@@ -80,7 +82,9 @@ if (navigator.bluetooth) {
 
 function onScanButtonClick() {
   // Hack to allow audio to play afterwards
-  $('audio').play(); $('audio').pause();
+  if (!$('audio').played.length) {
+    $('audio').play(); $('audio').pause();
+  }
   ga('send', 'event', 'ScanButton', 'click');
   $('#progressBar').hidden = true;
   var options = {filters:[{services:[ EDDYSTONE_URL_CONFIG_SERVICE_UUID ]},
@@ -124,6 +128,8 @@ function showForm() {
   $('#flags').parentElement.hidden = !isEddystoneUrlBeacon;
   $('#period').parentElement.hidden = !isEddystoneUrlBeacon;
   $('#txPowerMode').parentElement.hidden = !isEddystoneUrlBeacon;
+  $('#txPowerMode').parentElement.classList.toggle('firstRow', true);
+  $('#txPowerMode').parentElement.classList.toggle('secondRow', false);
   $('#lowest').parentElement.hidden = !isEddystoneUrlBeacon;
   $('#low').parentElement.hidden = !isEddystoneUrlBeacon;
   $('#medium').parentElement.hidden = !isEddystoneUrlBeacon;
@@ -131,6 +137,8 @@ function showForm() {
   $('#advancedAdvertisedTxPower').parentElement.hidden = isEddystoneUrlBeacon;
   $('#advertisingInterval').parentElement.hidden = isEddystoneUrlBeacon;
   $('#radioTxPower').parentElement.hidden = isEddystoneUrlBeacon;
+  $('#toggleAdvancedSettings').hidden = false;
+  $('#container').classList.remove('more');
   $('#beaconService').innerHTML = isEddystoneUrlBeacon ? 'Eddystone-URL Configuration' : 'Eddystone Configuration';
   $('#beaconService').animate([
       {opacity: 0, transform: 'translateY(-28px)'},
@@ -222,12 +230,19 @@ function onUpdateButtonClick() {
         checkLockPassword();
         $('#lockDialog').showModal();
       } else {
-        $('#eddystoneLockStateOldPassword').parentElement.MaterialTextfield.change('');
-        $('#eddystoneLockStateNewPassword').parentElement.MaterialTextfield.change('');
-        $('#eddystoneLockStatePasswordConfirmation').parentElement.MaterialTextfield.change('');
-        $('#confirmEddystoneLockStateButton').disabled = false;
-        checkEddystoneLockStatePasswords();
-        $('#eddystoneLockStateDialog').showModal();
+        /* User wants to change password */
+        if ($('#changePassword').checked) {
+          $('#eddystoneLockStateOldPassword').parentElement.MaterialTextfield.change('');
+          $('#eddystoneLockStateNewPassword').parentElement.MaterialTextfield.change('');
+          $('#eddystoneLockStatePasswordConfirmation').parentElement.MaterialTextfield.change('');
+          $('#confirmEddystoneLockStateButton').disabled = false;
+          checkEddystoneLockStatePasswords();
+          $('#eddystoneLockStateDialog').showModal();
+        } else {
+          /* User wants to lock it with default password */
+          connectBeacon()
+          .then(updateBeacon(DEFAULT_PASSWORD));
+        }
       }
     } else {
       connectBeacon()
@@ -291,8 +306,12 @@ $('#confirmLockButton').addEventListener('click', function() {
 });
 
 $('#lock').addEventListener('change', function(event) {
-  event.target.parentElement.classList.toggle('edited', (event.target.defaultChecked !== event.target.checked));
   setLock(event.target.checked);
+});
+
+$('#changePassword').addEventListener('change', function(event) {
+  setLock(event.target.checked);
+  event.target.parentElement.classList.toggle('edited', event.target.checked);
 });
 
 $('#lockPassword').addEventListener('input', checkLockPassword);
@@ -465,9 +484,12 @@ function encrypt(key, data) {
 
 $('#toggleAdvancedSettings').addEventListener('click', function(event) {
   event.target.hidden = true;
+  $('#changePassword').parentElement.hidden = isEddystoneUrlBeacon;
   if (isEddystoneUrlBeacon) {
     $('#txPowerMode').parentElement.classList.remove('firstRow');
     $('#txPowerMode').parentElement.classList.add('secondRow');
+  } else {
+    $('#changePassword').parentElement.MaterialCheckbox.uncheck();
   }
   $('#container').classList.toggle('more', true);
 });
@@ -532,6 +554,11 @@ function updateBeacon(password, oldPassword) {
         return generateLock(password)
         .then(key => lockCharacteristic.writeValue(key))
       } else {
+        if (!oldPassword) {
+          // Lock beacon without changing the current security key value.
+          return eddystoneLockStateCharacteristic.writeValue(new Uint8Array([0]))
+          .then(() => { isBeaconLocked = true; });
+        }
         let oldKey = encodePassword(oldPassword);
         let reverse = (dataview) => {
           let array = toUint8Array(new Uint8Array(dataview.buffer));
@@ -813,6 +840,7 @@ function readBeaconConfig() {
 
 function readEddystoneBeaconConfig() {
   setLock(isBeaconLocked);
+  $('#changePassword').parentElement.classList.toggle('edited', false);
   $('#lock').parentElement.classList.toggle('edited', false);
   $('#lock').defaultChecked = isBeaconLocked;
   return advSlotDataCharacteristic.readValue().then(value => {
@@ -883,6 +911,7 @@ function setValue(inputId, value) {
 }
 
 function setLock(locked) {
+  $('#lock').parentElement.classList.toggle('edited', ($('#lock').defaultChecked !== locked));
   if (locked) {
     $('#lock').parentElement.MaterialCheckbox.check();
   } else {
