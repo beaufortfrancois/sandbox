@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Media Session + Camera Artwork</title>
+</head>
+<body>
+  <p>
+  Media Session notification is not updated after few seconds... ;(
+  </p>
+  <video autoplay muted hidden></video>
+  <audio controls loop src="jam.mp3"></audio>
+</body>
+<script>
+
+var imageCapture;
+
+navigator.mediaDevices.getUserMedia({video: true})
+.then(function(mediaStream) {
+  document.querySelector('video').srcObject = mediaStream;
+  imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
+  updateMediaSession();
+});
+
+function updateMediaSession() {
+  // Capture image from camera in the form of a ImageBitmap.
+  imageCapture.grabFrame()
+  .then(imageBitmap => {
+
+    // Get a Blob object representing the image.
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.width = imageBitmap.width;
+    canvas.height = imageBitmap.height;
+    context.drawImage(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height);
+    canvas.toBlob(blob => {
+
+      // Update Media Session artwork.
+      navigator.mediaSession.metadata = new MediaMetadata({
+          title: new Date(),
+          artist: 'Francois & Guillaume',
+          album: 'Album de la maturite',
+          artwork: [{ src: URL.createObjectURL(blob) }]
+      });
+      return Promise.resolve();
+    });
+  })
+  .then(_ => {
+    // Update Media Session every second.
+    return new Promise(resolve => {
+      setTimeout(_ => {
+        resolve(updateMediaSession());
+      }, 1000);
+    });
+  });
+}
+</script>
+</html>
