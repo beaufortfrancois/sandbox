@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Media Session Playground</title>
+</head>
+<body>
+  <audio autoplay controls></audio>
+</body>
+<script>
+
+var tracks = [];
+
+fetch('https://freemusicarchive.org/featured.json')
+.then(response => response.json())
+.then(data => {
+  if (!data.aTracks) {
+    return Promise.reject(data);
+  }
+  data.aTracks.forEach(track => {
+    tracks.push({
+      src: track.track_file_url,
+      metadata: {
+        title: track.track_title,
+        artist: track.artist_name,
+        album: track.album_title,
+        artwork: [{ src: track.track_image_file }]
+      }
+    });
+  });
+})
+.then(_ => {
+  updateTrack();
+})
+.catch(error => {
+  console.error(error);
+});
+
+var trackIndex = 0;
+
+const $audio = document.querySelector('audio');
+
+function updateTrack() {
+  navigator.mediaSession.metadata = new MediaMetadata(tracks[trackIndex].metadata);
+  $audio.src = tracks[trackIndex].src;
+}
+
+function selectNextTrack(e) {
+  trackIndex++;
+  if (trackIndex == tracks.length) {
+    trackIndex = 0;
+  }
+  updateTrack();
+  e.preventDefault();
+}
+
+function selectPreviousTrack(e) {
+  trackIndex--;
+  if (trackIndex < 0) {
+    trackIndex = tracks.length - 1;
+  }
+  updateTrack();
+  e.preventDefault();
+}
+
+function togglePlayPause(e) {
+  $audio.paused ? $audio.play() : $audio.pause();
+  e.preventDefault();
+}
+
+navigator.mediaSession.addEventListener('playpause', togglePlayPause);
+navigator.mediaSession.addEventListener('previoustrack', selectPreviousTrack);
+navigator.mediaSession.addEventListener('nexttrack', selectNextTrack);
+
+</script>
+</html>
