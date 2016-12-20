@@ -62,16 +62,16 @@
 
     <div class="container">
       <div>
-        <div class="button" data-x="1" id="backward">BACKWARD</div>
-        <div class="button" data-x="2" id="forward">FORWARD</div>
+        <div class="button" data-x="1">LEFT</div>
+        <div class="button" data-x="2">RIGHT</div>
       </div>
       <div>
-        <div class="button" data-y="1" id="left">LEFT</div>
-        <div class="button" data-y="2" id="right">RIGHT</div>
+        <div class="button" data-y="1">BACKWARD</div>
+        <div class="button" data-y="2">FORWARD</div>
       </div>
       <div>
-        <div class="button" data-z="1" id="down">DOWN</div>
-        <div class="button" data-z="2" id="up">UP</div>
+        <div class="button" data-z="1">DOWN</div>
+        <div class="button" data-z="2">UP</div>
       </div>
       <pre><pre>
     </div>
@@ -157,7 +157,9 @@
           } 
         })
         .then(_ => {
-          motorCommand[Object.keys(queue[0])[0]] = queue[0][Object.keys(queue[0])[0]];
+          try { motorCommand[Object.keys(queue[0])[0]] = queue[0][Object.keys(queue[0])[0]]; } catch(e) {}
+          try { motorCommand[Object.keys(queue[0])[1]] = queue[0][Object.keys(queue[0])[1]]; } catch(e) {}
+          try { motorCommand[Object.keys(queue[0])[2]] = queue[0][Object.keys(queue[0])[2]]; } catch(e) {}
           log(JSON.stringify(motorCommand));
           let value = new Uint8Array([motorCommand.x, motorCommand.y, motorCommand.z, 0]);
           return motorCharacteristic.writeValue(value);
