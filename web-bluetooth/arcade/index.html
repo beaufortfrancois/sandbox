@@ -132,7 +132,10 @@
       function sendMotorCommands() {
         if (!motorCharacteristic) {
           return navigator.bluetooth.requestDevice({filters: [{name: 'Arcade Machine'}], optionalServices: [ 0x1900 ]})
-          .then(device => device.gatt.connect())
+          .then(device => {
+            device.addEventListener('gattserverdisconnected', onDisconnected);
+            return device.gatt.connect();
+          })
           .then(server => server.getPrimaryService(0x1900))
           .then(service => service.getCharacteristic(0x1901))
           .then(characteristic => {
@@ -169,6 +172,10 @@
             return sendMotorCommands();
           }
         });
+      }
+
+      function onDisconnected() {
+        log('Disconnected!');
       }
 
       function log(text) {
