@@ -1,9 +1,9 @@
-// Version 0.1
+// Version 0.2
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open('airhorner').then(cache => {
-      return cache.addAll(['/'])
+    caches.open('arcade').then(cache => {
+      return cache.addAll(['index.html'])
       .then(_ => self.skipWaiting());
     })
   )
