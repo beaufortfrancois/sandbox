@@ -28,7 +28,6 @@
       }
 
       .container {
-        width: 100%;
         text-align: center;
       }
 
@@ -135,6 +134,7 @@
             log('Ready');
           })
           .catch(e => {
+            // TODO: Switch to log when PointerEvents bug is fixed.
             console.log(e);
           })
           .then(_ => {
