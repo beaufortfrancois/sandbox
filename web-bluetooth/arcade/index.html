@@ -183,6 +183,7 @@
 
       for (const button of document.querySelectorAll('.button')) {
         button.addEventListener('pointerdown', onButtonPressed);
+        button.addEventListener('pointerleave', onButtonReleased);
         button.addEventListener('pointerup', onButtonReleased);
       }
     </script>
