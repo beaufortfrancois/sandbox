@@ -30,8 +30,9 @@
 
       h1 {
         color: #ddd;
-        text-shadow: 0px 1px 3px #333;
-        font-weight: 300;
+        margin-top: 36px;
+        font-weight: 100;
+        font-size: 14px;
       }
 
       .container {
@@ -44,11 +45,11 @@
 
       .button {
         cursor: default;
-        font-size: 12px;
+        font-size: 16px;
         font-weight: bold;
         border-radius: 50%;
         border: 0;
-        width: 96px;
+        width: 108px;
         height: 96px;
         line-height: 96px;
         display: inline-block;
@@ -56,8 +57,8 @@
         background: -webkit-linear-gradient(left top, #D32F2F, #B71C1C);
         box-shadow: 0 3px 4px rgba(0,0,0,0.4);
         text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
-        color: white;
-        transform: rotate(-15deg);
+        color: #eee;
+        transform: rotate(-10deg);
       }
 
       .button.pressed {
@@ -79,19 +80,19 @@
   <body>
 
     <div class="container">
-      <h1>Arcade Machine</h1>
       <div>
         <div class="button" data-axis="x" data-value="1">LEFT</div>
         <div class="button" data-axis="x" data-value="2">RIGHT</div>
       </div>
       <div>
-        <div class="button" data-axis="y" data-value="1">BACKWARD</div>
+        <div class="button" data-axis="y" data-value="1">BACK</div>
         <div class="button" data-axis="y" data-value="2">FORWARD</div>
       </div>
       <div>
         <div class="button" data-axis="z" data-value="1">DOWN</div>
         <div class="button" data-axis="z" data-value="2">UP</div>
       </div>
+      <h1>Arcade Machine<br/>by François & Jérôme</h1>
       <pre></pre>
     </div>
 
@@ -193,6 +194,8 @@
       }
 
       for (const button of document.querySelectorAll('.button')) {
+        button.style.width = Math.floor((Math.random() * 20) + 118) + 'px';
+        button.style.marginRight = Math.floor((Math.random() * 20) + 12) + 'px';
         button.addEventListener('pointerdown', onButtonPressed);
         button.addEventListener('pointerleave', onButtonReleased);
         button.addEventListener('pointerup', onButtonReleased);
