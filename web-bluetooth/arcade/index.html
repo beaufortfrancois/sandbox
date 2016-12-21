@@ -186,6 +186,9 @@
         button.addEventListener('pointerleave', onButtonReleased);
         button.addEventListener('pointerup', onButtonReleased);
       }
+
+      screen.orientation.lock('portrait')
+      .catch(e => { console.debug(e) });
     </script>
   </body>
 </html>
