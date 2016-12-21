@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#757575">
     <meta http-equiv="origin-trial" content="AijR+5l/k0ciVKpxexEkt3iB8BegG17+iCPZsQZfKHPOJlRKQrvxGF7iuUaXvZQOTGMDpVVnL9k1xM5LE5ciyQAAAABleyJvcmlnaW4iOiAiaHR0cHM6Ly9iZWF1Zm9ydGZyYW5jb2lzLmdpdGh1Yi5pbzo0NDMiLCAiZmVhdHVyZSI6ICJXZWJCbHVldG9vdGgiLCAiZXhwaXJ5IjogMTQ4Mjc2MjE3M30=">
+    <meta name='description' content="As seen on TV!">
+    <link rel='manifest' href='manifest.json'>
     <title>Arcade</title>
-    <link rel="icon" sizes="192x192" href="../favicon.png">
+    <link rel="icon" sizes="192x192" href="icon.png">
     <style>
       html, body {
         margin: 0;
@@ -105,6 +107,9 @@
       }
 
       function onButtonReleased(event) {
+        if (!event.target.classList.contains('pressed')) {
+          return;
+        }
         event.target.classList.remove('pressed');
         pushCommand(event.target.dataset.axis, STOP);
       }
@@ -189,7 +194,8 @@
 
       screen.orientation.lock('portrait')
       .catch(e => { console.debug(e) });
+
+      navigator.serviceWorker.register('sw.js');
     </script>
   </body>
 </html>
-  
