@@ -63,16 +63,16 @@
 
     <div class="container">
       <div>
-        <div class="button" data-x="1">LEFT</div>
-        <div class="button" data-x="2">RIGHT</div>
+        <div class="button" data-axis="x" data-value="1">LEFT</div>
+        <div class="button" data-axis="x" data-value="2">RIGHT</div>
       </div>
       <div>
-        <div class="button" data-y="1">BACKWARD</div>
-        <div class="button" data-y="2">FORWARD</div>
+        <div class="button" data-axis="y" data-value="1">BACKWARD</div>
+        <div class="button" data-axis="y" data-value="2">FORWARD</div>
       </div>
       <div>
-        <div class="button" data-z="1">DOWN</div>
-        <div class="button" data-z="2">UP</div>
+        <div class="button" data-axis="z" data-value="1">DOWN</div>
+        <div class="button" data-axis="z" data-value="2">UP</div>
       </div>
       <pre><pre>
     </div>
@@ -89,50 +89,30 @@
 
       var queue = [];
 
-      var buttons = document.querySelectorAll('.button');
-      for (let button of buttons) {
-        button.addEventListener('mousedown', onButtonPressed);
-        button.addEventListener('mouseup', onButtonReleased);
-      }
-
       function onButtonPressed(event) {
         event.target.classList.add('pressed');
-
-        let axis = Object.keys(event.target.dataset)[0];
-        let command = {};
-        command[axis] = parseInt(event.target.dataset[axis]);
-
-        pushCommand(command);
+        pushCommand(event.target.dataset.axis, event.target.dataset.value);
       }
 
       function onButtonReleased(event) {
         event.target.classList.remove('pressed');
-
-        let axis = Object.keys(event.target.dataset)[0];
-        let command = {};
-        command[axis] = STOP;
-
-        pushCommand(command);
+        pushCommand(event.target.dataset.axis, STOP);
       }
 
-      function pushCommand(command) {
+      function pushCommand(axis, value) {
+        let command = motorCommand;
+        command[axis] = parseInt(value);
+
         queue.push(command);
 
-        if (queue.length > 1) {
-          return;
+        if (queue.length == 1) {
+          sendMotorCommands();
         }
-        sendMotorCommands();
       }
-
      
-      function reset() {
-        queue = [];
-        motorCommand = { x: STOP, y: STOP, z: STOP };
-      }
-
       function sendMotorCommands() {
         if (!motorCharacteristic) {
-          return navigator.bluetooth.requestDevice({filters: [{name: 'Arcade Machine'}], optionalServices: [ 0x1900 ]})
+          return navigator.bluetooth.requestDevice({filters: [{name: 'Arcade Machine'}], optionalServices: [0x1900]})
           .then(device => {
             device.addEventListener('gattserverdisconnected', onDisconnected);
             return device.gatt.connect();
@@ -141,12 +121,13 @@
           .then(service => service.getCharacteristic(0x1901))
           .then(characteristic => {
             motorCharacteristic = characteristic;
-            reset();
             log('Ready');
           })
           .catch(e => {
-            reset();
             log(e);
+          })
+          .then(_ => {
+            reset();
           });
         }
 
@@ -158,15 +139,14 @@
           } 
         })
         .then(_ => {
-          try { motorCommand[Object.keys(queue[0])[0]] = queue[0][Object.keys(queue[0])[0]]; } catch(e) {}
-          try { motorCommand[Object.keys(queue[0])[1]] = queue[0][Object.keys(queue[0])[1]]; } catch(e) {}
-          try { motorCommand[Object.keys(queue[0])[2]] = queue[0][Object.keys(queue[0])[2]]; } catch(e) {}
+          motorCommand = queue[0];
           log(JSON.stringify(motorCommand));
           let value = new Uint8Array([motorCommand.x, motorCommand.y, motorCommand.z, 0]);
           return motorCharacteristic.writeValue(value);
         })
         .catch(e => {
-          log('Argh', e);
+          log('Error: ' + e);
+          reset();
         })
         .then(_ => {
           queue.shift();
@@ -177,12 +157,22 @@
         });
       }
 
+      function reset() {
+        queue = [];
+        motorCommand = { x: STOP, y: STOP, z: STOP };
+      }
+
       function onDisconnected() {
         log('Disconnected!');
       }
 
       function log(text) {
         document.querySelector('pre').textContent = text;
+      }
+
+      for (const button of document.querySelectorAll('.button')) {
+        button.addEventListener('mousedown', onButtonPressed);
+        button.addEventListener('mouseup', onButtonReleased);
       }
     </script>
   </body>
