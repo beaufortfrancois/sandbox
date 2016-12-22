@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Wistiki fails to connect with Web Bluetooth</title>
+  </head>
+  <body>
+    <button>Scan & Connect to Wistiki</button>
+  </body>
+  <script>
+
+    document.querySelector('button').addEventListener('click', function() {
+      navigator.bluetooth.requestDevice({filters:[{namePrefix:[ 'Wistiki' ]}]})
+      .then(device => device.gatt.connect())
+      .then(gatt => console.log('Connected: ' + gatt.connected))
+      .catch(error => console.log(error));
+    });
+
+  </script>
+</html>
+
