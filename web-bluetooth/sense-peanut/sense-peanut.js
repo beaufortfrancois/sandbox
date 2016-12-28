@@ -265,14 +265,10 @@ class Peanut {
 
   _parseBatteryData(value) {
     let batteryData = value.getUint8(6) | value.getUint8(7) << 8;
-    if (batteryData >= 2900) {
-      return batteryData + 'mV (100%)';
-    } else if (batteryData >= 2850) {
-      return batteryData + 'mV (50%)';
-    } else if (batteryData >= 2600) {
-      return batteryData + 'mV (25%)';
+    if (batteryData >= 2600) {
+      return batteryData + 'mV (Good)';
     }
-    return batteryData + 'mV (0%)';
+    return batteryData + 'mV (Low)';
   }
 
   _parseTemperatureData(value) {
