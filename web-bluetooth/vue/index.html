@@ -7,7 +7,7 @@
 <body>
   <div id="app">
     <p>{{ statusText }}</p>
-    <div v-if="isDeviceConnected">
+    <div v-if="isDeviceReady">
       <button @click="readBatteryLevel">Read Battery Level</button>
       <p v-show="batteryLevel">Battery Level is {{ batteryLevel }}%</p>
     </div>
@@ -24,13 +24,13 @@
         device: null,
         batteryLevelCharacteristic: null,
         batteryLevel: null,
-        isDeviceConnected: false,
+        isDeviceReady: false,
       },
       methods: {
         init() {
           this.device = null;
           this.batteryLevelCharacteristic = null;
-          this.isDeviceConnected = false;
+          this.isDeviceReady = false;
           this.batteryLevel = null;
         },
         async scan() {
@@ -46,13 +46,13 @@
             await this.device.gatt.connect();
 
             this.statusText = `Connected to ${this.device.name}.`;
-            this.isDeviceConnected = true;
-
             const batteryService = await this.device.gatt.getPrimaryService('battery_service');
             batteryLevelCharacteristic = await batteryService.getCharacteristic('battery_level');
             await batteryLevelCharacteristic.startNotifications();
             batteryLevelCharacteristic.addEventListener('characteristicvaluechanged',
                 this.handleBatteryLevelChanged);
+
+            this.isDeviceReady = true;
           }
           catch(error) {
             this.statusText = error.message;
@@ -70,7 +70,7 @@
           this.batteryLevel = event.target.value.getUint8(0);
         },
         onDisconnected(event) {
-          this.isDeviceConnected = false;
+          this.isDeviceReady = false;
           this.statusText = `Disconnected from ${event.target.name}.`;
         }
       }
