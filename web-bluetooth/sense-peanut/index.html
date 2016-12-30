@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sense Peanut</title>
     <link rel="icon" sizes="192x192" href="../favicon.png">
-    <meta http-equiv="origin-trial" content="AijR+5l/k0ciVKpxexEkt3iB8BegG17+iCPZsQZfKHPOJlRKQrvxGF7iuUaXvZQOTGMDpVVnL9k1xM5LE5ciyQAAAABleyJvcmlnaW4iOiAiaHR0cHM6Ly9iZWF1Zm9ydGZyYW5jb2lzLmdpdGh1Yi5pbzo0NDMiLCAiZmVhdHVyZSI6ICJXZWJCbHVldG9vdGgiLCAiZXhwaXJ5IjogMTQ4Mjc2MjE3M30=">
+    <meta http-equiv="origin-trial" content="Atn6/biSlTsXeEyZfiEGonhmroFFywR7RVDykbpOWCHoLUQ6DEqZkup+tGZboQgV/ZiXexH+Yoo1+bWjKDIT4QEAAABgeyJvcmlnaW4iOiJodHRwczovL2JlYXVmb3J0ZnJhbmNvaXMuZ2l0aHViLmlvOjQ0MyIsImZlYXR1cmUiOiJXZWJCbHVldG9vdGgiLCJleHBpcnkiOjE0ODUzMjAzOTl9">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 <link rel="stylesheet" href="https://code.getmdl.io/1.2.0/material.blue-indigo.min.css" />
     <script defer src="https://code.getmdl.io/1.2.0/material.min.js"></script>
     <style>
       #dashboard { padding: 12px }
+      #dashboard > button { margin-bottom: 2px; }
       #chart { padding: 24px; padding-bottom: 0; }
       #console {
         height: 100px;
@@ -23,88 +24,117 @@
         margin: 0;
         line-height: 16px;
       }
+      [data-color="blue"] { color: #311B92; }
+      [data-color="green"] { color: #689F38; }
+      [data-color="orange"] { color: #E65100; }
+      #scanPeanuts { float: right; margin-right: 12px; }
+      .separator { color: rgba(0,0,0,.26); }
     </style>
   </head>
   <body>
     <div id="dashboard">
-      <div style="float: right">
-        <button class="mdl-button mdl-js-button" id="connectBluePeanut" data-color="blue">Blue Peanut (0C:11:08)</button>
-        <button class="mdl-button mdl-js-button" id="connectGreenPeanut" data-color="green">Green Peanut (06:13:18)</button>
+      <div>
+        <button class="mdl-button mdl-js-button" disabled id="connectOrangePeanut" data-color="orange">🥜 46:06:1A</button>
+        <button class="mdl-button mdl-js-button" disabled id="connectGreenPeanut" data-color="green">🥜 06:13:18</button>
+        <button class="mdl-button mdl-js-button" disabled id="connectBluePeanut" data-color="blue">🥜 0C:11:08</button>
+        <button class="mdl-button mdl-js-button mdl-button--icon" id="scanPeanuts"><i class="material-icons">search</i></button>
       </div>
-
-      <button class="mdl-button mdl-js-button mdl-button--primary" id="temperature" disabled>Get Temperature</button>
       <button class="mdl-button mdl-js-button mdl-button--primary" id="battery" disabled>Get Battery</button>
       <button class="mdl-button mdl-js-button mdl-button--primary" id="buzz" disabled>Buzz</button>
-
-      <button class="mdl-button mdl-js-button mdl-button--primary" id="startNotifications" disabled>Start Notifications</button>
-      <button class="mdl-button mdl-js-button mdl-button--primary" id="stopNotifications" disabled>Stop Notifications</button>
+      <span class="separator">|</span>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="temperature" disabled>Get Temperature</button>
+      <span class="separator">|</span>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="guardState" disabled>Get Guard State</button>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="turnOnGuard" disabled>Turn on Guard</button>
+      <button class="mdl-button mdl-js-button mdl-button--primary" id="turnOffGuard" disabled>Turn off Guard</button>
     </div>
 
     <div id="console"></div>
 
-    <div id="chart"></div>
+    <div id="thermoChart"></div>
+    <div id="guardChart"></div>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="sense-peanut.js"></script>
     <script>
       var $ = document.querySelector.bind(document);
 
-      var bluePeanut = new Peanut();
-      var greenPeanut = new Peanut();
+      var peanuts = [];
+
       var activePeanut;
 
-      const factoryKeys = {
-        'blue': new Uint8Array([35, -68, -100, 75, -78, 107, 52, -113, 19, -78, -65, 53, 89, -48, -47, 44]),
-        'green': new Uint8Array([-116, 74, 87, -45, -61, -88, -124, 15, -52, -117, 110, 31, 69, -44, -82, -21]),
+      const MY_PEANUTS = {
+        '00:A0:50:46:06:1A': {
+          'color': 'orange',
+          'factoryKey': new Uint8Array([240, 136, 243, 39, 26, 197, 89, 197, 75, 82, 158, 60, 40, 186, 231, 228])
+        },
+        '00:A0:50:0C:11:08': {
+          'color': 'blue',
+          'factoryKey': new Uint8Array([35, -68, -100, 75, -78, 107, 52, -113, 19, -78, -65, 53, 89, -48, -47, 44])
+        },
+        '00:A0:50:06:13:18': {
+          'color': 'green',
+          'factoryKey': new Uint8Array([-116, 74, 87, -45, -61, -88, -124, 15, -52, -117, 110, 31, 69, -44, -82, -21])
+        }
       };
 
-      $('#connectBluePeanut').addEventListener('click', onConnectButtonClick);
-      $('#connectGreenPeanut').addEventListener('click', onConnectButtonClick);
-
-      function onConnectButtonClick(event) {
-        let color = event.target.dataset.color;
-        const factoryKey = factoryKeys[color];
-        log('Requesting ' + color + ' peanut...');
-        let peanut = color === 'blue' ? bluePeanut : greenPeanut;
+      $('#scanPeanuts').addEventListener('click', function() {
+        log('Scanning for peanuts...');
+        let peanut = new Peanut();
         peanut.connect()
         .then(_ => { log('Connected to ' + peanut.device.name); })
         .then(_ => peanut.getInitData())
         .then(initData => { log('Init Data: ' + JSON.stringify(initData)); })
         .then(_ => peanut.getMacAddress())
-        .then(macAddress => { log('Mac Address: ' + macAddress); })
+        .then(macAddress => {
+          log('Mac Address: ' + macAddress);
+          peanut.color = MY_PEANUTS[macAddress].color;
+          log('Peanut color: ' + peanut.color);
+          peanut.factoryKey = MY_PEANUTS[macAddress].factoryKey;
+        })
         .then(_ => peanut.getPlainText())
-        .then(clearText => peanut.setFactoryCipher(factoryKey, clearText))
+        .then(clearText => peanut.setFactoryCipher(peanut.factoryKey, clearText))
         .then(_ => peanut.setTime())
+        .then(_ => peanut.updateConnectionParameters())
+        .then(_ => peanut.startNotifications(handleNotifications))
         .then(_ => {
           log('Successfully authenticated!');
-          $('#startNotifications').disabled = false;
-          $('#stopNotifications').disabled = false;
-          $('#battery').disabled = false;
-          $('#temperature').disabled = false;
-          $('#buzz').disabled = false;
-          $('#connectBluePeanut').classList.toggle('mdl-button--primary', color === 'blue');
-          $('#connectGreenPeanut').classList.toggle('mdl-button--primary', color !== 'blue');
           activePeanut = peanut;
+          peanuts.push(activePeanut);
+
+          for (const button of document.querySelectorAll('button[data-color]')) {
+            if (peanut.color == button.dataset.color) {
+              button.disabled = false;
+              setTimeout(function() {
+                $('#battery').disabled = false;
+                $('#temperature').disabled = false;
+                $('#buzz').disabled = false;
+                $('#guardState').disabled = false;
+                $('#turnOnGuard').disabled = false;
+                $('#turnOffGuard').disabled = false;
+                updateButtonsColor(button);
+              }, 200);
+            }
+          }
          })
         .catch(e => { log('Error: ' + e); });
+      });
+
+      for (const button of document.querySelectorAll('button[data-color]')) {
+        button.addEventListener('click', onConnectButtonClick);
       }
 
-      document.querySelector('#startNotifications').addEventListener('click', function() {
-        log('Starting notifications...');
-        activePeanut.startNotifications(handleNotifications)
-        .then(_ => {
-          log('Ready to receive notifications.');
-        })
-        .catch(e => { log('Error: ' + e); });
-      });
+      function onConnectButtonClick(event) {
+        let color = event.target.dataset.color;
+        activePeanut = peanuts.find(peanut => peanut.color == color);
+        updateButtonsColor(event.target);
+      }
 
-      document.querySelector('#stopNotifications').addEventListener('click', function() {
-        log('Stopping notifications...');
-        activePeanut.stopNotifications()
-        .then(_ => {
-          log('Notifications are stopped.');
-        })
-        .catch(e => { log('Error: ' + e); });
-      });
+      function updateButtonsColor(button) {
+        let color = getComputedStyle(button).getPropertyValue('color');
+        for (const actionButton of document.querySelectorAll('#dashboard > button')) {
+          actionButton.style.color = color;
+        }
+      }
 
       document.querySelector('#battery').addEventListener('click', function() {
         log('Getting battery...');
@@ -129,28 +159,53 @@
         .catch(e => { log('Error: ' + e); });
       });
 
+      document.querySelector('#guardState').addEventListener('click', function() {
+        log('Getting guard state...');
+        activePeanut.getGuardState()
+        .then(data => handleNotifications(data, activePeanut))
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      document.querySelector('#turnOnGuard').addEventListener('click', function() {
+        log('Turning ON guard...');
+        activePeanut.turnOnGuard()
+        .then(_ => {
+          log('Guard is turned ON.');
+        })
+        .catch(e => { log('Error: ' + e); });
+      });
+
+      document.querySelector('#turnOffGuard').addEventListener('click', function() {
+        log('Turning OFF guard...');
+        activePeanut.turnOffGuard()
+        .then(_ => {
+          log('Guard is turned OFF.');
+        })
+        .catch(e => { log('Error: ' + e); });
+      });
+
       function handleNotifications(data, peanut) {
         if (data.temperatureCelsius) {
           let item = {
-            peanutColor: getPeanutColor(peanut.device.id),
+            peanutColor: peanut.color,
             temperatureCelsius: data.temperatureCelsius,
           }
           //TODO: Don't use localStorage.
           localStorage.setItem(data.timeStampMs, JSON.stringify(item));
-          updateChart(peanut, data.timeStampMs, data.temperatureCelsius);
+          updateThermoChart(peanut, data.timeStampMs, data.temperatureCelsius);
+        } else if (data.alert) {
+          let item = {
+            peanutColor: peanut.color,
+            alert: data.alert,
+          }
+          //TODO: Don't use localStorage.
+          localStorage.setItem(data.timeStampMs, JSON.stringify(item));
+          updateGuardChart(peanut, data.timeStampMs, data.alert);
         }
         let timeStamp = new Date(data.timeStampMs).toLocaleString();
         delete(data.timeStampMs);
-        data.peanutColor = getPeanutColor(peanut.device.id);
+        data.peanutColor = peanut.color;
         log(timeStamp + ' ' + JSON.stringify(data));
-      }
-
-      function getPeanutColor(deviceId) {
-        if (bluePeanut.device && deviceId === bluePeanut.device.id) {
-          return 'blue';
-        } else {
-          return 'green';
-        }
       }
 
       function log(text) {
@@ -163,37 +218,51 @@
       google.charts.load('current', {packages: ['corechart']});
       google.charts.setOnLoadCallback(drawChart);
 
-      var chart, bluePeanutData, greenPeanutData, peanutsData, options;
+      var thermoChart, bluePeanutData, greenPeanutData, thermoChartOptions;
+      var guardChart, orangePeanutData, guardChartOptions;
 
       function drawChart() {
-        chart = new google.visualization.LineChart($('#chart'));
+        thermoChart = new google.visualization.LineChart($('#thermoChart'));
 
         bluePeanutData = new google.visualization.DataTable();
         bluePeanutData.addColumn('datetime', 'Time');
-        bluePeanutData.addColumn('number', 'Blue Peanut');
+        bluePeanutData.addColumn('number', '🥜 0C:11:08');;
 
         greenPeanutData = new google.visualization.DataTable();
         greenPeanutData.addColumn('datetime', 'Time');
-        greenPeanutData.addColumn('number', 'Green Peanut');
+        greenPeanutData.addColumn('number', '🥜 06:13:18');;
+
+        guardChart = new google.visualization.ScatterChart($('#guardChart'));
+
+        orangePeanutData = new google.visualization.DataTable();
+        orangePeanutData.addColumn('datetime', 'Time');
+        orangePeanutData.addColumn('number', '🥜 46:06:1A');
 
         for (var i = 0, len = localStorage.length; i < len; i++) {
           let dateTime = new Date(parseInt(localStorage.key(i)));
           let item = JSON.parse(localStorage.getItem(localStorage.key(i)));
-          let temperature = parseFloat(item.temperatureCelsius);
-          if (item.peanutColor === 'blue') {
-            bluePeanutData.addRows([ [dateTime, temperature] ]);
-          } else {
-            greenPeanutData.addRows([ [dateTime, temperature] ]);
+          if (item.temperatureCelsius) {
+            let temperature = parseFloat(item.temperatureCelsius);
+            if (item.peanutColor === 'blue') {
+              bluePeanutData.addRows([ [dateTime, temperature] ]);
+            } else if (item.peanutColor === 'green') {
+              greenPeanutData.addRows([ [dateTime, temperature] ]);
+            }
+          }
+          if (item.alert) {
+            let data = parseInt(item.alert);
+            orangePeanutData.addRows([ [dateTime, data] ]);
           }
         }
 
-        options = {
+        thermoChartOptions = {
           interpolateNulls: true,
           fontName: 'Roboto',
           curveType: 'function',
           colors:['#283593', '#8BC34A'],
-          width: window.innerWidth - 48,
-          height: window.innerHeight - 220,
+          width: window.innerWidth,
+          height: (window.innerHeight - 224) / 2,
+          legend: 'none',
           lineWidth: 3,
           vAxis: {
             format: '#.## °C'
@@ -205,32 +274,70 @@
           }
         };
 
-        if (localStorage.length) {
-          peanutsData = google.visualization.data.join(bluePeanutData, greenPeanutData, 'full', [[0, 0]], [1], [1]);
+        guardChartOptions = {
+          fontName: 'Roboto',
+          colors:['#E65100'],
+          width: window.innerWidth,
+          height: (window.innerHeight - 224) / 2,
+          legend: 'none',
+          hAxis: {
+            gridlines: {
+              color: '#fff'
+            }
+          }
+        };
 
-          chart.draw(peanutsData, options);
+        let thermoPeanutsData = google.visualization.data.join(bluePeanutData, greenPeanutData, 'full', [[0, 0]], [1], [1]);
+        if (thermoPeanutsData.getNumberOfRows()) {
+          thermoChart.draw(thermoPeanutsData, thermoChartOptions);
+        }
+
+        if (orangePeanutData.getNumberOfRows()) {
+          guardChart.draw(orangePeanutData, guardChartOptions);
         }
       }
 
-      function updateChart(peanut, timeStampMs, temperature) {
+      function updateThermoChart(peanut, timeStampMs, temperature) {
         let dateTime = new Date(timeStampMs);
-        if (bluePeanut.device && peanut.device.id === bluePeanut.device.id) {
-          bluePeanutData.addRows([ [dateTime, temperature] ]);
-          bluePeanutData.sort([{'column': 0}]);
-        } else {
-          greenPeanutData.addRows([ [dateTime, temperature] ]);
-          greenPeanutData.sort([{'column': 0}]);
+        switch (peanut.color) {
+          case 'blue': 
+            bluePeanutData.addRows([ [dateTime, temperature] ]);
+            bluePeanutData.sort([{'column': 0}]);
+            break;
+          case 'green':
+            greenPeanutData.addRows([ [dateTime, temperature] ]);
+            greenPeanutData.sort([{'column': 0}]);
+            break;
+          default:
+            console.log('Woops!');
         }
-        peanutsData = google.visualization.data.join(bluePeanutData, greenPeanutData, 'full', [[0, 0]], [1], [1]);
-        chart.draw(peanutsData, options);
+        let thermoPeanutsData = google.visualization.data.join(bluePeanutData, greenPeanutData, 'full', [[0, 0]], [1], [1]);
+        thermoChart.draw(thermoPeanutsData, thermoChartOptions);
+      }
+
+      function updateGuardChart(peanut, timeStampMs, data) {
+        let dateTime = new Date(timeStampMs);
+        switch (peanut.color) {
+          case 'orange':
+            orangePeanutData.addRows([ [dateTime, data] ]);
+            orangePeanutData.sort([{'column': 0}]);
+            break;
+          default:
+            console.log('Woops!');
+        }
+        guardChart.draw(orangePeanutData, guardChartOptions);
       }
 
       window.onresize = function() {
-        options.width = window.innerWidth - 48;
-        options.height = window.innerHeight - 220;
-        chart.draw(peanutsData, options);
-      }
+        thermoChartOptions.width = window.innerWidth;
+        thermoChartOptions.height = (window.innerHeight - 224) / 2;
+        let thermoPeanutsData = google.visualization.data.join(bluePeanutData, greenPeanutData, 'full', [[0, 0]], [1], [1]);
+        thermoChart.draw(thermoPeanutsData, thermoChartOptions);
 
+        guardChartOptions.width = window.innerWidth;
+        guardChartOptions.height = (window.innerHeight - 224) / 2;
+        guardChart.draw(orangePeanutData, guardChartOptions);
+      }
 
     </script>
   </body>

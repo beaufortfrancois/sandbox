@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Multiple Request Devices</title>
+  </head>
+  <body>
+    <button>Request device three times sequentially</button>
+    <script>
+      document.querySelector('button').addEventListener('click', function() {
+        navigator.bluetooth.requestDevice({ filters: [{ name: 'a' }] });
+        navigator.bluetooth.requestDevice({ filters: [{ name: 'b' }] });
+        navigator.bluetooth.requestDevice({ filters: [{ name: 'c' }] });
+     });
+    </script>
+  </body>
+</html>
+

@@ -118,16 +118,19 @@ class Peanut {
     return this._commandCharacteristic.writeValue(data);
   }
 
-  getBattery() {
-    return this._commandCharacteristic.writeValue(new Uint8Array([3]))
-    .then(_ => this._commandCharacteristic.readValue())
-    .then(value => {
-      if (value.getUint8(0) !== 1) {
-        return Promise.reject('Unexpected ID when reading command characteristic');
-      }
-      return this._parseNotifications(value);
-    });
+  updateConnectionParameters() {
+    // Max connection interval in ms from 25 to 2000
+    let intervalMax = 100;
+    // Number of packets missed before triggering a connection timeout (from 0 to 6)
+    let slaveLatency = 4;
+    // Supervision timeout in ms from 1000 to 6000
+    let supervisionTimeout = 20000;
+
+    let data = new Uint8Array([103, intervalMax / 12.5, 4, supervisionTimeout / 100]);
+    return this._commandCharacteristic.writeValue(data);
   }
+
+  /* ThermoPeanut specific */
 
   getTemperature() {
     return this._commandCharacteristic.writeValue(new Uint8Array([4]))
@@ -140,8 +143,56 @@ class Peanut {
     });
   }
 
+  /* GuardPeanut specific */
+
+  getGuardState() {
+    return this._commandCharacteristic.writeValue(new Uint8Array([70, 0, 0]))
+    .then(_ => this._commandCharacteristic.readValue())
+    .then(value => {
+      if (value.getUint8(0) !== 70) {
+        return Promise.reject('Unexpected ID when reading command characteristic');
+      }
+      return this._parseNotifications(value);
+    });
+  }
+
+  turnOnGuard() {
+    return this._commandCharacteristic.writeValue(new Uint8Array([70, 0, 1, 1]))
+    .then(_ => this._commandCharacteristic.readValue())
+    .then(value => {
+      if (value.getUint8(0) !== 70) {
+        return Promise.reject('Unexpected ID when reading command characteristic');
+      }
+      return this._parseNotifications(value);
+    });
+  }
+
+  turnOffGuard() {
+    return this._commandCharacteristic.writeValue(new Uint8Array([70, 0, 1, 0]))
+    .then(_ => this._commandCharacteristic.readValue())
+    .then(value => {
+      if (value.getUint8(0) !== 70) {
+        return Promise.reject('Unexpected ID when reading command characteristic');
+      }
+      return this._parseNotifications(value);
+    });
+  }
+
+  /* Generic */
+
   buzz() {
     return this._commandCharacteristic.writeValue(new Uint8Array([5]))
+  }
+
+  getBattery() {
+    return this._commandCharacteristic.writeValue(new Uint8Array([3]))
+    .then(_ => this._commandCharacteristic.readValue())
+    .then(value => {
+      if (value.getUint8(0) !== 1) {
+        return Promise.reject('Unexpected ID when reading command characteristic');
+      }
+      return this._parseNotifications(value);
+    });
   }
 
   startNotifications(listener) {
@@ -175,11 +226,17 @@ class Peanut {
       case 1:
         data.batteryLevel = this._parseBatteryData(value);
         break;
+      case 3:
+        data.alert = this._parseAlertData(value);
+        break;
       case 4:
         data.temperatureCelsius = this._parseTemperatureData(value);
         break;
       case 5:
         data.touch = this._parseTouchData(value);
+        break;
+      case 70:
+        data.guardState = this._parseGuardState(value);
         break;
       default:
         let bytes = [];
@@ -197,16 +254,21 @@ class Peanut {
     return timeStampSeconds * 1000 + counterId;
   }
 
+  _parseAlertData(value) {
+    let intensity = value.getUint8(6) | value.getUint8(7) << 8;
+    return intensity;
+  }
+
+  _parseGuardState(value) {
+    return (value.getUint8(7) === 0) ? 'Disabled': 'Enabled';
+  }
+
   _parseBatteryData(value) {
     let batteryData = value.getUint8(6) | value.getUint8(7) << 8;
-    if (batteryData >= 2900) {
-      return batteryData + 'mV (100%)';
-    } else if (batteryData >= 2850) {
-      return batteryData + 'mV (50%)';
-    } else if (batteryData >= 2600) {
-      return batteryData + 'mV (25%)';
+    if (batteryData >= 2600) {
+      return batteryData + 'mV (Good)';
     }
-    return batteryData + 'mV (0%)';
+    return batteryData + 'mV (Low)';
   }
 
   _parseTemperatureData(value) {
