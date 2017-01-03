@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Media Session + Camera Artwork</title>
+</head>
+<body>
+  <audio controls loop src="jam.mp3"></audio>
+</body>
+<script>
+
+  var existingImage = new MediaImage({src: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png'});
+  var invalidImage = new MediaImage({src: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png2'});
+
+  navigator.mediaSession.metadata = new MediaMetadata({});
+  navigator.mediaSession.metadata.artwork = [existingImage];
+
+  // Set artwork to an invalid image 5 seconds after...
+  setTimeout(_ => { navigator.mediaSession.metadata.artwork = [invalidImage]; }, 5000);
+</script>
+</html>
