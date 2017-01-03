@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vue + Web Bluetooth</title>
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+</head>
+<body>
+  <div id="app">
+    <p>{{ statusText }}</p>
+    <div v-if="isDeviceReady">
+      <button @click="readBatteryLevel">Read Battery Level</button>
+      <p v-show="batteryLevel">Battery Level is {{ batteryLevel }}%</p>
+    </div>
+    <div v-else>
+      <button @click="scan">Scan</button>
+    </div>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        statusText: 'Start scanning...',
+        device: null,
+        batteryLevelCharacteristic: null,
+        batteryLevel: null,
+        isDeviceReady: false,
+      },
+      methods: {
+        init() {
+          this.device = null;
+          this.batteryLevelCharacteristic = null;
+          this.isDeviceReady = false;
+          this.batteryLevel = null;
+        },
+        async scan() {
+          this.init();
+          try {
+            this.statusText = 'Scanning...';
+            const options = {filters: [{services: [ 'battery_service' ]}]};
+
+            this.device = await navigator.bluetooth.requestDevice(options);
+            this.device.addEventListener('gattserverdisconnected', this.onDisconnected);
+
+            this.statusText = `Connecting to ${this.device.name}...`;
+            await this.device.gatt.connect();
+
+            this.statusText = `Connected to ${this.device.name}.`;
+            const batteryService = await this.device.gatt.getPrimaryService('battery_service');
+            batteryLevelCharacteristic = await batteryService.getCharacteristic('battery_level');
+            await batteryLevelCharacteristic.startNotifications();
+            batteryLevelCharacteristic.addEventListener('characteristicvaluechanged',
+                this.handleBatteryLevelChanged);
+
+            this.isDeviceReady = true;
+          }
+          catch(error) {
+            this.statusText = error.message;
+          }
+        },
+        async readBatteryLevel() {
+          try {
+            await batteryLevelCharacteristic.readValue();
+          }
+          catch(error) {
+            this.statusText = error.message;
+          }
+        },
+        handleBatteryLevelChanged(event) {
+          this.batteryLevel = event.target.value.getUint8(0);
+        },
+        onDisconnected(event) {
+          this.isDeviceReady = false;
+          this.statusText = `Disconnected from ${event.target.name}.`;
+        }
+      }
+    })
+  </script>
+</body>
+</html>
