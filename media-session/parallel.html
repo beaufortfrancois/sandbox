@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Media Session Playground</title>
+</head>
+<body>
+  <audio id="audio1" controls></audio>
+  <audio id="audio2" controls></audio>
+</body>
+<script>
+
+const $audio1 = document.querySelector('#audio1');
+const $audio2 = document.querySelector('#audio2');
+
+var tracks = [];
+
+fetch('https://freemusicarchive.org/featured.json')
+.then(response => response.json())
+.then(data => {
+  if (!data.aTracks) {
+    return Promise.reject(data);
+  }
+  data.aTracks.forEach(track => {
+    if (!track.track_image_file.startsWith('http')) {
+      return;
+    }
+    tracks.push({
+      src: track.track_file_url,
+      metadata: {
+        title: track.track_title,
+        artist: track.artist_name,
+        album: track.album_title,
+        artwork: [{ src: track.track_image_file }]
+      }
+    });
+  });
+})
+.then(_ => {
+  updateTrack();
+})
+.catch(error => {
+  console.error(error);
+});
+
+var trackIndex = 0;
+
+function updateTrack() {
+  if (!$audio1.src) { $audio1.play(); $audio1.pause(); }
+  if (!$audio2.src) { $audio2.play(); $audio2.pause(); }
+
+  const $foregroundAudio = (trackIndex % 2 == 0) ? $audio2 : $audio1;
+  const $backgroundAudio = (trackIndex % 2 == 0) ? $audio1 : $audio2;
+  const artworkUrl = (trackIndex % 2 == 0) ? 'photo1.jpg' : 'photo2.jpg';
+
+  const trackMetadata = tracks[trackIndex].metadata;
+
+  // Preload background audio.
+  $backgroundAudio.src = tracks[trackIndex].src;
+
+  // Stop playing foreground audio.
+  $foregroundAudio.pause();
+
+  // Fetch artwork while background audio is preloaded.
+  fetch(artworkUrl)
+  .then(response => response.blob())
+  .then(blob => {
+    $backgroundAudio.onplay = function(event) {
+      console.log('blob on play');
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: trackMetadata.title,
+        artist: trackMetadata.artist,
+        album: trackMetadata.album,
+        artwork: [ new MediaImage({ src: URL.createObjectURL(blob) }) ]
+      });
+    }
+  })
+  .catch(error => {
+    // No artwork...
+    $backgroundAudio.onplay = function(event) {
+      console.log('on play');
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: trackMetadata.title,
+        artist: trackMetadata.artist,
+        album: trackMetadata.album,
+      });
+    }
+  })
+  .then(_ => {
+    $backgroundAudio.play();
+    console.log('play');
+  })
+}
+
+function selectNextTrack(e) {
+  trackIndex++;
+  if (trackIndex == tracks.length) {
+    trackIndex = 0;
+  }
+  updateTrack();
+  e.preventDefault();
+}
+
+function selectPreviousTrack(e) {
+  trackIndex--;
+  if (trackIndex < 0) {
+    trackIndex = tracks.length - 1;
+  }
+  updateTrack();
+  e.preventDefault();
+}
+
+function togglePlayPause(e) {
+  $audio.paused ? $audio.play() : $audio.pause();
+  e.preventDefault();
+}
+
+navigator.mediaSession.addEventListener('playpause', togglePlayPause);
+navigator.mediaSession.addEventListener('previoustrack', selectPreviousTrack);
+navigator.mediaSession.addEventListener('nexttrack', selectNextTrack);
+
+</script>
+</html>
