@@ -15,7 +15,7 @@ sudo apt-get -y install automake autotools-dev bison check clang flex lcov libca
 cd ~/Downloads/
 git clone git://git.kernel.org/pub/scm/bluetooth/bluez.git
 cd bluez/
-./bootstrap && ./configure --localstatedir=/var --enable-datafiles --enable-library --disable-systemd --disable-obex --enable-sixaxis
+./bootstrap && ./configure --localstatedir=/var --enable-datafiles --enable-library --disable-systemd --disable-obex --enable-sixaxis --disable-network
 make
 
 exit
