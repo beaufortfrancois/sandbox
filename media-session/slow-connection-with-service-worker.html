@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Media Session with service worker for artwork</title>
+  <style>audio, button { width: 100% } button { line-height: 200% }</style>
+</head>
+<body>
+  <audio id="audio1" controls></audio>
+  <audio id="audio2" controls></audio>
+  <button>Start Media Session</button>
+  <p>Test this demo in 2G (DevTools)</p>
+</body>
+<script>
+
+const $audio1 = document.querySelector('#audio1');
+const $audio2 = document.querySelector('#audio2');
+const $button = document.querySelector('button');
+
+var tracks = [];
+var trackIndex = 0;
+
+function onButtonClick(event) {
+  $button.disabled = true;
+  // Preload audio files so that we can use play/pause later.
+  $audio1.load();
+  $audio2.load();
+
+  fetch('https://freemusicarchive.org/featured.json')
+  .then(response => response.json())
+  .then(data => {
+    if (!data.aTracks) {
+      return Promise.reject(data);
+    }
+    data.aTracks.forEach(track => {
+      tracks.push({
+        src: track.track_file_url,
+        metadata: {
+          title: track.track_title,
+          artist: track.artist_name,
+          album: track.album_title,
+          artwork: new MediaImage({ src: track.track_image_file })
+        }
+      });
+    });
+  })
+  .then(_ => updateTrack())
+  .catch(error => {
+    console.error(error);
+  });
+}
+
+function updateTrack() {
+  const $playingAudio = (trackIndex % 2 == 0) ? $audio2 : $audio1;
+  const $pausedAudio = (trackIndex % 2 == 0) ? $audio1 : $audio2;
+
+  reduceVolume($playingAudio);
+  $pausedAudio.src = tracks[trackIndex].src;
+  $pausedAudio.play()
+  .then(_ => {
+    // Stop playing foreground audio.
+    $playingAudio.pause();
+
+    $pausedAudio.volume = 1;
+
+    const trackMetadata = tracks[trackIndex].metadata;
+    // This is used only to create failing artworks...
+    const artworkUrl = `photo${trackIndex+1}.jpg`;
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: trackMetadata.title,
+      artist: trackMetadata.artist,
+      album: trackMetadata.album,
+      artwork: [ new MediaImage({ src: artworkUrl }) ]
+    });
+  })
+  .catch(error => {
+    // Stop playing foreground audio.
+    $playingAudio.src = '';
+  });
+}
+
+function reduceVolume($audio) {
+  // Turn off audio progressively in 1s.
+  if ($audio.volume > 0.1) {
+    $audio.volume -= .1;
+    setTimeout(function() { reduceVolume($audio); }, 100);
+  }
+}
+
+function selectNextTrack(event) {
+  trackIndex++;
+  if (trackIndex == tracks.length) {
+    trackIndex = 0;
+  }
+  updateTrack();
+  event.preventDefault();
+}
+
+function selectPreviousTrack(event) {
+  trackIndex--;
+  if (trackIndex < 0) {
+    trackIndex = tracks.length - 1;
+  }
+  updateTrack();
+  event.preventDefault();
+}
+
+navigator.mediaSession.addEventListener('previoustrack', selectPreviousTrack);
+navigator.mediaSession.addEventListener('nexttrack', selectNextTrack);
+
+$audio1.addEventListener('ended', selectNextTrack);
+$audio2.addEventListener('ended', selectNextTrack);
+
+$button.addEventListener('click', onButtonClick, { once: true });
+
+navigator.serviceWorker.register('serviceWorker.js')
+.then(_ => {
+  navigator.serviceWorker.addEventListener('message', event => {
+    navigator.mediaSession.metadata.artwork = [ new MediaImage({src: event.data.artwork}) ];
+  });
+});
+</script>
+</html>
