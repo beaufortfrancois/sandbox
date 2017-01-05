@@ -23,8 +23,9 @@ var trackIndex = 0;
 
 function onButtonClick(event) {
   $button.disabled = true;
-  if (!$audio1.src) { $audio1.play().catch(_ => $audio1.pause()); }
-  if (!$audio2.src) { $audio2.play().catch(_ => $audio2.pause()); }
+  // Preload audio files so that we can use play/pause later.
+  $audio1.load();
+  $audio2.load();
 
   fetch('https://freemusicarchive.org/featured.json')
   .then(response => response.json())
@@ -58,9 +59,8 @@ function updateTrack() {
   const $pausedAudio = (trackIndex % 2 == 0) ? $audio1 : $audio2;
 
   $pausedAudio.src = tracks[trackIndex].src;
-
-  $pausedAudio.addEventListener('playing', event => {
-
+  $pausedAudio.play()
+  .then(_ => {
     // Stop playing foreground audio.
     $playingAudio.pause();
 
@@ -72,9 +72,8 @@ function updateTrack() {
       album: trackMetadata.album,
       artwork: [ trackMetadata.artwork ]
     });
-  }, { once: true });
-
-  $pausedAudio.play().catch(error => {
+  })
+  .catch(error => {
     // Stop playing foreground audio.
     $playingAudio.src = '';
   });
