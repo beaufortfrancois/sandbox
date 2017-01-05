@@ -1,8 +1,6 @@
-// Version 1
+// Version 3
 
-var urlsToCache = [
-  'fallbackArtwork.png'
-];
+const FALLBACK_ARTWORK = 'fallbackArtwork.png';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
@@ -11,7 +9,7 @@ self.addEventListener('install', event => {
 
 function initCache() {
   caches.open('artwork-cache')
-  .then(cache => cache.addAll(urlsToCache))
+  .then(cache => cache.add(FALLBACK_ARTWORK));
 }
 
 self.addEventListener('fetch', event => {
@@ -23,7 +21,7 @@ self.addEventListener('fetch', event => {
 
 function handleFetchArtwork(request) {
   return getCacheArtwork(request)
-  .then(cacheResponse => cacheResponse || addArtworkToCacheAndGetFallbackArtwork(request));
+  .then(cacheResponse => cacheResponse || getNetworkArtwork(request));
 }
 
 function getCacheArtwork(request) {
@@ -31,23 +29,32 @@ function getCacheArtwork(request) {
   .then(cache => cache.match(request));
 }
 
-function addArtworkToCacheAndGetFallbackArtwork(request) {
-  // Start fetching artwork in parallel...
-  fetch(request)
-  .then(response => {
-    if (response.status === 200) {
-      // Add artwork to the cache for later use.
-      addArtworkToCache(request, response);
-      // Ask clients to update media session artwork.
-      self.clients.matchAll()
-      .then(clients => clients.forEach(client => client.postMessage({'artwork': request.url})));
-    }
+function getNetworkArtwork(request) {
+  // Return cached fallback artwork.
+  return getCacheArtwork(new Request(FALLBACK_ARTWORK))
+  .then(cacheResponse => {
+    // Fetch artwork in parallel.
+    fetch(request)
+    .then(networkResponse => {
+      if (networkResponse.status === 200) {
+        // Add artwork to the cache for later use and ask clients to update
+        // media session artwork.
+        addArtworkToCache(request, networkResponse)
+        .then(_ => broadcastArtworkUrlToClients(request.url));
+      }
+    });
+    return cacheResponse;
   });
-  // Return fallback artwork.
-  return getCacheArtwork('fallbackArtwork.png');
 }
 
 function addArtworkToCache(request, response) {
   return caches.open('artwork-cache')
   .then(cache => cache.put(request, response));
+}
+
+function broadcastArtworkUrlToClients(artworkUrl) {
+  self.clients.matchAll()
+  .then(clients => {
+    clients.forEach(client => client.postMessage({artworkUrl}));
+  });
 }

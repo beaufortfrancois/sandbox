@@ -26,13 +26,14 @@ function onButtonClick(event) {
   $audio1.load();
   $audio2.load();
 
-  fetch('https://freemusicarchive.org/featured.json')
+  fetch('https://freemusicarchive.org/recent.json')
   .then(response => response.json())
   .then(data => {
     if (!data.aTracks) {
       return Promise.reject(data);
     }
-    data.aTracks.forEach(track => {
+    const shortTracks = data.aTracks.filter(track => track.track_duration.startsWith('02'));
+    shortTracks.forEach(track => {
       tracks.push({
         src: track.track_file_url,
         metadata: {
@@ -59,7 +60,7 @@ function updateTrack() {
   $pausedAudio.play()
   .then(_ => {
     // Stop playing foreground audio.
-    $playingAudio.pause();
+    $playingAudio.src = '';
 
     $pausedAudio.volume = 1;
 
@@ -117,7 +118,7 @@ $button.addEventListener('click', onButtonClick, { once: true });
 navigator.serviceWorker.register('serviceWorker.js')
 .then(_ => {
   navigator.serviceWorker.addEventListener('message', event => {
-    navigator.mediaSession.metadata.artwork = [ new MediaImage({src: event.data.artwork}) ];
+    navigator.mediaSession.metadata.artwork = [ new MediaImage({src: event.data.artworkUrl}) ];
   });
 });
 </script>
