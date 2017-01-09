@@ -5,7 +5,7 @@
   <title>Media Session Playground</title>
 </head>
 <body>
-  <audio autoplay controls></audio>
+  <audio controls></audio>
 </body>
 <script>
 
@@ -43,6 +43,8 @@ const $audio = document.querySelector('audio');
 function updateTrack() {
   navigator.mediaSession.metadata = new MediaMetadata(tracks[trackIndex].metadata);
   $audio.src = tracks[trackIndex].src;
+  $audio.play();
+  navigator.mediaSession.playbackState = "playing";
 }
 
 function selectNextTrack() {
