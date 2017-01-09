@@ -42,6 +42,7 @@ const $audio = document.querySelector('audio');
 
 function updateTrack() {
   navigator.mediaSession.metadata = new MediaMetadata(tracks[trackIndex].metadata);
+  navigator.mediaSession.playbackState = "playing";
   $audio.src = tracks[trackIndex].src;
 }
 
