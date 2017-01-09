@@ -43,7 +43,7 @@ function onButtonClick(event) {
           title: track.track_title,
           artist: track.artist_name,
           album: track.album_title,
-          artwork: new MediaImage({ src: track.track_image_file })
+          artwork: { src: track.track_image_file }
         }
       });
     });
@@ -79,26 +79,24 @@ function updateTrack() {
   });
 }
 
-function selectNextTrack(event) {
+function selectNextTrack() {
   trackIndex++;
   if (trackIndex == tracks.length) {
     trackIndex = 0;
   }
   updateTrack();
-  event.preventDefault();
 }
 
-function selectPreviousTrack(event) {
+function selectPreviousTrack() {
   trackIndex--;
   if (trackIndex < 0) {
     trackIndex = tracks.length - 1;
   }
   updateTrack();
-  event.preventDefault();
 }
 
-navigator.mediaSession.addEventListener('previoustrack', selectPreviousTrack);
-navigator.mediaSession.addEventListener('nexttrack', selectNextTrack);
+navigator.mediaSession.setActionHandler('previoustrack', selectPreviousTrack);
+navigator.mediaSession.setActionHandler('nexttrack', selectNextTrack);
 
 $audio1.addEventListener('ended', selectNextTrack);
 $audio2.addEventListener('ended', selectNextTrack);

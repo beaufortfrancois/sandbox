@@ -40,7 +40,7 @@ function onButtonClick(event) {
           title: track.track_title,
           artist: track.artist_name,
           album: track.album_title,
-          artwork: new MediaImage({ src: track.track_image_file })
+          artwork: { src: track.track_image_file }
         }
       });
     });
@@ -72,7 +72,7 @@ function updateTrack() {
       title: trackMetadata.title,
       artist: trackMetadata.artist,
       album: trackMetadata.album,
-      artwork: [ new MediaImage({ src: artworkUrl }) ]
+      artwork: [{ src: artworkUrl }]
     });
   })
   .catch(error => {
@@ -89,26 +89,24 @@ function reduceVolume($audio) {
   }
 }
 
-function selectNextTrack(event) {
+function selectNextTrack() {
   trackIndex++;
   if (trackIndex == tracks.length) {
     trackIndex = 0;
   }
   updateTrack();
-  event.preventDefault();
 }
 
-function selectPreviousTrack(event) {
+function selectPreviousTrack() {
   trackIndex--;
   if (trackIndex < 0) {
     trackIndex = tracks.length - 1;
   }
   updateTrack();
-  event.preventDefault();
 }
 
-navigator.mediaSession.addEventListener('previoustrack', selectPreviousTrack);
-navigator.mediaSession.addEventListener('nexttrack', selectNextTrack);
+navigator.mediaSession.setActionHandler('previoustrack', selectPreviousTrack);
+navigator.mediaSession.setActionHandler('nexttrack', selectNextTrack);
 
 $audio1.addEventListener('ended', selectNextTrack);
 $audio2.addEventListener('ended', selectNextTrack);
@@ -118,7 +116,7 @@ $button.addEventListener('click', onButtonClick, { once: true });
 navigator.serviceWorker.register('serviceWorker.js')
 .then(_ => {
   navigator.serviceWorker.addEventListener('message', event => {
-    navigator.mediaSession.metadata.artwork = [ new MediaImage({src: event.data.artworkUrl}) ];
+    navigator.mediaSession.metadata.artwork = [{src: event.data.artworkUrl}];
   });
 });
 </script>

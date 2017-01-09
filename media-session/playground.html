@@ -45,32 +45,34 @@ function updateTrack() {
   $audio.src = tracks[trackIndex].src;
 }
 
-function selectNextTrack(e) {
+function selectNextTrack() {
   trackIndex++;
   if (trackIndex == tracks.length) {
     trackIndex = 0;
   }
   updateTrack();
-  e.preventDefault();
 }
 
-function selectPreviousTrack(e) {
+function selectPreviousTrack() {
   trackIndex--;
   if (trackIndex < 0) {
     trackIndex = tracks.length - 1;
   }
   updateTrack();
-  e.preventDefault();
 }
 
-function togglePlayPause(e) {
-  $audio.paused ? $audio.play() : $audio.pause();
-  e.preventDefault();
+function play() {
+  $audio.play();
 }
 
-navigator.mediaSession.addEventListener('playpause', togglePlayPause);
-navigator.mediaSession.addEventListener('previoustrack', selectPreviousTrack);
-navigator.mediaSession.addEventListener('nexttrack', selectNextTrack);
+function pause() {
+  $audio.pause();
+}
+
+navigator.mediaSession.setActionHandler('play', play);
+navigator.mediaSession.setActionHandler('pause', pause);
+navigator.mediaSession.setActionHandler('previoustrack', selectPreviousTrack);
+navigator.mediaSession.setActionHandler('nexttrack', selectNextTrack);
 
 </script>
 </html>

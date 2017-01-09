@@ -74,7 +74,7 @@ function updateTrack() {
         title: trackMetadata.title,
         artist: trackMetadata.artist,
         album: trackMetadata.album,
-        artwork: [ new MediaImage({ src: URL.createObjectURL(blob) }) ]
+        artwork: [{ src: URL.createObjectURL(blob) }]
       });
     }
   })
@@ -98,27 +98,24 @@ function updateTrack() {
   });
 }
 
-function selectNextTrack(event) {
+function selectNextTrack() {
   trackIndex++;
   if (trackIndex == tracks.length) {
     trackIndex = 0;
   }
-  updateTrack(event);
-  event.preventDefault();
+  updateTrack();
 }
 
-function selectPreviousTrack(event) {
+function selectPreviousTrack() {
   trackIndex--;
   if (trackIndex < 0) {
     trackIndex = tracks.length - 1;
   }
-  updateTrack(event);
-  event.preventDefault();
+  updateTrack();
 }
 
-navigator.mediaSession.addEventListener('playpause', function(e) { console.log('playpause', e) });
-navigator.mediaSession.addEventListener('previoustrack', selectPreviousTrack);
-navigator.mediaSession.addEventListener('nexttrack', selectNextTrack);
+navigator.mediaSession.setActionHandler('previoustrack', selectPreviousTrack);
+navigator.mediaSession.setActionHandler('nexttrack', selectNextTrack);
 
 $button.addEventListener('click', onButtonClick, {once: true});
 
