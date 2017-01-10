@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Media Session DataURI * Blob</title>
+</head>
+<body>
+  <audio controls loop src="jam.mp3"></audio>
+  <br/>
+  <button id="blobButton">Set Red Blob Artwork</button>
+  <button id="dataButton">Set Green Data URI Artwork</button>
+  <button id="httpButton">Set Blue HTTP Artwork</button>
+  <button id="resetButton">Reset Artwork</button>
+</body>
+<script>
+
+  navigator.mediaSession.metadata = new MediaMetadata();
+
+  document.querySelector('#blobButton').addEventListener('click', function() {
+    var canvas = document.createElement("canvas");
+    canvas.width = 114;
+    canvas.height = 114;
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle="#FF0000";
+    ctx.fillRect(0,0,114,114);
+    canvas.toBlob(blob => {
+      navigator.mediaSession.metadata.artwork = [{src: URL.createObjectURL(blob)}];
+    });
+  });
+
+  document.querySelector('#dataButton').addEventListener('click', function() {
+    var canvas = document.createElement("canvas");
+    canvas.width = 114;
+    canvas.height = 114;
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle="#00FF00";
+    ctx.fillRect(0,0,114,114);
+
+    navigator.mediaSession.metadata.artwork = [{src: canvas.toDataURL()}];
+  });
+
+  document.querySelector('#httpButton').addEventListener('click', function() {
+    navigator.mediaSession.metadata.artwork = [{src: 'blue.png'}];
+  });
+
+  document.querySelector('#resetButton').addEventListener('click', function() {
+    navigator.mediaSession.metadata.artwork = [];
+  });
+
+</script>
+</html>
