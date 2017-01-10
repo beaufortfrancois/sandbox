@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Media Session Manifest only</title>
+  <link rel=manifest href="manifest.json">
+</head>
+<body>
+  <audio controls loop src="jam.mp3"></audio>
+  <br/>
+  <button id="httpButton">Set Blue Artwork</button>
+  <button id="resetButton">Reset Artwork</button>
+</body>
+<script>
+
+  navigator.mediaSession.metadata = new MediaMetadata();
+
+  document.querySelector('#httpButton').addEventListener('click', function() {
+    navigator.mediaSession.metadata.artwork = [{src: 'blue.png'}];
+  });
+
+  document.querySelector('#resetButton').addEventListener('click', function() {
+    navigator.mediaSession.metadata.artwork = [];
+  });
+
+</script>
+</html>
