@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Media Session Playground</title>
+  <link rel="icon" sizes="96x96"   href="favicon96x96.png">
+  <link rel="icon" sizes="144x144" href="favicon144x144.png">
+  <link rel="icon" sizes="192x192" href="favicon192x192.png">
+  <link rel="icon" sizes="256x256" href="favicon256x256.png">
+  <link rel="icon" sizes="512x512" href="favicon512x512.png">
+</head>
+<body>
+  <audio autoplay controls></audio>
+</body>
+<script>
+
+var tracks = [];
+
+fetch('https://freemusicarchive.org/featured.json')
+.then(response => response.json())
+.then(data => {
+  if (!data.aTracks) {
+    return Promise.reject(data);
+  }
+  data.aTracks.forEach(track => {
+    tracks.push({
+      src: track.track_file_url,
+      metadata: {
+        title: track.track_title,
+        artist: track.artist_name,
+        album: track.album_title,
+        artwork: [{ src: track.track_image_file }]
+      }
+    });
+  });
+})
+.then(_ => {
+  updateTrack();
+})
+.catch(error => {
+  console.error(error);
+});
+
+var trackIndex = 0;
+
+const $audio = document.querySelector('audio');
+
+function updateTrack() {
+  navigator.mediaSession.metadata = new MediaMetadata(tracks[trackIndex].metadata);
+  $audio.src = tracks[trackIndex].src;
+}
+
+function selectNextTrack() {
+  trackIndex++;
+  if (trackIndex == tracks.length) {
+    trackIndex = 0;
+  }
+  updateTrack();
+}
+
+function selectPreviousTrack() {
+  trackIndex--;
+  if (trackIndex < 0) {
+    trackIndex = tracks.length - 1;
+  }
+  updateTrack();
+}
+
+function play() {
+  $audio.play();
+}
+
+function pause() {
+  $audio.pause();
+}
+
+navigator.mediaSession.setActionHandler('play', play);
+navigator.mediaSession.setActionHandler('pause', pause);
+navigator.mediaSession.setActionHandler('previoustrack', selectPreviousTrack);
+navigator.mediaSession.setActionHandler('nexttrack', selectNextTrack);
+
+</script>
+</html>
