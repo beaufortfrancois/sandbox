@@ -17,7 +17,9 @@
 </body>
 <script>
 
-  navigator.mediaSession.metadata = new MediaMetadata();
+  if (!new URL(location).searchParams.has('doNotSetMediaSession')) {
+    navigator.mediaSession.metadata = new MediaMetadata();
+  }
 
   document.querySelector('#httpButton').addEventListener('click', function() {
     navigator.mediaSession.metadata.artwork = [{src: 'blue.png'}];
