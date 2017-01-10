@@ -12,6 +12,10 @@ function initCache() {
   .then(cache => cache.add(FALLBACK_ARTWORK));
 }
 
+self.addEventListener('activate', event => {
+  clients.claim();
+});
+
 self.addEventListener('fetch', event => {
   // TODO: Find a better filter for artwork.
   if (event.request.url.endsWith('jpg')) {
@@ -53,7 +57,7 @@ function addArtworkToCache(request, response) {
 }
 
 function broadcastArtworkUrlToClients(artworkUrl) {
-  self.clients.matchAll()
+  clients.matchAll()
   .then(clients => {
     clients.forEach(client => client.postMessage({artworkUrl}));
   });
