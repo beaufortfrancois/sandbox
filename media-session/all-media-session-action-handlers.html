@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Media Session w/ all Action Handlers</title>
+</head>
+<body>
+  <audio controls loop><source src="jam.mp3"><source src="jam.ogg"></audio>
+</body>
+<script>
+
+  navigator.mediaSession.metadata = new MediaMetadata();
+
+  navigator.mediaSession.setActionHandler('play', function() { log('play') });
+  navigator.mediaSession.setActionHandler('pause', function() { log('pause') });
+  navigator.mediaSession.setActionHandler('nexttrack', function() { log('nexttrack') });
+  navigator.mediaSession.setActionHandler('previoustrack', function() { log('previoustrack') });
+  navigator.mediaSession.setActionHandler('seekforward', function() { log('seekforward') });
+  navigator.mediaSession.setActionHandler('seekbackward', function() { log('seekbackward') });
+
+  function log(text) {
+    let p = document.createElement('p');
+    p.textContent = text;
+    document.body.appendChild(p);
+  }
+
+</script>
+</html>
