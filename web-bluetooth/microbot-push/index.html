@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>MicroBot Push Demo</title>
+    <meta http-equiv="origin-trial" content="Atn6/biSlTsXeEyZfiEGonhmroFFywR7RVDykbpOWCHoLUQ6DEqZkup+tGZboQgV/ZiXexH+Yoo1+bWjKDIT4QEAAABgeyJvcmlnaW4iOiJodHRwczovL2JlYXVmb3J0ZnJhbmNvaXMuZ2l0aHViLmlvOjQ0MyIsImZlYXR1cmUiOiJXZWJCbHVldG9vdGgiLCJleHBpcnkiOjE0ODUzMjAzOTl9">
+  </head>
+  <body>
+    <button id="scan">Pair MicroBot Push</button>
+    <button id="press">Press</button>
+    <button id="retract">Retract</button>
+    <p>Disclaimer: I didn't test this on a real device.</p>
+    <p>Credits: <a href="https://github.com/VRGhost/PyPush/blob/master/docs/microbot_ble_api.md">https://github.com/VRGhost/PyPush/blob/master/docs/microbot_ble_api.md</a></p>
+    <p id="log"></p>
+  </body>
+  <script src="microbot-push.js"></script>
+  <script>
+    document.querySelector('#scan').addEventListener('click', event => {
+      microBotPush.request()
+      .then(_ => microBotPush.connect())
+      .catch(error => document.querySelector('#log').textContent = error);
+    });
+    document.querySelector('#press').addEventListener('click', event => {
+      microBotPush.press()
+      .catch(error => document.querySelector('#log').textContent = error);
+    });
+    document.querySelector('#retract').addEventListener('click', event => {
+      microBotPush.retract()
+      .catch(error => document.querySelector('#log').textContent = error);
+    });
+  </script>
+</html>
+
