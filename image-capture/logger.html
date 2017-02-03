@@ -4,11 +4,11 @@
 <style>
   html, body { margin: 0 auto; height: 100%; background: #000; }
   video { object-fit: cover; width: 100vw; }
-  pre { position: absolute; top: 12px; left: 12px; color: deeppink; font-size: 16px; overflow: hidden; bottom: 12px; right: 12px; margin: 0 auto; }
+  pre { position: absolute; top: 0; left: 0; right:0; bottom: 0; padding: 12px; color: deeppink; font-size: 16px; overflow: hidden; margin: 0 auto; }
 </style>
 
 <video autoplay></video>
-<pre></pre>
+<pre>Waiting...</pre>
 
 <script>
 
@@ -40,6 +40,9 @@ function detectText(imageCapture) {
     return textDetector.detect(imageBitmap);
   })
   .then(textBlocks => {
+    if (textBlocks.length) {
+      $('pre').textContent = '';
+    }
     for (let textBlock of textBlocks) {
       $('pre').textContent = textBlock.rawValue.substr(0, 100).trim() +
           '\r\n' + $('pre').textContent;
@@ -51,7 +54,7 @@ function detectText(imageCapture) {
   });
 }
 
-$('video').addEventListener('pointerup', event => {
+$('pre').addEventListener('pointerup', event => {
   let text = $('pre').textContent;
   if (text) {
     navigator.share({title: document.title, text: text});
