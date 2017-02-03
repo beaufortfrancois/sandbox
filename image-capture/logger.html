@@ -3,8 +3,8 @@
 <title>Image Capture Logger</title>
 <style>
   html, body { margin: 0 auto; height: 100%; background: #000; }
-  video { object-fit: cover; width: 100vw; transition: filter .5s ease-in-out; }
-  pre { position: absolute; top: 12px; left: 12px; color: deeppink; font-size: 16px; overflow: hidden; bottom: 12px; }
+  video { object-fit: cover; width: 100vw; }
+  pre { position: absolute; top: 12px; left: 12px; color: deeppink; font-size: 16px; overflow: hidden; bottom: 12px; right: 12px; margin: 0 auto; }
 </style>
 
 <video autoplay></video>
@@ -28,6 +28,9 @@ navigator.mediaDevices.enumerateDevices()
   $('video').srcObject = mediaStream;
   let imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
   detectText(imageCapture);
+})
+.catch(error => {
+  $('pre').textContent = error.message;
 });
 
 function detectText(imageCapture) {
@@ -42,6 +45,9 @@ function detectText(imageCapture) {
           '\r\n' + $('pre').textContent;
     }
     setTimeout(_ => { detectText(imageCapture); }, 1e3);
+  })
+  .catch(error => {
+    $('pre').textContent = error.message;
   });
 }
 
