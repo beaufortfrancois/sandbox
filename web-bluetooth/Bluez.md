@@ -62,3 +62,26 @@ With Experimental Interfaces ON,
 ```bash
 /sbin/minijail0 -u bluetooth -g bluetooth -G -c 3500 -- /usr/libexec/bluetooth/bluetoothd -d -E --nodetach
 ```
+
+## Tips
+
+Patch below allows all services to be accessible in `bt_console`:
+
+```diff
+diff --git a/src/device.c b/src/device.c
+index 8693eb8..20a59fa 100644
+--- a/src/device.c
++++ b/src/device.c
+@@ -3380,12 +3380,6 @@ done:
+        service = l->data;
+        profile = btd_service_get_profile(service);
+ 
+-       /* Claim attributes of internal profiles */
+-       if (!profile->external) {
+-               /* Mark the service as claimed by the existing profile. */
+-               gatt_db_service_set_claimed(attr, true);
+-       }
+-
+        /* Notify driver about the new connection */
+        service_accept(service);
+ }
