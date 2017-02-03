@@ -1,0 +1,54 @@
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=no">
+<title>Image Capture Logger</title>
+<style>
+  html, body { margin: 0 auto; height: 100%; background: #000; }
+  video { object-fit: cover; width: 100vw; transition: filter .5s ease-in-out; }
+  pre { position: absolute; top: 12px; left: 12px; color: deeppink; font-size: 16px; overflow: hidden; bottom: 12px; }
+</style>
+
+<video autoplay></video>
+<pre></pre>
+
+<script>
+
+var $ = document.querySelector.bind(document);
+
+navigator.mediaDevices.enumerateDevices()
+.then(devices => {
+  let cameras = devices.filter(device => device.kind == 'videoinput');
+  let backCameras = cameras.filter(device => device.label.includes('back'));
+  let constraints = {video: {deviceId: cameras[0].deviceId}};
+  if (backCameras.length) {
+    constraints.video.deviceId = backCameras[0].deviceId;
+  }
+  return navigator.mediaDevices.getUserMedia(constraints)
+})
+.then(mediaStream => {
+  $('video').srcObject = mediaStream;
+  let imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
+  detectText(imageCapture);
+});
+
+function detectText(imageCapture) {
+  imageCapture.grabFrame()
+  .then(imageBitmap => {
+    let textDetector = new TextDetector();
+    return textDetector.detect(imageBitmap);
+  })
+  .then(textBlocks => {
+    for (let textBlock of textBlocks) {
+      $('pre').textContent = textBlock.rawValue.substr(0, 100).trim() +
+          '\r\n' + $('pre').textContent;
+    }
+    setTimeout(_ => { detectText(imageCapture); }, 1e3);
+  });
+}
+
+$('video').addEventListener('pointerup', event => {
+  let text = $('pre').textContent;
+  if (text) {
+    navigator.share({title: document.title, text: text});
+  }
+});
+
+</script>
