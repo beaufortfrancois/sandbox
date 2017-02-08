@@ -89,9 +89,10 @@ class Peanut {
     });
   }
 
-  setFactoryCipher(key, clearText) {
+  setFactoryCipher(authKey, clearText) {
+    let keyData = new Uint8Array(authKey.match(/.{1,2}/g).map(i => parseInt(i, 16)).reverse());
     // AES-EBD is same as AES_CDB when IV is null and clearText is 16 bytes.
-    return crypto.subtle.importKey('raw', key, {name: 'AES-CBC'}, true, ['encrypt'])
+    return crypto.subtle.importKey('raw', keyData, {name: 'AES-CBC'}, true, ['encrypt'])
     .then(k => crypto.subtle.encrypt({ name: 'AES-CBC', iv: new ArrayBuffer(16) }, k, clearText.reverse()))
     .then(encrypted => {
       let reversedEncrypted = new Uint8Array(encrypted, 0, 16).reverse();

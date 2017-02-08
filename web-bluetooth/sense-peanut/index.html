@@ -23,19 +23,18 @@
         margin: 0;
         line-height: 16px;
       }
-      [data-color="blue"] { color: #311B92; }
-      [data-color="green"] { color: #689F38; }
-      [data-color="orange"] { color: #E65100; }
+      [data-color="blue"] { color: #00a9ce; }
+      [data-color="green"] { color: #aadb1e; }
+      [data-color="orange"] { color: #ff5c39; }
+      #buttons { min-height: 36px; line-height: 36px; }
       #scanPeanuts { float: right; margin-right: 12px; }
       .separator { color: rgba(0,0,0,.26); }
     </style>
   </head>
   <body>
     <div id="dashboard">
-      <div>
-        <button class="mdl-button mdl-js-button" disabled id="connectOrangePeanut" data-color="orange">🥜 46:06:1A</button>
-        <button class="mdl-button mdl-js-button" disabled id="connectGreenPeanut" data-color="green">🥜 06:13:18</button>
-        <button class="mdl-button mdl-js-button" disabled id="connectBluePeanut" data-color="blue">🥜 0C:11:08</button>
+      <div id="buttons">
+        <span style="padding: 0 16px;">🥜</span>
         <button class="mdl-button mdl-js-button mdl-button--icon" id="scanPeanuts"><i class="material-icons">search</i></button>
       </div>
       <button class="mdl-button mdl-js-button mdl-button--primary" id="battery" disabled>Get Battery</button>
@@ -49,9 +48,8 @@
     </div>
 
     <div id="console"></div>
+    <div id="charts"></div>
 
-    <div id="thermoChart"></div>
-    <div id="guardChart"></div>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="sense-peanut.js"></script>
     <script>
@@ -64,15 +62,18 @@
       const MY_PEANUTS = {
         '00:A0:50:46:06:1A': {
           'color': 'orange',
-          'factoryKey': new Uint8Array([240, 136, 243, 39, 26, 197, 89, 197, 75, 82, 158, 60, 40, 186, 231, 228])
+          'type': 'guard',
+          'factoryKey': 'e4e7ba283c9e524bc559c51a27f388f0',
         },
         '00:A0:50:0C:11:08': {
           'color': 'blue',
-          'factoryKey': new Uint8Array([35, -68, -100, 75, -78, 107, 52, -113, 19, -78, -65, 53, 89, -48, -47, 44])
+          'type': 'thermo',
+          'factoryKey': '2cd1d05935bfb2138f346bb24b9cbc23',
         },
         '00:A0:50:06:13:18': {
           'color': 'green',
-          'factoryKey': new Uint8Array([-116, 74, 87, -45, -61, -88, -124, 15, -52, -117, 110, 31, 69, -44, -82, -21])
+          'type': 'thermo',
+          'factoryKey': 'ebaed4451f6e8bcc0f84a8c3d3574a8c',
         }
       };
 
@@ -85,10 +86,15 @@
         .then(initData => { log('Init Data: ' + JSON.stringify(initData)); })
         .then(_ => peanut.getMacAddress())
         .then(macAddress => {
+          if (!MY_PEANUTS[macAddress]) {
+            return Promise.reject('Argh! Read https://github.com/beaufortfrancois/sandbox/blob/gh-pages/web-bluetooth/sense-peanut/README.md first!');
+          }
           log('Mac Address: ' + macAddress);
           peanut.color = MY_PEANUTS[macAddress].color;
           log('Peanut color: ' + peanut.color);
           peanut.factoryKey = MY_PEANUTS[macAddress].factoryKey;
+          peanut.mac = macAddress;
+          peanut.type = MY_PEANUTS[macAddress].type;
         })
         .then(_ => peanut.getPlainText())
         .then(clearText => peanut.setFactoryCipher(peanut.factoryKey, clearText))
@@ -100,8 +106,21 @@
           activePeanut = peanut;
           peanuts.push(activePeanut);
 
+          if (!$('[data-mac="' + peanut.mac + '"]')) {
+            const newButton = document.createElement('button');
+            newButton.classList.add('mdl-button', 'mdl-js-button');
+            newButton.dataset.mac = peanut.mac;
+            newButton.dataset.color = peanut.color;
+            newButton.textContent = peanut.mac.substr(9, 8);
+            newButton.addEventListener('click', onConnectButtonClick);
+            $('#buttons').appendChild(newButton);
+            peanut.rgbColor = window.getComputedStyle(newButton).color;
+            drawChart(activePeanut);
+            window.onResize();
+          }
+
           for (const button of document.querySelectorAll('button[data-color]')) {
-            if (peanut.color == button.dataset.color) {
+            if (peanut.mac == button.dataset.mac) {
               button.disabled = false;
               setTimeout(function() {
                 $('#battery').disabled = false;
@@ -118,13 +137,9 @@
         .catch(e => { log('Error: ' + e); });
       });
 
-      for (const button of document.querySelectorAll('button[data-color]')) {
-        button.addEventListener('click', onConnectButtonClick);
-      }
-
       function onConnectButtonClick(event) {
-        let color = event.target.dataset.color;
-        activePeanut = peanuts.find(peanut => peanut.color == color);
+        let mac = event.target.dataset.mac;
+        activePeanut = peanuts.find(peanut => peanut.mac == mac);
         updateButtonsColor(event.target);
       }
 
@@ -187,19 +202,21 @@
         if (data.temperatureCelsius) {
           let item = {
             peanutColor: peanut.color,
+            peanutMac: peanut.mac,
             temperatureCelsius: data.temperatureCelsius,
           }
           //TODO: Don't use localStorage.
           localStorage.setItem(data.timeStampMs, JSON.stringify(item));
-          updateThermoChart(peanut, data.timeStampMs, data.temperatureCelsius);
+          updateChart(peanut, data.timeStampMs, data.temperatureCelsius);
         } else if (data.alert) {
           let item = {
             peanutColor: peanut.color,
+            peanutMac: peanut.mac,
             alert: data.alert,
           }
           //TODO: Don't use localStorage.
           localStorage.setItem(data.timeStampMs, JSON.stringify(item));
-          updateGuardChart(peanut, data.timeStampMs, data.alert);
+          updateChart(peanut, data.timeStampMs, data.alert);
         }
         let timeStamp = new Date(data.timeStampMs).toLocaleString();
         delete(data.timeStampMs);
@@ -215,127 +232,83 @@
       /* Charts stuff */
 
       google.charts.load('current', {packages: ['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
 
-      var thermoChart, bluePeanutData, greenPeanutData, thermoChartOptions;
-      var guardChart, orangePeanutData, guardChartOptions;
-
-      function drawChart() {
-        thermoChart = new google.visualization.LineChart($('#thermoChart'));
-
-        bluePeanutData = new google.visualization.DataTable();
-        bluePeanutData.addColumn('datetime', 'Time');
-        bluePeanutData.addColumn('number', '🥜 0C:11:08');;
-
-        greenPeanutData = new google.visualization.DataTable();
-        greenPeanutData.addColumn('datetime', 'Time');
-        greenPeanutData.addColumn('number', '🥜 06:13:18');;
-
-        guardChart = new google.visualization.ScatterChart($('#guardChart'));
-
-        orangePeanutData = new google.visualization.DataTable();
-        orangePeanutData.addColumn('datetime', 'Time');
-        orangePeanutData.addColumn('number', '🥜 46:06:1A');
+      function drawChart(peanut) {
+        const div = document.createElement('div');
+        div.id = peanut.color + peanut.mac.split(':').join('');
+        $('#charts').appendChild(div);
+        peanut.data = new google.visualization.DataTable();
+        peanut.data.addColumn('datetime', 'Time');
+        peanut.data.addColumn('number', '🥜 ' + peanut.mac.substr(9, 8));
 
         for (var i = 0, len = localStorage.length; i < len; i++) {
           let dateTime = new Date(parseInt(localStorage.key(i)));
           let item = JSON.parse(localStorage.getItem(localStorage.key(i)));
-          if (item.temperatureCelsius) {
-            let temperature = parseFloat(item.temperatureCelsius);
-            if (item.peanutColor === 'blue') {
-              bluePeanutData.addRows([ [dateTime, temperature] ]);
-            } else if (item.peanutColor === 'green') {
-              greenPeanutData.addRows([ [dateTime, temperature] ]);
+          if (item.peanutMac === peanut.mac) {
+            if (item.temperatureCelsius) {
+              let temperature = parseFloat(item.temperatureCelsius);
+              peanut.data.addRows([ [dateTime, temperature] ]);
+            } else if (item.alert) {
+              let data = parseInt(item.alert);
+              peanut.data.addRows([ [dateTime, data] ]);
             }
-          }
-          if (item.alert) {
-            let data = parseInt(item.alert);
-            orangePeanutData.addRows([ [dateTime, data] ]);
           }
         }
 
-        thermoChartOptions = {
-          interpolateNulls: true,
-          fontName: 'Roboto',
-          curveType: 'function',
-          colors:['#283593', '#8BC34A'],
-          width: window.innerWidth,
-          height: (window.innerHeight - 224) / 2,
-          legend: 'none',
-          lineWidth: 3,
-          vAxis: {
-            format: '#.## °C'
-          },
-          hAxis: {
-            gridlines: {
-              color: '#fff'
+        if (peanut.type == 'thermo') {
+          peanut.chart = new google.visualization.LineChart($('#' + div.id));
+          peanut.chartOptions = {
+            interpolateNulls: true,
+            fontName: 'Roboto',
+            curveType: 'function',
+            colors: [peanut.rgbColor],
+            width: document.body.clientWidth,
+            height: (window.innerHeight - 224) / 2,
+            legend: 'none',
+            lineWidth: 3,
+            vAxis: {
+              format: '#.## °C'
+            },
+            hAxis: {
+              gridlines: {
+                color: '#fff'
+              }
             }
-          }
-        };
-
-        guardChartOptions = {
-          fontName: 'Roboto',
-          colors:['#E65100'],
-          width: window.innerWidth,
-          height: (window.innerHeight - 224) / 2,
-          legend: 'none',
-          hAxis: {
-            gridlines: {
-              color: '#fff'
+          };
+        } else if (peanut.type == 'guard') {
+          peanut.chart = new google.visualization.ScatterChart($('#' + div.id));
+          peanut.chartOptions = {
+            fontName: 'Roboto',
+            colors: [peanut.rgbColor],
+            width: document.body.clientWidth,
+            height: (window.innerHeight - 224) / 2,
+            legend: 'none',
+            hAxis: {
+              gridlines: {
+                color: '#fff'
+              }
             }
-          }
-        };
-
-        let thermoPeanutsData = google.visualization.data.join(bluePeanutData, greenPeanutData, 'full', [[0, 0]], [1], [1]);
-        if (thermoPeanutsData.getNumberOfRows()) {
-          thermoChart.draw(thermoPeanutsData, thermoChartOptions);
+          };
         }
 
-        if (orangePeanutData.getNumberOfRows()) {
-          guardChart.draw(orangePeanutData, guardChartOptions);
+        if (peanut.data.getNumberOfRows()) {
+          peanut.chart.draw(peanut.data, peanut.chartOptions);
         }
       }
 
-      function updateThermoChart(peanut, timeStampMs, temperature) {
+      function updateChart(peanut, timeStampMs, data) {
         let dateTime = new Date(timeStampMs);
-        switch (peanut.color) {
-          case 'blue': 
-            bluePeanutData.addRows([ [dateTime, temperature] ]);
-            bluePeanutData.sort([{'column': 0}]);
-            break;
-          case 'green':
-            greenPeanutData.addRows([ [dateTime, temperature] ]);
-            greenPeanutData.sort([{'column': 0}]);
-            break;
-          default:
-            console.log('Woops!');
-        }
-        let thermoPeanutsData = google.visualization.data.join(bluePeanutData, greenPeanutData, 'full', [[0, 0]], [1], [1]);
-        thermoChart.draw(thermoPeanutsData, thermoChartOptions);
-      }
-
-      function updateGuardChart(peanut, timeStampMs, data) {
-        let dateTime = new Date(timeStampMs);
-        switch (peanut.color) {
-          case 'orange':
-            orangePeanutData.addRows([ [dateTime, data] ]);
-            orangePeanutData.sort([{'column': 0}]);
-            break;
-          default:
-            console.log('Woops!');
-        }
-        guardChart.draw(orangePeanutData, guardChartOptions);
+        peanut.data.addRows([ [dateTime, data] ]);
+        peanut.data.sort([{'column': 0}]);
+        peanut.chart.draw(peanut.data, peanut.chartOptions);
       }
 
       window.onresize = function() {
-        thermoChartOptions.width = window.innerWidth;
-        thermoChartOptions.height = (window.innerHeight - 224) / 2;
-        let thermoPeanutsData = google.visualization.data.join(bluePeanutData, greenPeanutData, 'full', [[0, 0]], [1], [1]);
-        thermoChart.draw(thermoPeanutsData, thermoChartOptions);
-
-        guardChartOptions.width = window.innerWidth;
-        guardChartOptions.height = (window.innerHeight - 224) / 2;
-        guardChart.draw(orangePeanutData, guardChartOptions);
+        for (const peanut of peanuts) {
+          peanut.chartOptions.width = document.body.clientWidth;
+          peanut.chartOptions.height = (window.innerHeight - 224) / 2;
+          peanut.chart.draw(peanut.data, peanut.chartOptions);
+        }
       }
 
     </script>
