@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>mediaCapabilities.query()</title>
+</head>
+<body>
+</body>
+<script>
+
+  navigator.mediaCapabilities = navigator.mediaCapabilities || {};
+  navigator.mediaCapabilities.query = navigator.mediaCapabilities.query || fakeQuery;
+
+  function fakeQuery() {
+    let mediaDecodingAbility = {
+      supported: false,
+      smooth: false,
+      powerEfficient: false,
+      totallyFake: true,
+    };
+    return Promise.resolve(mediaDecodingAbility);
+  }
+
+  var mediaConfigurationTypes = ['file', 'MediaSource'];
+
+  var videoConfigurationTypes = [
+    'video/webm; codecs=vp8,opus',
+    'video/webm; codecs=vp8,vorbis',
+    'video/webm; codecs=vp9,opus',
+    'video/webm; codecs=vp9,vorbis',
+  ];
+
+  var mediaCapabilitiesPromises = [];
+  var mediaCapabilitiesOptions = [];
+
+  for (const mediaConfigurationType of mediaConfigurationTypes) {
+    for (const videoConfigurationType of videoConfigurationTypes) {
+
+      let options = {
+        type: mediaConfigurationType,
+        video: {
+          mime: videoConfigurationType,
+        }
+      }
+      mediaCapabilitiesOptions.push(options);
+
+      let promise = navigator.mediaCapabilities.query(options);
+      mediaCapabilitiesPromises.push(promise);
+    }
+  }
+
+  Promise.all(mediaCapabilitiesPromises)
+  .then(mediaDecodingAbilities => {
+    mediaDecodingAbilities.forEach((mediaDecodingAbility, index) => {
+      console.log(mediaCapabilitiesOptions[index], mediaDecodingAbility);
+    });
+  });
+
+</script>
+</html>
+
+
