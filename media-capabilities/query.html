@@ -212,22 +212,29 @@ li {
       }
       $('body').appendChild(rootElement);
 
-      let sectionElementIndex = SECTIONS.indexOf('Not Supported');
+      let sectionElementIndexes = [];
       if (mediaDecodingAbility.smooth & mediaDecodingAbility.powerEfficient) {
-        sectionElementIndex = SECTIONS.indexOf('Smooth & Power Efficient');
-      } else if (mediaDecodingAbility.smooth) {
-        sectionElementIndex = SECTIONS.indexOf('Smooth');
-      } else if (mediaDecodingAbility.powerEfficient) {
-        sectionElementIndex = SECTIONS.indexOf('Power Efficient');
-      } else if (mediaDecodingAbility.supported) {
-        sectionElementIndex = SECTIONS.indexOf('Supported');
+        sectionElementIndexes.push(SECTIONS.indexOf('Smooth & Power Efficient'));
       }
-
-      let parentId = '_' + sectionElementIndex + sizeElementClass + options.type.toLowerCase();
-      let result = document.createElement('li');
-      result.textContent = options.video.bitrate + ' kbps - ' + options.video.framerate + ' fps';
-      result.classList.add('result');
-      rootElement.querySelector('#' + parentId).appendChild(result);
+      if (mediaDecodingAbility.smooth) {
+        sectionElementIndexes.push(SECTIONS.indexOf('Smooth'));
+      }
+      if (mediaDecodingAbility.powerEfficient) {
+        sectionElementIndexes.push(SECTIONS.indexOf('Power Efficient'));
+      }
+      if (mediaDecodingAbility.supported) {
+        sectionElementIndexes.push(SECTIONS.indexOf('Supported'));
+      }
+      if (sectionElementIndexes.length == 0) {
+        sectionElementIndexes.push(SECTIONS.indexOf('Not Supported'));
+      }
+      for (let sectionElementIndex of sectionElementIndexes) {
+        let parentId = '_' + sectionElementIndex + sizeElementClass + options.type.toLowerCase();
+        let result = document.createElement('li');
+        result.textContent = options.video.bitrate + ' kbps - ' + options.video.framerate + ' fps';
+        result.classList.add('result');
+        rootElement.querySelector('#' + parentId).appendChild(result);
+      }
     });
   });
 
