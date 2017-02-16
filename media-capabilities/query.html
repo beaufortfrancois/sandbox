@@ -149,7 +149,7 @@ li {
             let options = {
               type: mediaConfigurationType,
               video: {
-                mime: videoConfigurationType,
+                type: videoConfigurationType,
                 width: videoSize.width,
                 height: videoSize.height,
                 bitrate: videoBitrate,
@@ -173,7 +173,7 @@ li {
     mediaDecodingAbilities.forEach((mediaDecodingAbility, index) => {
       let options = mediaCapabilitiesOptions[index];
 
-      let rootElementId = options.video.mime.replace(/(?![a-z0-9])./g, '');
+      let rootElementId = options.video.type.replace(/(?![a-z0-9])./g, '');
       let rootElement = $('#' + rootElementId);
       if (!rootElement) {
         rootElement = document.createElement('div');
@@ -184,7 +184,7 @@ li {
       let sizeElement = rootElement.querySelector(' .' + sizeElementClass);
       if (!sizeElement) {
         let titleElement = document.createElement('h2');
-        titleElement.textContent = options.video.mime;
+        titleElement.textContent = options.video.type;
         rootElement.appendChild(titleElement);
 
         sizeElement = document.createElement('h1');
