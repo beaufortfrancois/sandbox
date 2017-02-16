@@ -72,11 +72,7 @@ function handleFatBeaconCharacteristicChanged(event) {
     byteLength += event.target.value.byteLength;
     fatBeaconValue += decoder.decode(event.target.value);
     log('Reading FatBeacon Web Page... (' + byteLength + ' bytes)');
-    return event.target.readValue()
-      .catch(error => {
-        log(error);
-        success(); /* FIXME: Remove when http://crbug.com/643591 is fixed */
-      });
+    return event.target.readValue();
   }
 
   success();
