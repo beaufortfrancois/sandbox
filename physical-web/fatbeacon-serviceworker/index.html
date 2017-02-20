@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>FatBeacon + Service Worker Playground</title>
+  <link rel="icon" sizes="192x192" href="../favicon.png">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; }
+    iframe { float: right; width: 50%; height: 100%; background-color: #ECEFF1; border: 0; }
+    div { width: calc(50% - 48px); padding: 24px; height: calc(100% - 48px); overflow-y: overlay; }
+    pre { overflow-x: auto; }
+  </style>
+</head>
+<body>
+
+<iframe></iframe>
+<div>
+  <button>Read FatBeacon Web Page with Service Worker</button>
+  <pre></pre>
+</div>
+
+<script>
+
+const PHYSICAL_WEB_BEACON_SERVICE_UUID         = '0000feaa-0000-1000-8000-00805f9b34fb';
+const FATBEACON_SERVICE_UUID                   = 'ae5946d4-e587-4ba8-b6a5-a97cca6affd3';
+const FATBEACON_WEBPAGE_CHARACTERISTIC_UUID    = 'd1a517f0-2499-46ca-9ccc-809bc1c966fa';
+const FATBEACON_CONTROL_CHARACTERISTIC_UUID    = 'd1a517f1-2499-46ca-9ccc-809bc1c966fa';
+
+////////////
+
+const decoder = new TextDecoder();
+const encoder = new TextEncoder();
+
+////////////
+
+var bluetoothDevice;
+var webpageCharacteristic;
+var controlCharacteristic;
+
+var body = '';
+var byteLength = 0;
+var startTime;
+var pendingEvents = [];
+
+////////////
+
+function onButtonClick() {
+  return (bluetoothDevice ? Promise.resolve() : requestDevice())
+  .then(connectDeviceAndCacheCharacteristics)
+  .then(_ => {
+    pendingEvents = [];
+    document.querySelector('iframe').src = 'fatbeacon_default_webpage.html';
+  })
+  .catch(error => {
+    log('> Argh! ' + error);
+  });
+}
+
+function requestDevice() {
+  log('Requesting FatBeacon device...');
+  return navigator.bluetooth.requestDevice({
+    filters: [{services: [PHYSICAL_WEB_BEACON_SERVICE_UUID]}],
+    optionalServices: [FATBEACON_SERVICE_UUID]})
+  .then(device => {
+    bluetoothDevice = device;
+    bluetoothDevice.addEventListener('gattserverdisconnected', onGattServerDisconnected);
+  });
+}
+
+function connectDeviceAndCacheCharacteristics() {
+  if (bluetoothDevice.gatt.connected && webpageCharacteristic && controlCharacteristic) {
+    return Promise.resolve();
+  }
+
+  log('Connecting to GATT Server...');
+  return bluetoothDevice.gatt.connect()
+  .then(server => {
+    log('Getting FatBeacon Service...');
+    return server.getPrimaryService(FATBEACON_SERVICE_UUID);
+  })
+  .then(service => {
+    log('Getting Characteristics...');
+    return Promise.all([
+        service.getCharacteristic(FATBEACON_WEBPAGE_CHARACTERISTIC_UUID),
+        service.getCharacteristic(FATBEACON_CONTROL_CHARACTERISTIC_UUID)]);
+  })
+  .then(characteristics => {
+    [webpageCharacteristic, controlCharacteristic] = characteristics;
+  });
+}
+
+function onGattServerDisconnected() {
+  log('> FatBeacon device is disconnected');
+}
+
+function log(text) {
+  document.querySelector('pre').textContent += text + '\r\n';
+}
+
+document.querySelector('button').addEventListener('click', onButtonClick);
+
+/* Service Worker registration */
+
+navigator.serviceWorker.register('sw.js');
+
+/* Communication between service worker and window */
+
+const channel = new BroadcastChannel('fatbeacon');
+
+channel.addEventListener('message', event => {
+  console.log(event);
+  pendingEvents.push(event);
+  if (pendingEvents.length == 1) {
+    handleMessageFromServiceWorker();
+  }
+});
+
+async function handleMessageFromServiceWorker() {
+  const event = pendingEvents[0];
+  const channelId = event.data.channelId;
+  const pathname = event.data.pathname;
+
+  console.log(pathname);
+  try {
+    const body = await getBodyFromCharacteristic(event.data.pathname);
+    const elapsedTimeInSeconds = Math.floor((performance.now() - startTime) / 1000);
+    log('> Read ' + pathname + ' in ' + elapsedTimeInSeconds + 's');
+    channel.postMessage({ channelId, body });
+  }
+  catch(error) {
+    log('> Failed reading ' + event.data.pathname);
+    channel.postMessage({ channelId });
+  }
+  finally {
+    pendingEvents.shift();
+    // Continue if there are still pending requests...
+    if (pendingEvents.length) {
+      handleMessageFromServiceWorker();
+    }
+  }
+}
+
+async function getBodyFromCharacteristic(pathname) {
+  body = '';
+  byteLength = 0;
+  startTime = performance.now();
+
+  // Write first the path name we want to read in the Control Characteristic,
+  // then read the Webpage Characteristic by chunks as long as the returned
+  // value is not null.
+  await controlCharacteristic.writeValue(encoder.encode(pathname));
+  return await readWebpageCharacteristic(pathname);
+}
+
+async function readWebpageCharacteristic(pathname) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const value = await webpageCharacteristic.readValue();
+      // Continue reading value while value is not empty.
+      if (value.byteLength) {
+        byteLength += value.byteLength;
+        body += decoder.decode(value);
+        log('Reading ' + pathname + ' (' + byteLength + ' bytes)');
+        return resolve(readWebpageCharacteristic(pathname));
+      }
+      return resolve(body);
+    }
+    catch(error) {
+      return reject(error);
+    }
+  });
+}
+
+</script>
+</body>
+</html>
