@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no" />
+  <title>Screen Orientation + Video Fullscreen Playground</title>
+  <style>body { margin: 0 } video { width: 100% }</style>
+</head>
+<body>
+  <input type="checkbox">Lock/Unlock on fullscreen change
+  <video autoplay muted controls src="https://storage.googleapis.com/media-session/sintel/trailer.mp4"></video>
+  <p>Credits: Media files are © copyright Blender Foundation | <a href="http://www.blender.org">www.blender.org <a>.</p>
+</body>
+<script>
+  HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscreen || HTMLElement.prototype.webkitRequestFullscreen; 
+  HTMLDocument.prototype.exitFullscreen = HTMLDocument.prototype.exitFullscreen || HTMLDocument.prototype.webkitExitFullscreen;
+  // FIXME!
+  //HTMLDocument.prototype.fullscreenElement = HTMLDocument.prototype.fullscreenElement || HTMLDocument.prototype.webkitFullscreenElement;
+</script>
+<script>
+
+  var video = document.querySelector('video');
+
+  screen.orientation.addEventListener('change', onScreenOrientationChanged);
+
+  function onScreenOrientationChanged(event) {
+    if (event.target.type.startsWith('landscape')) {
+      video.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  video.addEventListener('fullscreenchange', onFullscreenChanged);
+  video.addEventListener('webkitfullscreenchange', onFullscreenChanged);
+
+  function onFullscreenChanged(event) {
+    if (!document.querySelector('input').checked) {
+      return;
+    }
+
+    // FIXME!
+    if (document.webkitFullscreenElement) {
+      screen.orientation.lock('landscape');
+    } else {
+      screen.orientation.unlock();
+    }
+  }
+
+</script>
+</html>
