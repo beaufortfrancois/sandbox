@@ -1,0 +1,21 @@
+<style>* { outline: 1px dashed; color:#7b1fa2;  } div { line-height: 32px; } video { width: 100%; }</style>
+<body>
+  <div>
+    <video autoplay loop controls muted src="https://storage.googleapis.com/media-session/sintel/trailer.mp4"></video>
+    Fullscreen:
+    <input name="element" type="radio" value="video" checked>&lt;video&gt;
+    <input name="element" type="radio" value="div">&lt;div&gt;
+    <input name="element" type="radio" value="body">&lt;body&gt;
+  </div>
+  <div>Credits: Media files are © copyright Blender Foundation | <a href="http://www.blender.org">www.blender.org <a>.</div>
+</body>
+<script>
+  screen.orientation.addEventListener('change', e => {
+    if (e.target.type.startsWith('landscape')) {
+      var element = document.querySelector(document.querySelector('[name=element]:checked').value);
+      element.webkitRequestFullscreen();
+    } else {
+      document.webkitExitFullscreen();
+    }
+  });
+</script>
