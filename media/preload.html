@@ -1,25 +1,57 @@
-<style>p { display: inline-block; line-height: 192px; vertical-align: text-bottom; padding-left: 12px; margin: 0}  div { margin: 12px 0 } video { outline: 2px solid cornflowerblue; height: 192px; }</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+    max-width: 616px;
+    margin: 0 auto;
+}
+div {
+    box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid #555;
+    background: #4285f4;
+    padding: 12px;
+    color: white;
+}
+video {
+    max-width: 100%;
+    background: rgba(255, 255, 255, .3);
+}
+pre {
+    padding-top: 12px;
+    margin: 0;
+}
+p {
+    padding: 12px;
+}
+</style>
 <body>
-  <pre id="datasaver"></pre>
+  <div>Note: <span id="note"></span></div>
   <div>
-    <video controls src="https://storage.googleapis.com/media-session/sintel/trailer.mp4#t=30"></video>
-    <p>default</p>
+    <video controls src="//storage.googleapis.com/media-session/sintel/trailer.mp4#t=24"></video>
+    <pre>&lt;video&gt;</pre>
   </div>
   <div>
-    <video controls preload="none" src="https://storage.googleapis.com/media-session/big-buck-bunny/trailer.mov#t=30"></video>
-    <p>preload="none"</p>
+    <video controls preload="none" src="//storage.googleapis.com/media-session/big-buck-bunny/trailer.mov#t=24"></video>
+    <pre>&lt;video preload="none"&gt;</pre>
   </div>
   <div>
-    <video controls preload="metadata" src="https://storage.googleapis.com/media-session/elephants-dream/teaser.mp4#t=30"></video>
-    <p>preload="metadata"</p>
+    <video controls preload="metadata" src="//storage.googleapis.com/media-session/elephants-dream/teaser.mp4#t=24"></video>
+    <pre>&lt;video preload="metadata"&gt;</pre>
   </div>
   <div>
-    <video controls preload="auto" src="https://storage.googleapis.com/media-session/caminandes/short.mp4#t=30"></video>
-    <p>preload="auto"</p>
+    <video controls preload="auto" src="//storage.googleapis.com/media-session/caminandes/short.mp4#t=24"></video>
+    <pre>&lt;video preload="auto"&gt;</pre>
   </div>
-  <span>Credits: Media files are © copyright Blender Foundation | <a href="http://www.blender.org">www.blender.org </a>.</span>
+  <p>Credits: Media files are © copyright Blender Foundation | <a href="http://www.blender.org">www.blender.org </a>.</p>
 </body>
 <script>
-  datasaver.textContent = 'Data Saver: ' +
-      (document.querySelector('[preload=auto]').preload == 'auto' ? 'Disabled' : 'Enabled');
+  switch (document.querySelector('[preload=auto]').preload) {
+    case 'auto':
+      note.textContent = 'Data Saver Off'; break;
+    case 'metadata':
+      note.textContent = 'Mobile Data On'; break;
+    case 'none':
+      note.textContent = 'Data Saver On or very low-end device'; break;
+    default:
+      note.textContent = 'N/A';
+  } 
 </script>
