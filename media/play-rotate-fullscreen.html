@@ -103,18 +103,16 @@ button {
     }
   }
 
-  screen.orientation.addEventListener('change', function(e) {
-    if (e.target.type.startsWith('landscape')) {
+  screen.orientation.addEventListener('change', function() {
+    if (screen.orientation.type.startsWith('landscape')) {
       fullscreen();
-      return;
-    }
-    if (document.fullscreenElement) {
+    } else if (document.fullscreenElement) {
       document.exitFullscreen();
     }
   });
 
-  function onDeviceOrientation(e) {
-    if (Math.abs(e.gamma) < 10 || Math.abs(e.beta) > 10) {
+  function onDeviceOrientation(event) {
+    if (Math.abs(event.gamma) < 10 || Math.abs(event.beta) > 10) {
       return;
     }
     // When device is held in landscape, let's unlock screen orientation.
