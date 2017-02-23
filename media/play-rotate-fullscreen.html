@@ -1,0 +1,125 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<style>
+body {
+    max-width: 616px;
+    margin: 0 auto;
+}
+div {
+    height: 360px;
+    display: flex;
+    align-items: center;
+}
+video {
+    width: 100%;
+}
+p {
+    padding: 12px;
+}
+button {
+    outline: none;
+    z-index: 120;
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid;
+    background: cornflowerblue;
+    color: white;
+    font-weight: bold;
+    top: calc((360px - 48px) / 2);
+}
+#playButton {
+    left: calc(50% - 12px - 48px);
+}
+#fullscreenButton {
+    left: calc(50% + 12px);
+}
+.visible {
+    display: none;
+}
+</style>
+<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+<body>
+  <div id="videoContainer">
+    <button id="playButton"><i class="icon-play"></i></button>
+    <button id="fullscreenButton"><i class="icon-fullscreen"></i></button>
+    <video id="video" loop muted src="//storage.googleapis.com/media-session/sintel/trailer.mp4#t=24"></video>
+  </div>
+  <p>Credits: Media files are © copyright Blender Foundation | <a href="http://www.blender.org">www.blender.org </a>.</p>
+</body>
+<script src="https://rawgit.com/neovov/Fullscreen-API-Polyfill/master/fullscreen-api-polyfill.js"></script>
+<script>
+
+  /* Casual stuff there... */
+
+  video.addEventListener('click', toggleButtonsVisibility);
+
+  function toggleButtonsVisibility() {
+    var buttons = Array.from(document.querySelectorAll('button'));
+    buttons.map(button => button.classList.toggle('visible'));
+  }
+
+  playButton.addEventListener('click', function(e) {
+    /*
+    // When user clicks "play" button, enters fullscreen in landscape mode if
+    // device is in portrait mode and is a phone.
+    if (matchMedia('(orientation: portrait) and (max-device-width: 768px)').matches) {
+      fullscreen();
+    }
+    */
+    if (video.paused) {
+      video.play();
+      playButton.querySelector('i').className = 'icon-pause';
+    } else {
+      video.pause();
+      playButton.querySelector('i').className = 'icon-play';
+    }
+    toggleButtonsVisibility();
+  });
+
+  fullscreenButton.addEventListener('click', function() {
+    toggleButtonsVisibility();
+  });
+
+</script>
+<script>
+  
+  /* Here's the interesting stuff... */
+
+  fullscreenButton.addEventListener('click', function() {
+    if (!document.fullscreenElement) {
+      fullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  });
+
+  function fullscreen() {
+    videoContainer.requestFullscreen();
+    if (matchMedia('(orientation: portrait) and (max-device-width: 768px)').matches) {
+      screen.orientation.lock('landscape').then(function() {
+        window.addEventListener('deviceorientation', onDeviceOrientation);
+      });
+    }
+  }
+
+  screen.orientation.addEventListener('change', function(e) {
+    if (e.target.type.startsWith('landscape')) {
+      fullscreen();
+      return;
+    }
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    }
+  });
+
+  function onDeviceOrientation(e) {
+    if (Math.abs(e.gamma) < 10 || Math.abs(e.beta) > 10) {
+      return;
+    }
+    // When device is held in landscape, let's unlock screen orientation.
+    screen.orientation.unlock().then(function() {
+      window.removeEventListener('deviceorientation', onDeviceOrientation);
+    });
+  }
+</script>
