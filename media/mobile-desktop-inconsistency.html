@@ -14,25 +14,23 @@
   </div>
   <div><i>Credits: Media files are © copyright Blender Foundation | <a href="http://www.blender.org">www.blender.org <a>.</i></div>
 </body>
+<script src="https://rawgit.com/neovov/Fullscreen-API-Polyfill/master/fullscreen-api-polyfill.js"></script>
 <script>
-  screen.orientation.addEventListener('change', e => {
+  screen.orientation.addEventListener('change', function(e) {
     if (e.target.type.startsWith('landscape')) {
       var element = document.querySelector(document.querySelector('[name=element]:checked').value);
-      element.webkitRequestFullscreen();
-    } else {
-      document.webkitExitFullscreen();
+      element.requestFullscreen();
+    } else if (document.fullscreenElement) {
+      document.exitFullscreen();
     }
   });
 
-  window.addEventListener('fullscreenchange', onFullscreenChanged);
-  window.addEventListener('webkitfullscreenchange', onFullscreenChanged);
-
-  function onFullscreenChanged(event) {
+  window.addEventListener('fullscreenchange', function() {
     if (!unlock.checked) {
       return;
     }
     // Let's unlock screen orientation so that we can receive subsequent screen
     // orientation change events.
     screen.orientation.unlock();
-  }
+  });
 </script>
