@@ -111,13 +111,23 @@ button {
     }
   });
 
+  // TODO: Find a better way to monitor landscape to portrait orientation changes...
+  var previousDeviceOrientation, currentDeviceOrientation;
+
   function onDeviceOrientation(event) {
-    if (Math.abs(event.gamma) < 10 || Math.abs(event.beta) > 10) {
+    if (Math.abs(event.gamma) > 10 || Math.abs(event.beta) < 10) {
+      previousDeviceOrientation = currentDeviceOrientation;
+      currentDeviceOrientation = 'landscape';
       return;
     }
-    // When device is held in landscape, let's unlock screen orientation.
-    screen.orientation.unlock().then(function() {
-      window.removeEventListener('deviceorientation', onDeviceOrientation);
-    });
+    if (Math.abs(event.gamma) < 10 || Math.abs(event.beta) > 10) {
+      previousDeviceOrientation = currentDeviceOrientation;
+      currentDeviceOrientation = 'portrait';
+      // When device is rotated back to portrait, let's unlock screen orientation.
+      if (previousDeviceOrientation == 'landscape' && currentDeviceOrientation == 'portrait') {
+        screen.orientation.unlock();
+        window.removeEventListener('deviceorientation', onDeviceOrientation);
+      }
+    }
   }
 </script>
