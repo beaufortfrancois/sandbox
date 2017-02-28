@@ -6,6 +6,14 @@
   2. Open a shell (`Ctrl+Alt+T`, type `shell` and hit enter) and run `sudo sh ~/Downloads/crouton -t cli-extra -r trusty`
   3. Wait patiently and answer the prompts like a good person.
 
+## Previous Install
+
+make sure that you are update with the mandatory tools : 
+
+```bash
+sudo apt-get install automake libtool libdbus-1-dev libudev-dev libical-dev  libreadline-dev
+```
+
 ## Compile BlueZ
 
 ```bash
