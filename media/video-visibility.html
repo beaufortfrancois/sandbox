@@ -35,6 +35,13 @@ button {
 #fullscreenButton {
     left: calc(50% + 12px);
 }
+#muteButton {
+    top: initial;
+    right: 24px;
+    bottom: 24px;
+    font-size: 24px;
+    position: fixed;
+}
 .visible {
     display: none;
 }
@@ -46,6 +53,7 @@ button {
     <button id="fullscreenButton"><i class="icon-fullscreen"></i></button>
     <video id="video" loop src="//storage.googleapis.com/media-session/sintel/trailer.mp4#t=24"></video>
   </div>
+  <button id="muteButton" hidden><i class="icon-volume-off"></i></button>
   <p><b>Instructions:</b></p>
   <p>Scroll down to the bottom while video is playing.</p>
   <p>Credits: Media files are © copyright Blender Foundation | <a href="http://www.blender.org">www.blender.org </a>.</p>
@@ -58,7 +66,7 @@ button {
   video.addEventListener('click', toggleButtonsVisibility);
 
   function toggleButtonsVisibility() {
-    var buttons = Array.from(document.querySelectorAll('button'));
+    var buttons = Array.from(document.querySelectorAll('div button'));
     buttons.map(button => button.classList.toggle('visible'));
   }
 
@@ -87,7 +95,8 @@ button {
   
   /* Here's the interesting stuff... */
 
-  // TODO: Why is visibilitychange triggered on document load?
+  // First, pause video when page becomes hidden.
+
   document.addEventListener('visibilitychange', function() {
     // Pause video when page becomes hidden.
     if (document.hidden) {
@@ -95,20 +104,25 @@ button {
     }
   });
 
-  var intersectionObserver = new IntersectionObserver(callback);
-  intersectionObserver.observe(video);
+  // Then, show/hide mute button based on video visibility in the page.
 
-  function callback(entries) {
-    if (video.paused) {
-      return;
-    }
-    if (!entries[0].isIntersecting) {
-      // Turn down volume when video is not visible by user.
-      video.volume /= 10;
-    } else {
-      // Restore volume when video becomes visible by user again.
-      video.volume = Math.min(1, video.volume * 10);
-    }
-  }
+  var observer = new IntersectionObserver(function(entries) {
+    muteButton.hidden = video.paused || entries[0].isIntersecting;
+  });
+  observer.observe(video);
+
+  muteButton.addEventListener('click', function() {
+    video.muted = !video.muted;
+  });
+
+
+  // TEST
+
+  navigator.mediaSession.setActionHandler('previoustrack', function() {
+    scrollTo(0, 0);
+  });
+  navigator.mediaSession.setActionHandler('nexttrack', function() {
+    scrollTo(0, 1000);
+  });
 
 </script>
