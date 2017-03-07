@@ -43,7 +43,7 @@ button {
   <div id="videoContainer">
     <button id="playButton"><i class="icon-play"></i></button>
     <button id="fullscreenButton"><i class="icon-fullscreen"></i></button>
-    <video id="video" loop muted src="//storage.googleapis.com/media-session/sintel/trailer.mp4#t=24"></video>
+    <video id="video" playsinline loop muted src="//storage.googleapis.com/media-session/sintel/trailer.mp4#t=24"></video>
   </div>
   <p>Credits: Media files are © copyright Blender Foundation | <a href="http://www.blender.org">www.blender.org </a>.</p>
 
@@ -115,7 +115,7 @@ Pellentesque ullamcorper ex et dolor porta, a sodales ante porta. Proin efficitu
     videoContainer.requestFullscreen();
     if (matchMedia('(orientation: portrait) and (max-device-width: 768px)').matches) {
       screen.orientation.lock('landscape').then(function() {
-        window.addEventListener('deviceorientation', onDeviceOrientation);
+        window.addEventListener('deviceorientation', onDeviceOrientationChange);
       });
     }
   }
@@ -131,7 +131,7 @@ Pellentesque ullamcorper ex et dolor porta, a sodales ante porta. Proin efficitu
   // TODO: Find a better way to monitor landscape to portrait orientation changes...
   var previousDeviceOrientation, currentDeviceOrientation;
 
-  function onDeviceOrientation(event) {
+  function onDeviceOrientationChange(event) {
     if (Math.abs(event.gamma) > 10 || Math.abs(event.beta) < 10) {
       previousDeviceOrientation = currentDeviceOrientation;
       currentDeviceOrientation = 'landscape';
