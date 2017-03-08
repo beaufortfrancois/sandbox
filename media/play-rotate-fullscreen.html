@@ -113,31 +113,34 @@ Pellentesque ullamcorper ex et dolor porta, a sodales ante porta. Proin efficitu
   
   /* Here's the interesting stuff... */
 
-  // 1.
+  // 1. How to fullscreen programmatically.
   toggleFullscreenButton.addEventListener('click', function() {
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else {
-      videoContainer.requestFullscreen();
-      // 3.
+      requestFullscreenVideo();
+      // 3. Lock screen in landscape when user presses fullscreen no matter the initial orientation.
       lockScreenInLandscape();
     }
   });
 
-  // 2.
+  function requestFullscreenVideo() {
+    if (videoContainer.requestFullscreen) {
+      videoContainer.requestFullscreen();
+    } else {
+      video.webkitEnterFullscreen();
+    }
+  }
+
+  // 2. Switch to fullscreen automatically when device is in landscape mode.
   if ('orientation' in screen) {
     screen.orientation.addEventListener('change', function() {
-      // Let's automatically request fullscreen if user holds device in landscape mode.
+      // Let's automatically request fullscreen if user switches device in landscape mode.
       if (screen.orientation.type.startsWith('landscape')) {
-        try {
-          // It may fail if fullscreen is called on screen orientation change as a
-          // user gesture still might be required in browsers that don't allow
-          // requestFullscreen() to be called from an orientation change event.
-          // See https://github.com/whatwg/fullscreen/commit/e5e96a9da944babf0e246980559cd80a46a300ca
-          videoContainer.requestFullscreen();
-        } catch(e) {
-          return;
-        }
+        // Note: It may silently fail in browsers that don't allow requesting
+        // fullscreen from the orientation change event.
+        // https://github.com/whatwg/fullscreen/commit/e5e96a9da944babf0e246980559cd80a46a300ca
+        requestFullscreenVideo();
       } else if (document.fullscreenElement) {
         document.exitFullscreen();
       }
@@ -149,7 +152,7 @@ Pellentesque ullamcorper ex et dolor porta, a sodales ante porta. Proin efficitu
       return;
     }
 
-    // Let's force landscape mode only if device is in portrait mode and not a "tablet".
+    // Let's force landscape mode only if device is in portrait mode and can be held in one hand.
     if (matchMedia('(orientation: portrait) and (max-device-width: 768px)').matches) {
       screen.orientation.lock('landscape').then(function() {
         // When screen is locked in landscape while user holds device in
@@ -184,6 +187,5 @@ Pellentesque ullamcorper ex et dolor porta, a sodales ante porta. Proin efficitu
       }
     });
   }
-
 
 </script>
