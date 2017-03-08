@@ -31,7 +31,7 @@ button {
 #playButton {
     left: calc(50% - 12px - 48px);
 }
-#fullscreenButton {
+#toggleFullscreenButton {
     left: calc(50% + 12px);
 }
 .visible {
@@ -42,7 +42,7 @@ button {
 <body>
   <div id="videoContainer">
     <button id="playButton"><i class="icon-play"></i></button>
-    <button id="fullscreenButton"><i class="icon-fullscreen"></i></button>
+    <button id="toggleFullscreenButton"><i class="icon-fullscreen"></i></button>
     <video id="video" playsinline loop muted src="//storage.googleapis.com/media-session/sintel/trailer.mp4#t=24"></video>
   </div>
   <p>Credits: Media files are © copyright Blender Foundation | <a href="http://www.blender.org">www.blender.org </a>.</p>
@@ -64,7 +64,17 @@ Pellentesque ullamcorper ex et dolor porta, a sodales ante porta. Proin efficitu
 </p>
 
 </body>
-<script src="https://rawgit.com/neovov/Fullscreen-API-Polyfill/master/fullscreen-api-polyfill.js"></script>
+<script>
+  HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscreen || HTMLElement.prototype.webkitRequestFullscreen;
+  HTMLDocument.prototype.exitFullscreen = HTMLDocument.prototype.exitFullscreen || HTMLDocument.prototype.webkitExitFullscreen;
+  if (!('fullscreenElement' in document)) {
+    Object.defineProperty(document, 'fullscreenElement', {
+      get: function() {
+        return document.mozFullScreenElement || document.msFullscreenElement || document.webkitFullscreenElement;
+      }
+    });
+  }
+</script>
 <script>
 
   /* Casual stuff there... */
@@ -94,7 +104,7 @@ Pellentesque ullamcorper ex et dolor porta, a sodales ante porta. Proin efficitu
     toggleButtonsVisibility();
   });
 
-  fullscreenButton.addEventListener('click', function() {
+  toggleFullscreenButton.addEventListener('click', function() {
     toggleButtonsVisibility();
   });
 
@@ -103,48 +113,77 @@ Pellentesque ullamcorper ex et dolor porta, a sodales ante porta. Proin efficitu
   
   /* Here's the interesting stuff... */
 
-  fullscreenButton.addEventListener('click', function() {
-    if (!document.fullscreenElement) {
-      fullscreen();
-    } else {
+  // 1.
+  toggleFullscreenButton.addEventListener('click', function() {
+    if (document.fullscreenElement) {
       document.exitFullscreen();
+    } else {
+      videoContainer.requestFullscreen();
+      // 3.
+      lockScreenInLandscape();
     }
   });
 
-  function fullscreen() {
-    videoContainer.requestFullscreen();
+  // 2.
+  if ('orientation' in screen) {
+    screen.orientation.addEventListener('change', function() {
+      // Let's automatically request fullscreen if user holds device in landscape mode.
+      if (screen.orientation.type.startsWith('landscape')) {
+        try {
+          // It may fail if fullscreen is called on screen orientation change as a
+          // user gesture still might be required in browsers that don't allow
+          // requestFullscreen() to be called from an orientation change event.
+          // See https://github.com/whatwg/fullscreen/commit/e5e96a9da944babf0e246980559cd80a46a300ca
+          videoContainer.requestFullscreen();
+        } catch(e) {
+          return;
+        }
+      } else if (document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+    });
+  }
+
+  function lockScreenInLandscape() {
+    if (!('orientation' in screen)) {
+      return;
+    }
+
+    // Let's force landscape mode only if device is in portrait mode and not a "tablet".
     if (matchMedia('(orientation: portrait) and (max-device-width: 768px)').matches) {
       screen.orientation.lock('landscape').then(function() {
-        window.addEventListener('deviceorientation', onDeviceOrientationChange);
+        // When screen is locked in landscape while user holds device in
+        // portrait, let's use the Device Orientation API to unlock screen only
+        // when it is appropriate to create a perfect and seamless experience.
+        listenToDeviceOrientationChanges();
       });
     }
   }
 
-  screen.orientation.addEventListener('change', function() {
-    if (screen.orientation.type.startsWith('landscape')) {
-      fullscreen();
-    } else if (document.fullscreenElement) {
-      document.exitFullscreen();
-    }
-  });
-
-  // TODO: Find a better way to monitor landscape to portrait orientation changes...
-  var previousDeviceOrientation, currentDeviceOrientation;
-
-  function onDeviceOrientationChange(event) {
-    if (Math.abs(event.gamma) > 10 || Math.abs(event.beta) < 10) {
-      previousDeviceOrientation = currentDeviceOrientation;
-      currentDeviceOrientation = 'landscape';
+  function listenToDeviceOrientationChanges() {
+    if (!('DeviceOrientationEvent' in window)) {
       return;
     }
-    if (Math.abs(event.gamma) < 10 || Math.abs(event.beta) > 10) {
-      previousDeviceOrientation = currentDeviceOrientation;
-      currentDeviceOrientation = 'portrait';
-      // When device is rotated back to portrait, let's unlock screen orientation.
-      if (previousDeviceOrientation == 'landscape' && currentDeviceOrientation == 'portrait') {
-        screen.orientation.unlock();
-        window.removeEventListener('deviceorientation', onDeviceOrientation);
+
+    var previousDeviceOrientation, currentDeviceOrientation;
+    window.addEventListener('deviceorientation', function onDeviceOrientationChange(event) {
+      // event.beta represents a front to back motion of the device and
+      // event.gamma a left to right motion.
+      if (Math.abs(event.gamma) > 10 || Math.abs(event.beta) < 10) {
+        previousDeviceOrientation = currentDeviceOrientation;
+        currentDeviceOrientation = 'landscape';
+        return;
       }
-    }
+      if (Math.abs(event.gamma) < 10 || Math.abs(event.beta) > 10) {
+        previousDeviceOrientation = currentDeviceOrientation;
+        // When device is rotated back to portrait, let's unlock screen orientation.
+        if (previousDeviceOrientation == 'landscape') {
+          screen.orientation.unlock();
+          window.removeEventListener('deviceorientation', onDeviceOrientationChange);
+        }
+      }
+    });
   }
+
+
 </script>
