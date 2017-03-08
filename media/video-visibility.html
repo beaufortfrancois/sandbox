@@ -106,23 +106,15 @@ button {
 
   // Then, show/hide mute button based on video visibility in the page.
 
-  var observer = new IntersectionObserver(function(entries) {
-    muteButton.hidden = video.paused || entries[0].isIntersecting;
-  });
-  observer.observe(video);
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function(entries) {
+      muteButton.hidden = video.paused || entries[0].isIntersecting;
+    });
+    observer.observe(video);
 
-  muteButton.addEventListener('click', function() {
-    video.muted = !video.muted;
-  });
-
-
-  // TEST
-
-  navigator.mediaSession.setActionHandler('previoustrack', function() {
-    scrollTo(0, 0);
-  });
-  navigator.mediaSession.setActionHandler('nexttrack', function() {
-    scrollTo(0, 1000);
-  });
+    muteButton.addEventListener('click', function() {
+      video.muted = !video.muted;
+    });
+  }
 
 </script>
