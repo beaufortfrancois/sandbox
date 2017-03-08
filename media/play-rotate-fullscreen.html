@@ -64,17 +64,7 @@ Pellentesque ullamcorper ex et dolor porta, a sodales ante porta. Proin efficitu
 </p>
 
 </body>
-<script>
-  HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscreen || HTMLElement.prototype.webkitRequestFullscreen;
-  HTMLDocument.prototype.exitFullscreen = HTMLDocument.prototype.exitFullscreen || HTMLDocument.prototype.webkitExitFullscreen;
-  if (!('fullscreenElement' in document)) {
-    Object.defineProperty(document, 'fullscreenElement', {
-      get: function() {
-        return document.mozFullScreenElement || document.msFullscreenElement || document.webkitFullscreenElement;
-      }
-    });
-  }
-</script>
+<script src="tiny-fullscreen-shim.js"></script>
 <script>
 
   /* Casual stuff there... */
@@ -163,6 +153,7 @@ Pellentesque ullamcorper ex et dolor porta, a sodales ante porta. Proin efficitu
     }
   }
 
+  // 4. Unlock screen automatically based on device orientation
   function listenToDeviceOrientationChanges() {
     if (!('DeviceOrientationEvent' in window)) {
       return;

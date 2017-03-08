@@ -10,12 +10,7 @@
   <video autoplay muted controls src="https://storage.googleapis.com/media-session/sintel/trailer.mp4"></video>
   <p>Credits: Media files are © copyright Blender Foundation | <a href="http://www.blender.org">www.blender.org <a>.</p>
 </body>
-<script>
-  HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscreen || HTMLElement.prototype.webkitRequestFullscreen; 
-  HTMLDocument.prototype.exitFullscreen = HTMLDocument.prototype.exitFullscreen || HTMLDocument.prototype.webkitExitFullscreen;
-  // FIXME!
-  //HTMLDocument.prototype.fullscreenElement = HTMLDocument.prototype.fullscreenElement || HTMLDocument.prototype.webkitFullscreenElement;
-</script>
+<script src="tiny-fullscreen-shim.js"></script>
 <script>
 
   var video = document.querySelector('video');
