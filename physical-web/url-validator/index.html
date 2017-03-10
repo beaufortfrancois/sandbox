@@ -39,6 +39,15 @@
     <pre></pre>
 
     <script>
+      // As per http://stackoverflow.com/a/784698/29701
+      function HtmlEncode(s)
+      {
+        var el = document.createElement("div");
+        el.innerText = el.textContent = s;
+        s = el.innerHTML;
+        return s;
+      }
+      
       var $ = document.querySelector.bind(document);
       $('input').addEventListener('keyup', function(e) { if (e.keyCode == 13) { validateUrl(); } });
       $('button').addEventListener('click', validateUrl);
@@ -64,14 +73,14 @@
             return enableButton();
           }
           if (data.unresolvedResults) {
-            var text = 'The Physical Web Service fails to validate <i>' + data.unresolvedResults[0].scannedUrl + '</i></br><br/>' +
+            var text = 'The Physical Web Service fails to validate <i>' + HtmlEncode(data.unresolvedResults[0].scannedUrl) + '</i></br><br/>' +
                        '<b>Reason</b>' + data.unresolvedResults[0].rejectionReason.description;
             log('Snap!', text, 'error');
             return enableButton();
           }
-          var text = '<b>URL</b><a href="' + data.results[0].resolvedUrl + '">' + data.results[0].resolvedUrl + '</a><br/>' +
-                     '<b>Title</b>' + data.results[0].pageInfo.title + '<br/>' +
-                     '<b>Description</b>' + data.results[0].pageInfo.description + '<br/>' +
+          var text = '<b>URL</b><a href="' + data.results[0].resolvedUrl + '">' + HtmlEncode(data.results[0].resolvedUrl) + '</a><br/>' +
+                     '<b>Title</b>' + HtmlEncode(data.results[0].pageInfo.title) + '<br/>' +
+                     '<b>Description</b>' + HtmlEncode(data.results[0].pageInfo.description) + '<br/>' +
                      '<b>Icon</b><img width="16px" height="16px" src="' + data.results[0].pageInfo.icon + '"/>';
           log('Success', text, 'success');
           enableButton();
