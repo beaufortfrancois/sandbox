@@ -69,11 +69,14 @@
             log('Snap!', text, 'error');
             return enableButton();
           }
-          var text = '<b>URL</b><a href="' + data.results[0].resolvedUrl + '">' + data.results[0].resolvedUrl + '</a><br/>' +
-                     '<b>Title</b>' + data.results[0].pageInfo.title + '<br/>' +
-                     '<b>Description</b>' + data.results[0].pageInfo.description + '<br/>' +
+          var text = '<b>URL</b><a id="url" href="' + data.results[0].resolvedUrl + '"></a><br/>' +
+                     '<b>Title</b><span id="title"></span><br/>' +
+                     '<b>Description</b><span id="description"></span><br/>' +
                      '<b>Icon</b><img width="16px" height="16px" src="' + data.results[0].pageInfo.icon + '"/>';
           log('Success', text, 'success');
+          $('#url').textContent = data.results[0].resolvedUrl;
+          $('#title').textContent = data.results[0].pageInfo.title;
+          $('#description').textContent = data.results[0].pageInfo.description;
           enableButton();
         })
         .catch(error => {
