@@ -38,6 +38,7 @@ b {
     text-shadow: 0px 0px 4px black;
     background-position: center center;
     background-repeat: no-repeat;
+    pointer-events: auto;
     z-index: 2;
 }
 #playPauseButton {
@@ -63,11 +64,32 @@ b {
 #toggleFullscreenButton.active {
     background-image: url('https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_fullscreen_exit_white_24px.svg');
 }
+#seekForwardButton {
+    right: 0px;
+    top: calc(50% - 64px);
+    width: 64px;
+    height: 128px;
+    background: url(https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_fast_forward_white_18px.svg);
+    background-position: 75% 50%;
+    background-repeat: no-repeat;
+    border-radius: 50%;
+}
+#seekBackwardButton {
+    left: 0px;
+    top: calc(50% - 64px);
+    width: 64px;
+    height: 128px;
+    background: url(https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_fast_rewind_white_18px.svg);
+    background-position: 25% 50%;
+    background-repeat: no-repeat;
+    border-radius: 50%;
+}
 .visible {
     opacity: 1 !important;
 }
 button {
     opacity: 0;
+    pointer-events: none;
 }
 #videoContainer {
     position: relative;
@@ -87,6 +109,11 @@ button {
 }
 #video {
     position: absolute;
+    will-change: filter;
+    transition: filter ease-out .2s;
+}
+.seeking {
+    filter: brightness(0);
 }
 #videoControls {
     position: absolute;
@@ -129,9 +156,11 @@ button {
 <body>
   <div id="videoContainer">
     <video id="video" playsinline muted src="https://storage.googleapis.com/media-session/caminandes/short.mp4#t=101"></video>
-    <div id="videoControls" class="visible">
+    <div id="videoControls">
       <button id="playPauseButton"></button>
       <button id="toggleFullscreenButton"></button>
+      <button id="seekForwardButton"></button>
+      <button id="seekBackwardButton"></button>
       <div id="videoCurrentTime"></div>
       <div id="videoDuration"></div>
       <div id="videoTimeTrack"></div>
@@ -147,10 +176,6 @@ button {
 
   /* Casual stuff there... */
 
-  function toggleVideoControlsVisibility() {
-    videoControls.classList.toggle('visible');
-  }
-
   function showVideoControls() {
     videoControls.classList.toggle('visible', true);
   }
@@ -160,19 +185,14 @@ button {
   }
 
   videoControls.addEventListener('click', function(event) {
-    toggleVideoControlsVisibility();
-  });
-
-  playPauseButton.addEventListener('click', function(event) {
-    event.stopPropagation();
-    if (video.paused) {
-      video.play();
+    if (videoControls.classList.contains('visible')) {
+      hideVideoControls();
     } else {
-      video.pause();
+      showVideoControls();
     }
   });
 
-  /* Custom controls stuff... */
+  /* Utils */
 
   function formatTime(seconds) {
     const h = Math.floor(seconds / 3600);
@@ -185,25 +205,40 @@ button {
     ].filter(Boolean).join(':');
   }
 
+  /* Custom controls stuff... */
+
   video.addEventListener('loadedmetadata', function() {
     videoDuration.textContent = formatTime(video.duration);
     videoCurrentTime.textContent = formatTime(video.currentTime);
     videoTimeTrack.style.width = `${video.currentTime * 100 / video.duration}%`;
+    showVideoControls();
   });
 
-  video.addEventListener('playing', function() {
+  playPauseButton.addEventListener('click', function(event) {
+    event.stopPropagation();
+    if (video.paused) {
+      video.play();
+    } else {
+      video.pause();
+    }
+  });
+
+  video.addEventListener('play', function() {
+    console.log('play');
     playPauseButton.classList.toggle('paused', true);
     updateTimeTracking();
     hideVideoControls();
   });
 
   video.addEventListener('pause', function() {
+    console.log('pause');
     playPauseButton.classList.toggle('paused', false);
     updateTimeTracking();
     showVideoControls();
   });
 
   video.addEventListener('ended', function() {
+    console.log('ended');
     playPauseButton.classList.toggle('paused', false);
     showVideoControls();
   });
@@ -213,15 +248,48 @@ button {
   });
 
   function updateTimeTracking() {
-    if (video.paused) {
-      return;
-    }
+    console.log('updateTimeTracking');
     requestAnimationFrame(function() {
-      updateTimeTracking();
+      if (!video.paused) {
+        updateTimeTracking();
+      }
       videoCurrentTime.textContent = formatTime(video.currentTime);
       videoTimeTrack.style.width = `${video.currentTime * 100 / video.duration}%`;
     });
   }
+
+  seekForwardButton.addEventListener('click', function(event) {
+    event.stopPropagation();
+    seekForward();
+  });
+
+  seekBackwardButton.addEventListener('click', function(event) {
+    event.stopPropagation();
+    seekBackward();
+  });
+  
+  const skipTime = 10;
+
+  function seekForward() {
+    video.currentTime = Math.min(video.currentTime + skipTime, video.duration);
+  }
+
+  function seekBackward() {
+    video.currentTime = Math.max(video.currentTime - skipTime, 0);
+  }
+
+  video.addEventListener('seeking', function() {
+    console.log('seeking');
+    video.classList.toggle('seeking', true);
+  });
+
+  video.addEventListener('seeked', function() {
+    console.log('seeked');
+    setTimeout(function() {
+      video.classList.toggle('seeking', false);
+    }, 200);
+    updateTimeTracking();
+  });
 
 </script>
 <script>
