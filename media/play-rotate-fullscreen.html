@@ -156,7 +156,7 @@ button {
 <body>
   <div id="videoContainer">
     <video id="video" playsinline muted src="https://storage.googleapis.com/media-session/caminandes/short.mp4#t=101"></video>
-    <div id="videoControls">
+    <div id="videoControls" class="visible">
       <button id="playPauseButton"></button>
       <button id="toggleFullscreenButton"></button>
       <button id="seekForwardButton"></button>
@@ -211,7 +211,6 @@ button {
     videoDuration.textContent = formatTime(video.duration);
     videoCurrentTime.textContent = formatTime(video.currentTime);
     videoTimeTrack.style.width = `${video.currentTime * 100 / video.duration}%`;
-    showVideoControls();
   });
 
   playPauseButton.addEventListener('click', function(event) {
