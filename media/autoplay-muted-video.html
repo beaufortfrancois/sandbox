@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Autoplay muted videos test page</title>
+</head>
+<body>
+  <textarea rows=100>I am spacing</textarea>
+  <section>
+    <div>playsinline autoplay muted</div>
+    <video src='https://storage.googleapis.com/dalecurtis-shared/buck2.mp4' playsinline controls autoplay muted></video>
+  </section>
+</body>
+<script>
+  var video = document.querySelector("video");
+  var ta = document.querySelector("textarea");
+  ta.value += "\r\n";
+  video.addEventListener("loadedmetadata", _ => { ta.value += "video loadedmetadata\r\n" });
+  video.addEventListener("play", _ => { ta.value += "video play\r\n" });
+  video.addEventListener("playing", _ => { ta.value += "video playing\r\n" });
+  video.addEventListener("pause", _ => { ta.value += "video paused\r\n" });
+</script>
+</html>
