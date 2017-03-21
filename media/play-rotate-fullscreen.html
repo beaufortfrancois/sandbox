@@ -155,7 +155,7 @@ button {
 </style>
 <body>
   <div id="videoContainer">
-    <video id="video" playsinline muted src="https://storage.googleapis.com/media-session/caminandes/short.mp4#t=101"></video>
+    <video id="video" playsinline muted src="https://storage.googleapis.com/media-session/caminandes/short.mp4#t=101" class="seeking"></video>
     <div id="videoControls">
       <button id="playPauseButton"></button>
       <button id="toggleFullscreenButton"></button>
@@ -192,6 +192,10 @@ button {
     }
   });
 
+  document.addEventListener('DOMContentLoaded', function() {
+    showVideoControls();
+  });
+
   /* Utils */
 
   function formatTime(seconds) {
@@ -211,7 +215,6 @@ button {
     videoDuration.textContent = formatTime(video.duration);
     videoCurrentTime.textContent = formatTime(video.currentTime);
     videoTimeTrack.style.width = `${video.currentTime * 100 / video.duration}%`;
-    showVideoControls();
   });
 
   playPauseButton.addEventListener('click', function(event) {
@@ -233,7 +236,6 @@ button {
   video.addEventListener('pause', function() {
     console.log('pause');
     playPauseButton.classList.toggle('paused', false);
-    updateTimeTracking();
     showVideoControls();
   });
 
