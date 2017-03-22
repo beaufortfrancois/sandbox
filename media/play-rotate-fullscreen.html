@@ -152,6 +152,12 @@ button {
     will-change: width;
     transition: width .35s ease-out;
 }
+.step1 #toggleFullscreenButton {
+    display: none;
+}
+.step1 #videoDuration {
+    right: 12px !important;
+}
 </style>
 <body>
   <div id="videoContainer">
@@ -198,7 +204,7 @@ button {
 
   /* Utils */
 
-  function formatTime(seconds) {
+  function secondsToTimeCode(seconds) {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
@@ -212,8 +218,8 @@ button {
   /* Custom controls stuff... */
 
   video.addEventListener('loadedmetadata', function() {
-    videoDuration.textContent = formatTime(video.duration);
-    videoCurrentTime.textContent = formatTime(video.currentTime);
+    videoDuration.textContent = secondsToTimeCode(video.duration);
+    videoCurrentTime.textContent = secondsToTimeCode(video.currentTime);
     videoTimeTrack.style.width = `${video.currentTime * 100 / video.duration}%`;
   });
 
@@ -255,7 +261,7 @@ button {
       if (!video.paused) {
         updateTimeTracking();
       }
-      videoCurrentTime.textContent = formatTime(video.currentTime);
+      videoCurrentTime.textContent = secondsToTimeCode(video.currentTime);
       videoTimeTrack.style.width = `${video.currentTime * 100 / video.duration}%`;
     });
   }
