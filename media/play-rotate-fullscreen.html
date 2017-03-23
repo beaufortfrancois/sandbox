@@ -152,6 +152,9 @@ button {
     will-change: width;
     transition: width .35s ease-out;
 }
+.step0 button {
+    display: none;
+}
 .step1 #toggleFullscreenButton {
     display: none;
 }
@@ -218,6 +221,7 @@ button {
   /* Custom controls stuff... */
 
   video.addEventListener('loadedmetadata', function() {
+    console.log('loadedmetadata');
     videoDuration.textContent = secondsToTimeCode(video.duration);
     videoCurrentTime.textContent = secondsToTimeCode(video.currentTime);
     videoTimeTrack.style.width = `${video.currentTime * 100 / video.duration}%`;
