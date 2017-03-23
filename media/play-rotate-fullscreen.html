@@ -239,7 +239,6 @@ button {
   video.addEventListener('play', function() {
     console.log('play');
     playPauseButton.classList.toggle('paused', true);
-    updateTimeTracking();
     hideVideoControls();
   });
 
@@ -259,16 +258,11 @@ button {
     toggleFullscreenButton.classList.toggle('active', document.fullscreenElement);
   });
 
-  function updateTimeTracking() {
-    console.log('updateTimeTracking');
-    requestAnimationFrame(function() {
-      if (!video.paused) {
-        updateTimeTracking();
-      }
-      videoCurrentTime.textContent = secondsToTimeCode(video.currentTime);
-      videoProgressBar.style.width = `${video.currentTime * 100 / video.duration}%`;
-    });
-  }
+  video.addEventListener('timeupdate', function() {
+    console.log('timeupdate');
+    videoCurrentTime.textContent = secondsToTimeCode(video.currentTime);
+    videoProgressBar.style.width = `${video.currentTime * 100 / video.duration}%`;
+  });
 
   seekForwardButton.addEventListener('click', function(event) {
     event.stopPropagation();
@@ -300,7 +294,6 @@ button {
     setTimeout(function() {
       video.classList.toggle('seeking', false);
     }, 200);
-    updateTimeTracking();
   });
 
 </script>
