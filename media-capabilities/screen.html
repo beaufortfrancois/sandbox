@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>screen</title>
+  <style>pre { line-height: 2em }</style>
+</head>
+<body>
+  <pre id="log"></pre>
+</body>
+<script>
+  function print() {
+    const keys = Object.keys(screen.__proto__).sort();
+    log.textContent = keys.map(key => `screen.${key.padEnd(11)} = ${screen[key]}`).join('\r\n');
+  }
+  screen.orientation.addEventListener('change', print);
+  print();
+</script>
+</html>
+
+
