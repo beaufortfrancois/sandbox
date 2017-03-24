@@ -147,9 +147,10 @@ button {
     bottom: 0;
     left: 0;
     height: 4px;
-    width: 0;
-    will-change: width;
-    transition: width .35s ease-out;
+    width: 100%;
+    will-change: transform;
+    transition: transform .35s ease-out;
+    transform-origin: 0 50%;
 }
 .step0 button {
     display: none;
@@ -224,7 +225,7 @@ button {
     console.log('loadedmetadata');
     videoDuration.textContent = secondsToTimeCode(video.duration);
     videoCurrentTime.textContent = secondsToTimeCode(video.currentTime);
-    videoProgressBar.style.width = `${video.currentTime * 100 / video.duration}%`;
+    videoProgressBar.style.transform = `scaleX(${video.currentTime / video.duration})`;
   });
 
   playPauseButton.addEventListener('click', function(event) {
@@ -261,7 +262,7 @@ button {
   video.addEventListener('timeupdate', function() {
     console.log('timeupdate');
     videoCurrentTime.textContent = secondsToTimeCode(video.currentTime);
-    videoProgressBar.style.width = `${video.currentTime * 100 / video.duration}%`;
+    videoProgressBar.style.transform = `scaleX(${video.currentTime / video.duration})`;
   });
 
   seekForwardButton.addEventListener('click', function(event) {
