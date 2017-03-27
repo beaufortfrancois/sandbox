@@ -84,17 +84,17 @@ b {
     background-repeat: no-repeat;
     border-radius: 50%;
 }
-.visible {
-    opacity: 1 !important;
-}
 button {
     opacity: 0;
     pointer-events: none;
 }
+.visible {
+    opacity: 1 !important;
+}
 #videoContainer {
     position: relative;
     height: 35vh;
-    width: 100vw;
+    width: 100%;
     background: black;
     margin: 0 auto;
 }
@@ -118,8 +118,8 @@ button {
 #videoControls {
     position: absolute;
     opacity: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%,rgba(0,0,0,0) 33%,rgba(0,0,0,0) 66%,rgba(0,0,0,0.5) 100%);
-    box-shadow: inset 0 -4px 0 rgba(255, 255, 255, 0.5);
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%,rgba(0,0,0,0) 33%,rgba(0,0,0,0) 66%,rgba(0,0,0,0.8) 100%);
+    box-shadow: inset 0 -4px 0 rgba(255, 255, 255, 0.8);
     width: 100%;
     height: 100%;
     transition: opacity 0.35s cubic-bezier(0, 0, 0.4, 1);
@@ -149,8 +149,9 @@ button {
     height: 4px;
     width: 100%;
     will-change: transform;
-    transition: transform .35s ease-out;
+    transition: transform .35s linear;
     transform-origin: 0 50%;
+    transform: scaleX(0);
 }
 .step0 button {
     display: none;
@@ -160,6 +161,29 @@ button {
 }
 .step1 #videoDuration {
     right: 12px !important;
+}
+.spacer {
+    color: #333;
+    height: 100vh;
+}
+#muteButton {
+    outline: none;
+    pointer-events: auto;
+    opacity: 1;
+    background-image: url(https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_volume_off_white_24px.svg);
+    background-color: #673AB7;
+    background-position: 50%;
+    background-repeat: no-repeat;
+    border: 0;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+}
+#muteButton.active {
+    background-image: url(https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_volume_up_white_24px.svg);
 }
 </style>
 <body>
@@ -179,6 +203,24 @@ button {
     <b>Caminandes 2: Gran Dillama - Blender Animated Short</b><br/>
     <a href="http://www.blender.org">Blender Foundation</a>
   </p>
+  <div class="spacer">
+    <p>
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque in gravida velit. Mauris egestas lectus nunc, nec rutrum nisi sagittis posuere. Nunc et aliquam urna, ac pulvinar velit. Donec a vestibulum mi, a venenatis turpis. Phasellus sollicitudin scelerisque lectus. Duis quam dui, venenatis ac quam ut, tincidunt scelerisque ante. Morbi imperdiet lacus vitae justo tempor, quis aliquet neque tincidunt. Donec venenatis urna lectus, vel tincidunt ipsum pretium non. Aliquam leo lorem, eleifend sit amet metus et, finibus dapibus ex. Fusce finibus quam vitae purus accumsan, quis eleifend nisi sagittis. Cras a purus mi. Nam id ullamcorper odio, eget varius dui. Nulla semper ipsum nisi. Nullam commodo mi in malesuada bibendum.
+    </p>
+    <p>
+    Nulla semper eleifend augue, at tristique tellus maximus at. Cras id lacus id nibh dapibus rutrum a vitae risus. Aenean congue elit vitae ex tristique, in bibendum felis porta. Quisque in congue justo. Suspendisse scelerisque metus vitae diam sollicitudin ornare. Phasellus quis aliquam ligula. Pellentesque tempus iaculis odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Suspendisse ultrices vitae ante eget maximus. Etiam sagittis tempor commodo. Duis vel tincidunt sem, a blandit risus. Vestibulum bibendum ex et lorem viverra, non cursus urna elementum. Ut semper felis lectus, eu consectetur dui posuere in. Nam sit amet mauris id nisl finibus pulvinar.
+    </p>
+    <p>
+    Sed tincidunt rhoncus dignissim. Phasellus odio purus, ultrices id rhoncus eu, hendrerit at magna. Praesent non orci vitae nisi feugiat fringilla eget vitae ligula. Morbi mollis, lectus quis consectetur imperdiet, lorem lacus luctus nisi, ac efficitur odio dolor id massa. Fusce iaculis mattis mi, ut varius mi rutrum ut. Cras tellus nibh, viverra id mattis quis, facilisis ut dui. Fusce ut viverra lectus.
+    </p>
+    <p>
+    Donec ex tortor, efficitur auctor dictum id, rhoncus nec sapien. Mauris rhoncus fermentum luctus. Sed placerat ante felis. Nulla dapibus sit amet arcu nec tincidunt. In vel vehicula nibh, sit amet ultrices est. Integer risus neque, elementum sit amet commodo ac, pharetra at mauris. Curabitur metus lectus, maximus id ligula finibus, porta tristique elit. Phasellus maximus in orci et tincidunt. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Sed euismod faucibus hendrerit. Donec auctor placerat dui sit amet varius. Praesent non iaculis lorem. Integer vel dolor sagittis lorem vehicula egestas. Nullam imperdiet lacus id lectus bibendum, ac venenatis urna ultrices. Praesent elementum mattis sagittis.
+    </p>
+    <p>
+    Donec sit amet leo convallis, sodales nibh eget, maximus felis. Nullam elementum hendrerit metus. Nulla porttitor ullamcorper mi, ac iaculis diam molestie vitae. Nunc tempor hendrerit ex in tincidunt. Cras tristique, turpis vitae elementum hendrerit, turpis elit vulputate felis, vel ultrices leo diam vitae mi. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nisi nulla, consectetur eu purus at, eleifend vehicula lacus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam pretium pharetra neque, eu laoreet magna condimentum et. Etiam facilisis, tortor at consequat efficitur, nulla dui tempor risus, nec sodales enim ligula eu enim. Cras eu finibus lorem.
+    </p>
+  </div>
+  <button id="muteButton" hidden></button>
 </body>
 <script src="tiny-fullscreen-shim.js"></script>
 <script>
@@ -186,11 +228,11 @@ button {
   /* Casual stuff there... */
 
   function showVideoControls() {
-    videoControls.classList.toggle('visible', true);
+    videoControls.classList.add('visible');
   }
 
   function hideVideoControls() {
-    videoControls.classList.toggle('visible', false);
+    videoControls.classList.remove('visible');
   }
 
   videoControls.addEventListener('click', function(event) {
@@ -226,6 +268,7 @@ button {
     videoDuration.textContent = secondsToTimeCode(video.duration);
     videoCurrentTime.textContent = secondsToTimeCode(video.currentTime);
     videoProgressBar.style.transform = `scaleX(${video.currentTime / video.duration})`;
+    muteButton.classList.toggle('active', video.muted);
   });
 
   playPauseButton.addEventListener('click', function(event) {
@@ -239,19 +282,20 @@ button {
 
   video.addEventListener('play', function() {
     console.log('play');
-    playPauseButton.classList.toggle('paused', true);
+    playPauseButton.classList.add('paused');
     hideVideoControls();
   });
 
   video.addEventListener('pause', function() {
     console.log('pause');
-    playPauseButton.classList.toggle('paused', false);
+    playPauseButton.classList.remove('paused');
     showVideoControls();
   });
 
   video.addEventListener('ended', function() {
     console.log('ended');
-    playPauseButton.classList.toggle('paused', false);
+    playPauseButton.classList.remove('paused');
+    video.currentTime = 0;
     showVideoControls();
   });
 
@@ -287,13 +331,13 @@ button {
 
   video.addEventListener('seeking', function() {
     console.log('seeking');
-    video.classList.toggle('seeking', true);
+    video.classList.add('seeking');
   });
 
   video.addEventListener('seeked', function() {
     console.log('seeked');
     setTimeout(function() {
-      video.classList.toggle('seeking', false);
+      video.classList.remove('seeking');
     }, 200);
   });
 
@@ -379,4 +423,35 @@ button {
     });
   }
 
+</script>
+<script>
+// Background playback
+
+document.addEventListener('visibilitychange', function() {
+  // Pause video when page is hidden.
+  if (document.hidden) {
+    video.pause();
+  }
+});
+
+if ('IntersectionObserver' in window) {
+  // Show/hide mute button based on video visibility in the page.
+  function onIntersection(entries) {
+    console.log('onIntersection');
+    entries.forEach(function(entry) {
+      muteButton.hidden = video.paused || entry.isIntersecting;
+    });
+  }
+  var observer = new IntersectionObserver(onIntersection);
+  observer.observe(video);
+}
+
+muteButton.addEventListener('click', function() {
+  // Mute/unmute video on button click.
+  video.muted = !video.muted;
+});
+
+video.addEventListener('volumechange', function() {
+  muteButton.classList.toggle('active', video.muted);
+});
 </script>
