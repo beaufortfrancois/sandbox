@@ -17,7 +17,7 @@ p {
 }
 a {
     margin-top: 12px;
-    display: block;
+    display: inline-block;
     color: cornflowerblue;
 }
 b {
