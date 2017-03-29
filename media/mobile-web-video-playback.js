@@ -123,7 +123,7 @@ toggleFullscreenButton.addEventListener('click', function(event) {
     document.exitFullscreen();
   } else {
     requestFullscreenVideo();
-    lockScreenInLandscape();
+    location.hash.includes('2') && lockScreenInLandscape();
   }
 });
 
@@ -160,7 +160,7 @@ function lockScreenInLandscape() {
       // When screen is locked in landscape while user holds device in
       // portrait, let's use the Device Orientation API to unlock screen only
       // when it is appropriate to create a perfect and seamless experience.
-      listenToDeviceOrientationChanges();
+      location.hash.includes('3') && listenToDeviceOrientationChanges();
     });
   }
 }
@@ -346,3 +346,6 @@ function getAwesomePlaylist() {
       ]
     }];
 }
+
+videoContainer.classList.toggle('step0', location.hash.includes('0'));
+videoContainer.classList.toggle('step1', location.hash.includes('1'));
