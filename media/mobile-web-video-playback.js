@@ -2,6 +2,8 @@
 
 function showVideoControls() {
   videoControls.classList.add('visible');
+  videoCurrentTime.textContent = secondsToTimeCode(video.currentTime);
+  videoProgressBar.style.transform = `scaleX(${video.currentTime / video.duration})`;
 }
 
 function hideVideoControls() {
@@ -78,6 +80,9 @@ document.addEventListener('fullscreenchange', function() {
 
 video.addEventListener('timeupdate', function() {
   console.log('timeupdate');
+  if (!videoControls.classList.contains('visible')) {
+    return;
+  }
   videoCurrentTime.textContent = secondsToTimeCode(video.currentTime);
   videoProgressBar.style.transform = `scaleX(${video.currentTime / video.duration})`;
 });
@@ -123,7 +128,7 @@ toggleFullscreenButton.addEventListener('click', function(event) {
     document.exitFullscreen();
   } else {
     requestFullscreenVideo();
-    location.hash.includes('2') && lockScreenInLandscape();
+    lockScreenInLandscape();
   }
 });
 
@@ -160,7 +165,7 @@ function lockScreenInLandscape() {
       // When screen is locked in landscape while user holds device in
       // portrait, let's use the Device Orientation API to unlock screen only
       // when it is appropriate to create a perfect and seamless experience.
-      location.hash.includes('3') && listenToDeviceOrientationChanges();
+      listenToDeviceOrientationChanges();
     });
   }
 }
@@ -346,6 +351,3 @@ function getAwesomePlaylist() {
       ]
     }];
 }
-
-videoContainer.classList.toggle('step0', location.hash.includes('0'));
-videoContainer.classList.toggle('step1', location.hash.includes('1'));
