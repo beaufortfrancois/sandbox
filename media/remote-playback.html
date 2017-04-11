@@ -1,0 +1,108 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Remote Playback Playground 🍓</title>
+    <style>
+      body {
+        max-width: 616px;
+        margin: 0 auto;
+      }
+      video {
+        width: 100%;
+      }
+      p, pre {
+        padding: 4px 12px;
+      }
+      input {
+        margin: 4px 12px;
+      }
+      label {
+        line-height: 48px;
+      }
+    </style>
+  </head>
+  <body>
+    <input id="toggleRemotePlayback" type="checkbox" checked/>
+    <label for="toggleRemotePlayback">Remote Playback</label>
+    <video id="video" controls playsinline src="https://storage.googleapis.com/media-session/caminandes/short.mp4#t=113"></video>
+    <p>
+    Click native remote button or <button id="promptButton" disabled>video.remote.prompt()</button>
+    </p>
+    <pre id="log"></pre>
+
+    <script>
+      var callbackId = -1;
+      var lastLog = Date.now();
+
+      if (video.remote) {
+        updateRemoteState();
+        video.remote.addEventListener('connect', function(event) {
+          log('Connected to the remote device.');
+          updateRemoteState();
+        });
+        video.remote.addEventListener('connecting', function(event) {
+          log('Connecting to the remote device...');
+          updateRemoteState();
+        });
+        video.remote.addEventListener('disconnect', function(event) {
+          log('Disconnected from the remote device.');
+          updateRemoteState();
+        });
+        video.onplay = updateRemoteState;
+      } else {
+        log.textContent += 'The Remote Playback API is not supported yet.';
+      }
+
+      function updateRemoteState() {
+        if (video.remote.state == 'disconnected') {
+          log('Starting watching remote device availability...');
+          video.remote.watchAvailability(handleAvailabilityChange)
+          .then(id => {
+            log('> Started watching remote device availability: ' + id);
+            callbackId = id
+          })
+          .catch(error => {
+            log('> Argh! Watching remote device availability is not supported.');
+            handleAvailabilityChange(true /* availability */);
+          });
+          return;
+        }
+
+        if (callbackId != -1) {
+          video.remote.cancelWatchAvailability(callbackId);
+          log('Stopped watching remote device availability');
+          callbackId = -1;
+        }
+      };
+
+      function handleAvailabilityChange(availability) {
+        promptButton.disabled = !availability;
+        log('Remote device ' + (availability ? 'available' : 'not available'));
+      };
+
+      promptButton.addEventListener('click', function() {
+        video.remote.prompt()
+        .then(_ => log('remote.prompt(): succeeded'))
+        .catch(error => log('remote.prompt(): ' + error));
+      });
+
+      toggleRemotePlayback.addEventListener('click', function() {
+        if (video.disableRemotePlayback) {
+          video.disableRemotePlayback = null;
+        } else {
+          video.disableRemotePlayback = true;
+        }
+      });
+
+      function log(text) {
+        const now = Date.now();
+        if (now > lastLog + 1000) {
+          document.querySelector('pre').textContent += '\r\n';
+        }
+        lastLog = now;
+        document.querySelector('pre').textContent += text + '\r\n';
+      }
+    </script>
+  </body>
+</html>
