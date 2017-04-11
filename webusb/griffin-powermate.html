@@ -10,6 +10,8 @@
   <script>
     var device;
 
+    log.textContent = ('usb' in navigator) ? '' : 'Please enable WebUSB first.';
+
     document.querySelector('button').addEventListener('click', connect);
 
     async function connect() {
@@ -21,7 +23,7 @@
         log.textContent = device.productName + ' connected';
         await watch();
       } catch(e) {
-        console.log(e);
+        log.textContent = 'Argh! ' + e;
       }
     }
 
@@ -34,7 +36,7 @@
 
         watch();
       } catch(e) {
-        console.log(e);
+        log.textContent = 'Argh! ' + e;
       }
     }
 
