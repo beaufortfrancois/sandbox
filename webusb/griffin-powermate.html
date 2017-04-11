@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Griffin Powermate Playground</title>
+  </head>
+  <body>
+    <button id="button">Connect</button>
+    <pre id="log"></pre>
+  </body>
+  <script>
+    var device;
+
+    document.querySelector('button').addEventListener('click', connect);
+
+    async function connect() {
+      try {
+        device = await navigator.usb.requestDevice({ filters: [{ vendorId: 0x077d, productId: 0x0410 }] });
+        await device.open();
+        await device.selectConfiguration(1);
+        await device.claimInterface(0);
+        log.textContent = device.productName + ' connected';
+        await watch();
+      } catch(e) {
+        console.log(e);
+      }
+    }
+
+    async function watch() {
+      try {
+        const event = await device.transferIn(1 /* endpoint */, 6 /* length */);
+        const state = parseEventData(event.data);
+        log.textContent = JSON.stringify(state, null, 2);
+        button.style.transform += 'rotate(' + state.knobDisplacement * 4 /* rotation degree */+ 'deg)';
+
+        watch();
+      } catch(e) {
+        console.log(e);
+      }
+    }
+
+    function parseEventData(data) {
+      var state = {
+        ledStatus: data.getUint8(4),
+        buttonState: data.getUint8(0),
+        knobDisplacement: data.getInt8(1),
+        ledBrightness: data.getUint8(3),
+        pulseEnabled: (data.getUint8(4) & 1) == 1,
+        pulseWhileAsleep: (data.getUint8(4) & 4) == 4,
+        pulseSpeed: ['slower', 'normal', 'faster'][(data.getUint8(4) >> 4) & 3],
+        pulseStyle: ['style1', 'style2', 'style3'][(data.getUint8(4) >> 6) & 3],
+        ledMultiplier: data.getUint8(5)
+      };
+      return state;
+    }
+  </script>
+</html>
+
