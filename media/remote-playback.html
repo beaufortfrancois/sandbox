@@ -90,8 +90,10 @@
       toggleRemotePlayback.addEventListener('click', function() {
         if (video.disableRemotePlayback) {
           video.disableRemotePlayback = null;
+          log('Video remote playback is enabled');
         } else {
           video.disableRemotePlayback = true;
+          log('Video remote playback is disabled');
         }
       });
 
