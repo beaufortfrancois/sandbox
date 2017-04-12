@@ -2,13 +2,13 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Remote Playback Playground 🍓</title>
+    <title>Audio with Video Source - Remote Playback Playground 🍓</title>
     <style>
       body {
         max-width: 616px;
         margin: 0 auto;
       }
-      video {
+      audio {
         width: 100%;
       }
       p, pre {
@@ -25,9 +25,9 @@
   <body>
     <input id="toggleRemotePlayback" type="checkbox" checked/>
     <label for="toggleRemotePlayback">Remote Playback</label>
-    <video id="video" controls playsinline src="https://storage.googleapis.com/media-session/caminandes/short.mp4#t=113"></video>
+    <audio id="audio" controls playsinline src="https://storage.googleapis.com/media-session/caminandes/short.mp4#t=113"></audio>
     <p>
-    Click video cast button or <button id="promptButton">video.remote.prompt()</button>
+    Click audio cast button or <button id="promptButton">audio.remote.prompt()</button>
     </p>
     <pre id="log"></pre>
 
@@ -35,16 +35,16 @@
       var callbackId = -1;
       var lastLog = Date.now();
 
-      if (video.remote) {
+      if (audio.remote) {
         updateRemoteState();
-        video.remote.addEventListener('connect', function(event) {
+        audio.remote.addEventListener('connect', function(event) {
           // Connected means that the transition from local to remote playback
           // has finished and all media commands now take effect on the remote
           // playback state.
           log('Connected to the remote device.');
           updateRemoteState();
         });
-        video.remote.addEventListener('connecting', function(event) {
+        audio.remote.addEventListener('connecting', function(event) {
           // Connecting means that the user agent is attempting to initiate
           // remote playback with the selected remote playback device. The
           // local playback of the media element continues in this state and
@@ -52,7 +52,7 @@
           log('Connecting to the remote device...');
           updateRemoteState();
         });
-        video.remote.addEventListener('disconnect', function(event) {
+        audio.remote.addEventListener('disconnect', function(event) {
           // Disconnected means that the remote playback has not been
           // initiated, has failed to initiate or has been stopped. All media
           // commands will take effect on the local playback state.
@@ -65,11 +65,11 @@
       }
 
       function updateRemoteState() {
-        if (video.remote.state == 'disconnected') {
+        if (audio.remote.state == 'disconnected') {
           // Let's watch remote device availability when there's no connected
           // remote device.
           log('Starting watching remote device availability...');
-          video.remote.watchAvailability(handleAvailabilityChange)
+          audio.remote.watchAvailability(handleAvailabilityChange)
           .then(id => {
             log('> Started watching remote device availability: ' + id);
             callbackId = id
@@ -82,7 +82,7 @@
           // If remote device is connecting or connected, we should stop
           // watching remote device availability to save power.
           log('Stopping watching remote device availability...');
-          video.remote.cancelWatchAvailability(callbackId)
+          audio.remote.cancelWatchAvailability(callbackId)
           .then(_ => {
             log('Stopped watching remote device availability');
             callbackId = -1;
@@ -99,19 +99,19 @@
 
       promptButton.addEventListener('click', function() {
         log('Prompt button clicked');
-        video.remote.prompt()
+        audio.remote.prompt()
         .catch(error => {
           log('Argh! ' + error)
         });
       });
 
       toggleRemotePlayback.addEventListener('click', function() {
-        if (video.disableRemotePlayback) {
-          video.disableRemotePlayback = null;
-          log('Video remote playback is enabled');
+        if (audio.disableRemotePlayback) {
+          audio.disableRemotePlayback = null;
+          log('Audio remote playback is enabled');
         } else {
-          video.disableRemotePlayback = true;
-          log('Video remote playback is disabled');
+          audio.disableRemotePlayback = true;
+          log('Audio remote playback is disabled');
         }
       });
 
