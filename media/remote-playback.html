@@ -27,7 +27,7 @@
     <label for="toggleRemotePlayback">Remote Playback</label>
     <video id="video" controls playsinline src="https://storage.googleapis.com/media-session/caminandes/short.mp4#t=113"></video>
     <p>
-    Click native remote button or <button id="promptButton" disabled>video.remote.prompt()</button>
+    Click video cast button or <button id="promptButton">video.remote.prompt()</button>
     </p>
     <pre id="log"></pre>
 
@@ -38,24 +38,36 @@
       if (video.remote) {
         updateRemoteState();
         video.remote.addEventListener('connect', function(event) {
+          // Connected means that the transition from local to remote playback
+          // has finished and all media commands now take effect on the remote
+          // playback state.
           log('Connected to the remote device.');
           updateRemoteState();
         });
         video.remote.addEventListener('connecting', function(event) {
+          // Connecting means that the user agent is attempting to initiate
+          // remote playback with the selected remote playback device. The
+          // local playback of the media element continues in this state and
+          // media commands still take effect on the local playback state.
           log('Connecting to the remote device...');
           updateRemoteState();
         });
         video.remote.addEventListener('disconnect', function(event) {
+          // Disconnected means that the remote playback has not been
+          // initiated, has failed to initiate or has been stopped. All media
+          // commands will take effect on the local playback state.
           log('Disconnected from the remote device.');
           updateRemoteState();
         });
-        video.onplay = updateRemoteState;
       } else {
         log.textContent += 'The Remote Playback API is not supported yet.';
+        promptButton.disabled = true;
       }
 
       function updateRemoteState() {
         if (video.remote.state == 'disconnected') {
+          // Let's watch remote device availability when there's no connected
+          // remote device.
           log('Starting watching remote device availability...');
           video.remote.watchAvailability(handleAvailabilityChange)
           .then(id => {
@@ -63,28 +75,36 @@
             callbackId = id
           })
           .catch(error => {
-            log('> Argh! Watching remote device availability is not supported.');
+            log('> Argh! ' + error);
             handleAvailabilityChange(true /* availability */);
           });
-          return;
-        }
-
-        if (callbackId != -1) {
-          video.remote.cancelWatchAvailability(callbackId);
-          log('Stopped watching remote device availability');
-          callbackId = -1;
+        } else if (callbackId != -1) {
+          // If remote device is connecting or connected, we should stop
+          // watching remote device availability to save power.
+          log('Stopping watching remote device availability...');
+          video.remote.cancelWatchAvailability(callbackId)
+          .then(_ => {
+            log('Stopped watching remote device availability');
+            callbackId = -1;
+          })
+          .catch(error => {
+            log('> Argh! ' + error);
+          });
         }
       };
 
       function handleAvailabilityChange(availability) {
-        promptButton.disabled = !availability;
         log('Remote device ' + (availability ? 'available' : 'not available'));
       };
 
       promptButton.addEventListener('click', function() {
         video.remote.prompt()
-        .then(_ => log('remote.prompt(): succeeded'))
-        .catch(error => log('remote.prompt(): ' + error));
+        .then(_ => {
+          console.log(arguments);
+        })
+        .catch(error => {
+          log('Argh! ' + error)
+        });
       });
 
       toggleRemotePlayback.addEventListener('click', function() {
