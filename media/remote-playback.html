@@ -25,7 +25,12 @@
   <body>
     <input id="toggleRemotePlayback" type="checkbox" checked/>
     <label for="toggleRemotePlayback">Remote Playback</label>
-    <video id="video" controls playsinline src="https://storage.googleapis.com/media-session/caminandes/short.mp4#t=113"></video>
+    <input id="togglePreload" type="checkbox" checked/>
+    <label for="togglePreload">Video Preload</label>
+    <video id="video" controls playsinline
+           src="https://storage.googleapis.com/media-session/caminandes/short.mp4#t=113"
+           poster="https://storage.googleapis.com/media-session/caminandes/artwork-512.png"
+    ></video>
     <p>
     Click video cast button or <button id="promptButton">video.remote.prompt()</button>
     </p>
@@ -112,6 +117,17 @@
         } else {
           video.disableRemotePlayback = true;
           log('Video remote playback is disabled');
+        }
+      });
+
+      togglePreload.addEventListener('click', function() {
+        if (video.preload == "none") {
+          video.preload = "metadata";
+          log('Video preload is "metadata"');
+        } else {
+          video.preload = "none";
+          video.src = video.src;
+          log('Video preload is "none"');
         }
       });
 
