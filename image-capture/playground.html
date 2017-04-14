@@ -9,7 +9,6 @@
   pre { clear: both; padding: 12px 0; }
   input { margin: 12px }
   input[type=range]:after { content: attr(data-label); display: block; position: fixed; width: 129px; margin-top: -18px; text-align: center; }
-  input[type=radio]:after { content: attr(data-label); display: block; margin-left: 24px; }
   input[disabled] { opacity: .5 }
 }
 </style>
@@ -83,6 +82,9 @@ function initControls() {
     if (capability.toString() === '[object MediaSettingsRange]') {
       let value = settings[capabilityName];
       addInputRange(capabilityName, value, capability);
+    } else if (typeof(capability) == 'boolean') {
+      let value = settings[capabilityName];
+      addInputCheckbox(capabilityName, value);
     }
   }
 }
@@ -101,6 +103,23 @@ function addInputRange(capabilityName, value, range) {
   }
   input.dataset['label'] = capabilityName;
   document.querySelector('#controls').appendChild(input);
+}
+
+function addInputCheckbox(capabilityName, value) {
+  let input = document.createElement('input');
+  input.id = capabilityName;
+  input.type = 'checkbox';
+  input.value = value;
+  input.onchange = function(event) {
+    let options = {};
+    options[capabilityName] = event.target.checked;
+    imageCapture.track.applyConstraints({advanced: [ options ]});
+  }
+  var label = document.createElement('label');
+  label.textContent = capabilityName;
+  label.setAttribute('for', capabilityName); 
+  document.querySelector('#controls').appendChild(input);
+  document.querySelector('#controls').appendChild(label);
 }
 
 document.querySelector('#getCapabilities').addEventListener('click', getCapabilities);
