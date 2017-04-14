@@ -8,12 +8,15 @@
   canvas { float: left; clear: right; }
   pre { clear: both; padding: 12px 0; }
   input { margin: 12px }
-  input:after { content: attr(data-label); display: block; position: fixed; width: 129px; margin-top: -18px; text-align: center; }
+  input[type=range]:after { content: attr(data-label); display: block; position: fixed; width: 129px; margin-top: -18px; text-align: center; }
+  input[type=radio]:after { content: attr(data-label); display: block; margin-left: 24px; }
   input[disabled] { opacity: .5 }
 }
 </style>
 
 <div id="dashboard">
+  <div id="devices"></div>
+  <br/>
   <button id="getCapabilities">getCapabilities</button>
   <button id="getSettings">getSettings</button>
   <button id="grabFrameButton">grabFrame</button>
@@ -27,22 +30,49 @@
 
 <script>
 var imageCapture;
-var constraints = {
-  video: {
-    width: { ideal: 1920 },
-    height: { ideal: 1080 }
-  }
-};
-navigator.mediaDevices.getUserMedia(constraints)
-.then(mediaStream => {
-  imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
-  document.querySelector('video').srcObject = mediaStream;
-  // Remove timeout when crbug.com/711524 is fixed.
-  setTimeout(initControls, 500);
+var deviceId = 'default';
+
+navigator.mediaDevices.enumerateDevices()
+.then(devices => {
+  var videoInputDevices = devices.filter(device => (device.kind == 'videoinput'));
+  videoInputDevices.forEach(device => {
+    var input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'device';
+    input.value = device.deviceId;
+    input.id = device.deviceId;
+    input.onclick = function(event) { deviceId = event.target.value; getUserMedia() }
+    var label = document.createElement('label');
+    label.textContent = device.label;
+    label.setAttribute('for', device.deviceId); 
+    document.querySelector('#devices').appendChild(input);
+    document.querySelector('#devices').appendChild(label);
+  });
+  document.querySelector('#devices input').click();
 })
-.catch(error => {
-  console.log(error);
+.catch(function(err) {
+  console.log(err.name + ": " + err.message);
 });
+
+function getUserMedia() {
+  var constraints = {
+    video: {
+      width: { ideal: 1920 },
+      height: { ideal: 1080 },
+      deviceId: { exact: deviceId }
+    }
+  };
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(mediaStream => {
+    imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
+    document.querySelector('video').srcObject = mediaStream;
+    // Remove timeout when crbug.com/711524 is fixed.
+    setTimeout(initControls, 500);
+  })
+  .catch(error => {
+    console.log(error);
+  });
+}
 
 function initControls() {
   document.querySelector('#controls').innerHTML = '';
