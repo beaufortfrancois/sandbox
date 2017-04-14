@@ -1,3 +1,4 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Image Capture Playground</title>
 <style>
   body { margin: 0 auto; }
@@ -13,7 +14,8 @@
 </style>
 
 <div id="dashboard">
-  <button id="getPhotoCapabilities">getPhotoCapabilities</button>
+  <button id="getCapabilities">getCapabilities</button>
+  <button id="getSettings">getSettings</button>
   <button id="grabFrameButton">grabFrame</button>
   <button id="takePhotoButton">takePhoto</button>
   <button id="grabFrameAndTakePhotoButton">grabFrame & takePhoto</button>
@@ -27,18 +29,16 @@
 var imageCapture;
 var constraints = {
   video: {
-    width: { exact: 1280 },
-    height: { exact: 720 }
+    width: { ideal: 1920 },
+    height: { ideal: 1080 }
   }
 };
 navigator.mediaDevices.getUserMedia(constraints)
 .then(mediaStream => {
   imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
   document.querySelector('video').srcObject = mediaStream;
-  // Remove when https://bugs.chromium.org/p/chromium/issues/detail?id=655522 is fixed.
-  if (!new URL(location).searchParams.has('hideControls')) {
-    initControls();
-  }
+  // Remove timeout when crbug.com/711524 is fixed.
+  setTimeout(initControls, 500);
 })
 .catch(error => {
   console.log(error);
@@ -46,59 +46,59 @@ navigator.mediaDevices.getUserMedia(constraints)
 
 function initControls() {
   document.querySelector('#controls').innerHTML = '';
-  imageCapture.getPhotoCapabilities()
-  .then(photoCapabilities => {
-    for (photoCapabilityName in photoCapabilities) {
-      let photoCapability = photoCapabilities[photoCapabilityName];
-      if (photoCapability.toString() === '[object MediaSettingsRange]') {
-        addInputRange(photoCapabilityName, photoCapabilities);
-      }
+  let capabilities = imageCapture.track.getCapabilities();
+  let settings = imageCapture.track.getSettings();
+  for (let capabilityName in capabilities) {
+    let capability = capabilities[capabilityName];
+    if (capability.toString() === '[object MediaSettingsRange]') {
+      let value = settings[capabilityName];
+      addInputRange(capabilityName, value, capability);
     }
-  });
+  }
 }
 
-function addInputRange(capabilityName, photoCapabilities) {
-  let range = photoCapabilities[capabilityName];
+function addInputRange(capabilityName, value, range) {
   let input = document.createElement('input');
   input.type = 'range';
   input.min = range.min;
   input.max = range.max;
   input.step = range.step;
-  input.disabled = !range.max;
-  input.value = range.current;
+  input.value = value;
   input.oninput = function(event) {
     let options = {};
     options[capabilityName] = event.target.value;
-    imageCapture.setOptions(options);
+    imageCapture.track.applyConstraints({advanced: [ options ]});
   }
   input.dataset['label'] = capabilityName;
   document.querySelector('#controls').appendChild(input);
 }
 
-document.querySelector('#getPhotoCapabilities').addEventListener('click', getPhotoCapabilities);
+document.querySelector('#getCapabilities').addEventListener('click', getCapabilities);
+document.querySelector('#getSettings').addEventListener('click', getSettings);
 document.querySelector('#grabFrameButton').addEventListener('click', grabFrame);
 document.querySelector('#takePhotoButton').addEventListener('click', takePhoto);
 document.querySelector('#grabFrameAndTakePhotoButton').addEventListener('click', grabFrameAndTakePhoto);
 
-function getPhotoCapabilities() {
-  imageCapture.getPhotoCapabilities()
-  .then(photoCapabilities => {
-    let pre = document.createElement('pre');
-    for (let photoCapabilityName in photoCapabilities) {
-      pre.innerText += `${photoCapabilityName}: `;
-      let photoCapability = photoCapabilities[photoCapabilityName];
-      if (photoCapability.toString() === '[object MediaSettingsRange]') {
-        pre.innerText += `{ min: ${photoCapability.min}, current: ${photoCapability.current}, max: ${photoCapability.max}, step: ${photoCapability.step} }\r\n`;
-      } else {
-        pre.innerText += `${photoCapability}\r\n`;
-      }
+function getCapabilities() {
+  let capabilities = imageCapture.track.getCapabilities();
+  let pre = document.createElement('pre');
+  for (let capabilityName in capabilities) {
+    pre.innerText += `${capabilityName}: `;
+    let capability = capabilities[capabilityName];
+    if (capability.toString() === '[object MediaSettingsRange]') {
+      pre.innerText += `{ min: ${capability.min}, max: ${capability.max}, step: ${capability.step} }\r\n`;
+    } else {
+      pre.innerText += JSON.stringify(capability) + '\r\n';
     }
-    document.querySelector('#shots').appendChild(pre);
-  })
-  .catch(error => {
-    console.log(error);
-  });
-  
+  }
+  document.querySelector('#shots').appendChild(pre);
+}
+
+function getSettings() {
+  let settings = imageCapture.track.getSettings();
+  let pre = document.createElement('pre');
+  pre.innerText += JSON.stringify(settings, 0, 2);
+  document.querySelector('#shots').appendChild(pre);
 }
 
 function grabFrame() {
