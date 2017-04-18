@@ -110,9 +110,10 @@ function addInputRange(capabilityName, value, range) {
     let options = {};
     options[capabilityName] = event.target.value;
     imageCapture.track.applyConstraints({advanced: [ options ]});
+    document.querySelector('label[for=' + capabilityName +']').textContent = capabilityName + ' (' + event.target.value + ')';
   }
   var label = document.createElement('label');
-  label.textContent = capabilityName;
+  label.textContent = capabilityName + ' (' + value + ')';
   label.setAttribute('for', capabilityName); 
   document.querySelector('#controls').appendChild(input);
   document.querySelector('#controls').appendChild(label);
