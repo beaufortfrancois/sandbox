@@ -29,7 +29,8 @@
 
 <script>
 var imageCapture;
-var deviceId = 'default';
+
+localStorage.deviceId = localStorage.deviceId || 'default';
 
 navigator.mediaDevices.enumerateDevices()
 .then(devices => {
@@ -40,14 +41,22 @@ navigator.mediaDevices.enumerateDevices()
     input.name = 'device';
     input.value = device.deviceId;
     input.id = device.deviceId;
-    input.onclick = function(event) { deviceId = event.target.value; getUserMedia() }
+    input.checked = (localStorage.deviceId == device.deviceId);
+    input.onclick = function(event) {
+      localStorage.deviceId = event.target.value;
+      getUserMedia();
+    }
     var label = document.createElement('label');
     label.textContent = device.label;
     label.setAttribute('for', device.deviceId); 
     document.querySelector('#devices').appendChild(input);
     document.querySelector('#devices').appendChild(label);
   });
-  document.querySelector('#devices input').click();
+  if (localStorage.deviceId == 'default') {
+    document.querySelector('#devices input').click();
+  } else {
+    document.querySelector('#devices input:checked').click();
+  }
 })
 .catch(function(err) {
   console.log(err.name + ": " + err.message);
@@ -58,7 +67,7 @@ function getUserMedia() {
     video: {
       width: { ideal: 1920 },
       height: { ideal: 1080 },
-      deviceId: { exact: deviceId }
+      deviceId: { exact: localStorage.deviceId }
     }
   };
   navigator.mediaDevices.getUserMedia(constraints)
