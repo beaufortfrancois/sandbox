@@ -7,11 +7,12 @@
   input { margin: 12px }
   select { margin: 12px; width: 129px }
   input[type=checkbox] { width: 129px }
+  .bg { width: 100%; height: 100%; position: absolute; object-fit: cover; margin: 0; top: 0; left: 0; right: 0; bottom: 0; z-index: -1}
 }
 </style>
 
 <div id="dashboard">
-  <video autoplay width="160" height="90"></video>
+  <video id="video" autoplay width="160" height="90"></video>
   <div id="devices"></div>
   <br/>
   <button id="getCapabilities">getCapabilities</button>
@@ -227,4 +228,7 @@ function appendCanvas(imageBitmap) {
   document.querySelector('#shots').appendChild(canvas);
 }
 
+video.addEventListener('click', function() {
+  video.classList.toggle('bg');
+});
 </script>
