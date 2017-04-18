@@ -152,6 +152,7 @@ function addSelect(capabilityName, value, capabilities) {
     let option = document.createElement('option');
     option.value = capability;
     option.textContent = capability; 
+    option.selected = (capability == value);
     select.appendChild(option);
   }
   var label = document.createElement('label');
