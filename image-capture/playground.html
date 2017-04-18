@@ -1,12 +1,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Image Capture Playground</title>
 <style>
-  #dashboard { width: 100%; }
-  video { float: right; box-shadow: 0 0 0px 1px black; }
+  video { float: right; box-shadow: 0 0 0px 1px black; margin-bottom: 24px; }
   canvas { float: left; clear: right; }
   pre { clear: both; padding: 12px 0; }
   input { margin: 12px }
-  input[disabled] { opacity: .5 }
+  select { margin: 12px; width: 129px }
+  input[type=checkbox] { width: 129px }
 }
 </style>
 
@@ -19,10 +19,9 @@
   <button id="grabFrameButton">grabFrame</button>
   <button id="takePhotoButton">takePhoto</button>
   <button id="grabFrameAndTakePhotoButton">grabFrame & takePhoto</button>
-  <br/>
-  <br/>
-  <div id="controls"></div>
+  <br/> <br/>
 </div>
+<div id="controls"></div>
 <div id="shots"></div>
 
 <script>
@@ -92,6 +91,9 @@ function initControls() {
     } else if (typeof(capability) == 'boolean') {
       let value = settings[capabilityName];
       addInputCheckbox(capabilityName, value);
+    } else if (Array.isArray(capability)) {
+      let value = settings[capabilityName];
+      addSelect(capabilityName, value, capability);
     }
   }
 }
@@ -134,6 +136,30 @@ function addInputCheckbox(capabilityName, value) {
   document.querySelector('#controls').appendChild(label);
   document.querySelector('#controls').appendChild(document.createElement('br'));
 }
+
+function addSelect(capabilityName, value, capabilities) {
+  let select = document.createElement('select');
+  select.id = capabilityName;
+  select.disabled = (capabilities.length == 1);
+  select.oninput = function(event) {
+    let options = {};
+    options[capabilityName] = event.target.value;
+    imageCapture.track.applyConstraints({advanced: [ options ]});
+  }
+  for (capability of capabilities) {
+    let option = document.createElement('option');
+    option.value = capability;
+    option.textContent = capability; 
+    select.appendChild(option);
+  }
+  var label = document.createElement('label');
+  label.textContent = capabilityName;
+  label.setAttribute('for', capabilityName); 
+  document.querySelector('#controls').appendChild(select);
+  document.querySelector('#controls').appendChild(label);
+  document.querySelector('#controls').appendChild(document.createElement('br'));
+}
+
 
 document.querySelector('#getCapabilities').addEventListener('click', getCapabilities);
 document.querySelector('#getSettings').addEventListener('click', getSettings);
