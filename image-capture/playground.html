@@ -1,19 +1,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Image Capture Playground</title>
 <style>
-  body { margin: 0 auto; }
-  #dashboard { position: fixed; width: 100%; background: white; z-index: 1; padding: 8px; }
-  #shots { position: absolute; top: 200px; padding: 8px }
-  video { float: right; box-shadow: 0 0 0px 1px black; margin-right: 16px; }
+  #dashboard { width: 100%; }
+  video { float: right; box-shadow: 0 0 0px 1px black; }
   canvas { float: left; clear: right; }
   pre { clear: both; padding: 12px 0; }
   input { margin: 12px }
-  input[type=range]:after { content: attr(data-label); display: block; position: fixed; width: 129px; margin-top: -18px; text-align: center; }
   input[disabled] { opacity: .5 }
 }
 </style>
 
 <div id="dashboard">
+  <video autoplay width="160" height="90"></video>
   <div id="devices"></div>
   <br/>
   <button id="getCapabilities">getCapabilities</button>
@@ -21,8 +19,8 @@
   <button id="grabFrameButton">grabFrame</button>
   <button id="takePhotoButton">takePhoto</button>
   <button id="grabFrameAndTakePhotoButton">grabFrame & takePhoto</button>
-  <video autoplay width="160" height="90"></video>
-  <br/><br/><br/>
+  <br/>
+  <br/>
   <div id="controls"></div>
 </div>
 <div id="shots"></div>
@@ -100,6 +98,7 @@ function initControls() {
 
 function addInputRange(capabilityName, value, range) {
   let input = document.createElement('input');
+  input.id = capabilityName;
   input.type = 'range';
   input.min = range.min;
   input.max = range.max;
@@ -110,8 +109,12 @@ function addInputRange(capabilityName, value, range) {
     options[capabilityName] = event.target.value;
     imageCapture.track.applyConstraints({advanced: [ options ]});
   }
-  input.dataset['label'] = capabilityName;
+  var label = document.createElement('label');
+  label.textContent = capabilityName;
+  label.setAttribute('for', capabilityName); 
   document.querySelector('#controls').appendChild(input);
+  document.querySelector('#controls').appendChild(label);
+  document.querySelector('#controls').appendChild(document.createElement('br'));
 }
 
 function addInputCheckbox(capabilityName, value) {
@@ -129,6 +132,7 @@ function addInputCheckbox(capabilityName, value) {
   label.setAttribute('for', capabilityName); 
   document.querySelector('#controls').appendChild(input);
   document.querySelector('#controls').appendChild(label);
+  document.querySelector('#controls').appendChild(document.createElement('br'));
 }
 
 document.querySelector('#getCapabilities').addEventListener('click', getCapabilities);
