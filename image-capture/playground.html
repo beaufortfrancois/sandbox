@@ -70,10 +70,14 @@ function getUserMedia() {
   };
   navigator.mediaDevices.getUserMedia(constraints)
   .then(mediaStream => {
-    imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
-    document.querySelector('video').srcObject = mediaStream;
-    // Remove timeout when crbug.com/711524 is fixed.
-    setTimeout(initControls, 500);
+    video.srcObject = mediaStream;
+    document.querySelector('#controls').innerHTML = '';
+    document.querySelector('#shots').innerHTML = '';
+    video.onplay = function() {
+      imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
+      // Remove timeout when crbug.com/711524 is fixed.
+      setTimeout(initControls, 500);
+    }
   })
   .catch(error => {
     console.log(error);
@@ -81,7 +85,6 @@ function getUserMedia() {
 }
 
 function initControls() {
-  document.querySelector('#controls').innerHTML = '';
   let capabilities = imageCapture.track.getCapabilities();
   let settings = imageCapture.track.getSettings();
   for (let capabilityName in capabilities) {
