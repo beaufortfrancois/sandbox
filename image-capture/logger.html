@@ -5,7 +5,7 @@
   html, body { margin: 0 auto; height: 100%; background: #000; }
   video { object-fit: cover; width: 100vw; }
   pre { position: absolute; top: 0; left: 0; right:0; bottom: 0; padding: 12px; color: deeppink; font-size: 16px; overflow: hidden; margin: 0 auto; }
-  .box { background-image: url('http://www.pngmart.com/files/2/Moustache-PNG-Transparent-Image.png') position: absolute; will-change: opacity: transition: opacity 0.2s; }
+  .box { background-image: url('http://www.pngmart.com/files/2/Moustache-PNG-Transparent-Image.png'); position: absolute; will-change: opacity; transition: opacity 0.2s; background-repeat: no-repeat; }
   .hidden { opacity: 0; }
 </style>
 
@@ -75,7 +75,7 @@ function detectFaces(imageBitmap) {
   if (!('FaceDetector' in window)) {
     return Promise.reject('FaceDetector API is not supported');
   }
-  let faceDetector = new FaceDetector();
+  let faceDetector = new FaceDetector({fastMode: true});
   return faceDetector.detect(imageBitmap)
   .then(faces => {
     boxes.forEach(box => {
@@ -83,11 +83,14 @@ function detectFaces(imageBitmap) {
      setTimeout(_ => { box.remove() }, 2e3);
     });
     for (let face of faces) {
-      box = document.createElement('div');
+      boxWidth = face.boundingBox.width * $('video').clientWidth / $('video').videoWidth;
+      boxHeight = face.boundingBox.height * $('video').clientHeight / $('video').videoHeight;
+      let box = document.createElement('div');
       box.style.left = face.boundingBox.x * $('video').clientWidth / $('video').videoWidth;
-      box.style.width = face.boundingBox.width * $('video').clientWidth / $('video').videoWidth;
-      box.style.top = face.boundingBox.y * $('video').clientHeight / $('video').videoHeight;
-      box.style.height = face.boundingBox.height * $('video').clientHeight / $('video').videoHeight;
+      box.style.top = face.boundingBox.y * $('video').clientHeight / $('video').videoHeight + /* moustache offset */ (boxHeight / 2);
+      box.style.width = boxWidth;
+      box.style.height = boxHeight;
+      box.style.backgroundSize = `${boxWidth}px ${boxHeight }px`;
       box.classList.add('box');
       document.body.appendChild(box);
       boxes.push(box);
