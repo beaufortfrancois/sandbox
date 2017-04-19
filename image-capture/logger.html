@@ -65,6 +65,7 @@ function detectFaces(imageCapture) {
   })
   .then(faces => {
     boxes.forEach(box => box.remove());
+    $('pre').textContent = faces;
     for (let face of faces) {
       box = document.createElement('div');
       box.style.x = face.boundingBox.x;
@@ -74,7 +75,7 @@ function detectFaces(imageCapture) {
       box.classList.add('box');
       boxes.push(box);
     }
-    detectFaces(imageCapture);
+    setTimeout(_ => { detectFaces(imageCapture); }, 1e3);
   })
   .catch(error => {
     $('pre').textContent += error.message + '\r\n';
