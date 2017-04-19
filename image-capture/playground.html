@@ -18,6 +18,7 @@
   <video id="video" autoplay width="160" height="90"></video>
   <div id="devices"></div>
   <br/>
+  <button id="getSupportedConstraints">getSupportedConstraints</button>
   <button id="getCapabilities">getCapabilities</button>
   <button id="getSettings">getSettings</button>
   <button id="grabFrameButton">grabFrame</button>
@@ -170,11 +171,19 @@ function addSelect(capabilityName, value, capabilities) {
 }
 
 
+document.querySelector('#getSupportedConstraints').addEventListener('click', getSupportedConstraints);
 document.querySelector('#getCapabilities').addEventListener('click', getCapabilities);
 document.querySelector('#getSettings').addEventListener('click', getSettings);
 document.querySelector('#grabFrameButton').addEventListener('click', grabFrame);
 document.querySelector('#takePhotoButton').addEventListener('click', takePhoto);
 document.querySelector('#grabFrameAndTakePhotoButton').addEventListener('click', grabFrameAndTakePhoto);
+
+function getSupportedConstraints() {
+  let supportedConstraints = navigator.mediaDevices.getSupportedConstraints();
+  let pre = document.createElement('pre');
+  pre.innerText = JSON.stringify(supportedConstraints, 0, 2);
+  document.querySelector('#shots').appendChild(pre);
+}
 
 function getCapabilities() {
   let capabilities = imageCapture.track.getCapabilities();
