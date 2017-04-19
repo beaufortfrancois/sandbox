@@ -5,6 +5,7 @@
   html, body { margin: 0 auto; height: 100%; background: #000; }
   video { object-fit: cover; width: 100vw; }
   pre { position: absolute; top: 0; left: 0; right:0; bottom: 0; padding: 12px; color: deeppink; font-size: 16px; overflow: hidden; margin: 0 auto; }
+  .box { outline: 4px solid deeppink }
 </style>
 
 <video autoplay></video>
@@ -13,6 +14,7 @@
 <script>
 
 var $ = document.querySelector.bind(document);
+var faceBoxes = [];
 
 navigator.mediaDevices.enumerateDevices()
 .then(devices => {
@@ -28,6 +30,7 @@ navigator.mediaDevices.enumerateDevices()
   $('video').srcObject = mediaStream;
   let imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
   detectText(imageCapture);
+  detectFaces(imageCapture);
 })
 .catch(error => {
   $('pre').textContent = error.message;
@@ -50,7 +53,31 @@ function detectText(imageCapture) {
     setTimeout(_ => { detectText(imageCapture); }, 1e3);
   })
   .catch(error => {
-    $('pre').textContent = error.message;
+    $('pre').textContent += error.message + '\r\n';
+  });
+}
+
+function detectFaces(imageCapture) {
+  imageCapture.grabFrame()
+  .then(imageBitmap => {
+    let faceDetector = new FaceDetector();
+    return faceDetector.detect(imageBitmap);
+  })
+  .then(faces => {
+    boxes.forEach(box => box.remove());
+    for (let face of faces) {
+      box = document.createElement('div');
+      box.style.x = face.boundingBox.x;
+      box.style.y = face.boundingBox.y;
+      box.style.height = face.boundingBox.height;
+      box.style.width = face.boundingBox.width;
+      box.classList.add('box');
+      boxes.push(box);
+    }
+    detectFaces(imageCapture);
+  })
+  .catch(error => {
+    $('pre').textContent += error.message + '\r\n';
   });
 }
 
