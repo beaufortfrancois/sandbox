@@ -21,8 +21,9 @@ navigator.mediaDevices.enumerateDevices()
 .then(devices => {
   let cameras = devices.filter(device => device.kind == 'videoinput');
   let backCameras = cameras.filter(device => device.label.includes('back'));
+  let frontCameras = cameras.filter(device => device.label.includes('front'));
   let constraints = {video: {deviceId: cameras[0].deviceId}};
-  if (backCameras.length) {
+  if (frontCameras.length) {
     constraints.video.deviceId = backCameras[0].deviceId;
   }
   return navigator.mediaDevices.getUserMedia(constraints)
