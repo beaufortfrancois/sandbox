@@ -1,0 +1,55 @@
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=no">
+<title>Media Recorder H264</title>
+<style>
+  html, body { margin: 0 auto; height: 100%; background: #000; color: #fff; }
+  video { object-fit: cover; width: 100vw; }
+  .recording { background-color: red }
+</style>
+<video id="video" autoplay loop muted></video>
+<script>
+
+let stream;
+let recorder;
+let chunks;
+
+navigator.mediaDevices.getUserMedia({video : true})
+.then(mediaStream => {
+  stream = mediaStream;
+  video.src = URL.createObjectURL(stream);
+  video.addEventListener('click', function(event) {
+    if (document.body.classList.toggle('recording')) {
+      recorder = new MediaRecorder(stream, {mimeType: 'video/webm;codecs=h264'});
+      recorder.start(10); // collect 10ms of data
+      chunks = [];
+      recorder.addEventListener('dataavailable', event => {
+        chunks.push(event.data);
+      });
+      recorder.addEventListener('stop', function(event)  {
+        const blob = new Blob(chunks, {type: 'video/webm'});
+        video.src = URL.createObjectURL(blob);
+        // Remove when video autoplay works.
+        video.play();
+        //download();
+      });
+    } else {
+      recorder.stop();
+      video.src = URL.createObjectURL(stream);
+      // Remove when video autoplay works.
+      video.play();
+    }
+  });
+});
+
+window.onerror = function(e) {
+  pre = document.createElement('pre');
+  pre.textContent = e + ': ' + e.message;
+  document.body.appendChild(pre);
+}
+
+function download() {
+  var a = document.createElement('a');
+  a.href = video.src;
+  a.download = 'h264-recording.webm';
+  a.click();
+}
+</script>
