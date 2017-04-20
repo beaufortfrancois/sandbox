@@ -1,0 +1,44 @@
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=no">
+<title>Media Recorder Autoplay</title>
+<style>
+  html, body { margin: 0 auto; height: 100%; background: #000; color: #fff; }
+  video { object-fit: cover; width: 100vw; }
+  div { height: 100vh }
+</style>
+<video id="video" autoplay loop muted></video>
+<div></div>
+<script>
+
+let recorder;
+let chunks;
+
+navigator.mediaDevices.getUserMedia({video : true})
+.then(stream => {
+  video.src = URL.createObjectURL(stream);
+  video.addEventListener('play', function(event) {
+    // Record video when video starts playing.
+    recorder = new MediaRecorder(stream, {mimeType: 'video/webm;codecs=h264'});
+    recorder.start(10); // collect 10ms of data
+    chunks = [];
+    recorder.addEventListener('dataavailable', event => {
+      chunks.push(event.data);
+    });
+    recorder.addEventListener('stop', function(event)  {
+      // Play recording as soon as recording is stopped.
+      const blob = new Blob(chunks, {type: 'video/webm'});
+      video.src = URL.createObjectURL(blob);
+    });
+    // Stop recording after 2s.
+    setTimeout(function() {
+      recorder.stop();
+    }, 2000);
+  }, {once: true});
+});
+
+window.onerror = function(e) {
+  pre = document.createElement('pre');
+  pre.textContent = e + ': ' + e.message;
+  document.body.appendChild(pre);
+}
+
+</script>
