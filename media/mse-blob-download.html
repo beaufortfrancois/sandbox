@@ -1,0 +1,82 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+    margin: 0 auto;
+    text-align: center;
+    max-width: 640px;
+    font-family: monospace;
+}
+a {
+    display: block;
+    margin: 24px auto;
+}
+video {
+    width: 100%;
+}
+</style>
+<body>
+  <div>
+    <a id="anchorBlob" download="videoBlob.webm">video.src = URL.createObjectURL(blob)</a>
+    <video id="videoBlob" controls></video>
+  </div>
+  <div>
+    <a id="anchorMse" download="videoMse.webm">video.src = URL.createObjectURL(mediaSource)</a>
+    <video id="videoMse" controls></video>
+  </div>
+</body>
+<script>
+
+  // Record 2 seconds clip from camera.
+  
+  let recorder;
+  let chunks;
+  
+  navigator.mediaDevices.getUserMedia({video : true})
+  .then(stream => {
+    // Record video when video starts playing.
+    recorder = new MediaRecorder(stream, {mimeType: 'video/webm;codecs=vp9'});
+    recorder.start(10); // collect 10ms of data
+    chunks = [];
+    recorder.addEventListener('dataavailable', event => {
+      chunks.push(event.data);
+    });
+    recorder.addEventListener('stop', function(event)  {
+      // Play recording as soon as recording is stopped.
+      const blob = new Blob(chunks, {type: 'video/webm'});
+      videoBlob.src = URL.createObjectURL(blob);
+      anchorBlob.href = videoBlob.src;
+      videoBlob.play();
+      loadMseVideo();
+      stream.getVideoTracks()[0].stop();
+    });
+    // Stop recording after 1s.
+    setTimeout(function() {
+      recorder.stop();
+    }, 1000);
+  });
+
+  function loadMseVideo() {
+    var mediaSource = new MediaSource();
+    videoMse.src = URL.createObjectURL(mediaSource);
+    anchorMse.href = videoMse.src;
+    videoMse.play();
+    mediaSource.addEventListener('sourceopen', function(e) {
+      URL.revokeObjectURL(videoMse.src);
+      var mime = 'video/webm;codecs=vp9';
+      var sourceBuffer = mediaSource.addSourceBuffer(mime);
+      fetch(videoBlob.src)
+        .then(function(response) {
+          return response.arrayBuffer();
+        })
+        .then(function(arrayBuffer) {
+          sourceBuffer.addEventListener('updateend', function(e) {
+            if (!sourceBuffer.updating && mediaSource.readyState === 'open') {
+              mediaSource.endOfStream();
+            }
+          });
+          sourceBuffer.appendBuffer(arrayBuffer);
+        });
+    });
+  }
+
+</script>
