@@ -11,6 +11,8 @@
   .bg { width: 100%; height: 100%; position: absolute; object-fit: cover; margin: 0; top: 0; left: 0; right: 0; bottom: 0; z-index: -1}
   #dashboard { background: #333; color: white; margin: -8; padding: 8px; }
   #controls { margin-top: 16px }
+  #constraints { overflow-wrap: break-word; font-family: monospace; }
+  #constraints:before { content: 'Constraints:'; padding-right: 8px; }
 }
 </style>
 
@@ -24,7 +26,8 @@
   <button id="grabFrameButton">grabFrame</button>
   <button id="takePhotoButton">takePhoto</button>
   <button id="grabFrameAndTakePhotoButton">grabFrame & takePhoto</button>
-  <br/> <br/>
+  <br/><br/>
+  <div id="constraints"></div>
 </div>
 <div id="controls"></div>
 <div id="shots"></div>
@@ -91,6 +94,7 @@ function getUserMedia() {
 function initControls() {
   let capabilities = imageCapture.track.getCapabilities();
   let settings = imageCapture.track.getSettings();
+  let constraints = imageCapture.track.getConstraints();
   for (let capabilityName in capabilities) {
     let capability = capabilities[capabilityName];
     if (capability.toString() === '[object MediaSettingsRange]') {
@@ -104,6 +108,7 @@ function initControls() {
       addSelect(capabilityName, value, capability);
     }
   }
+  document.querySelector('#constraints').textContent = JSON.stringify(constraints, 0, 2);
 }
 
 function addInputRange(capabilityName, value, range) {
@@ -117,7 +122,11 @@ function addInputRange(capabilityName, value, range) {
   input.oninput = function(event) {
     let options = {};
     options[capabilityName] = event.target.value;
-    imageCapture.track.applyConstraints({advanced: [ options ]});
+    imageCapture.track.applyConstraints({advanced: [ options ]})
+    .then(_ => {
+      let constraints = imageCapture.track.getConstraints();
+      document.querySelector('#constraints').textContent = JSON.stringify(constraints, 0, 2);
+    });
     document.querySelector('label[for=' + capabilityName +']').textContent = capabilityName + ' (' + event.target.value + ')';
   }
   var label = document.createElement('label');
