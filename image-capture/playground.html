@@ -265,7 +265,7 @@ function grabFrame() {
 }
 
 function takePhoto() {
-  return imageCapture.takePhoto()
+  return imageCapture.takePhoto({imageWidth: 120, imageHeight: 144})
   .then(blob => createImageBitmap(blob))
   .then(imageBitmap => appendCanvas(imageBitmap))
   .catch(error => {
