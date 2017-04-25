@@ -84,11 +84,11 @@ function getUserMedia() {
       deviceId: { exact: localStorage.deviceId }
     }
   };
+  document.querySelector('#controls').innerHTML = '';
+  document.querySelector('#shots').innerHTML = '';
   navigator.mediaDevices.getUserMedia(constraints)
   .then(mediaStream => {
     video.srcObject = mediaStream;
-    document.querySelector('#controls').innerHTML = '';
-    document.querySelector('#shots').innerHTML = '';
     video.onplay = function() {
       imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
       // Remove timeout when crbug.com/711524 is fixed.
@@ -97,7 +97,7 @@ function getUserMedia() {
   })
   .catch(error => {
     let pre = document.createElement('pre');
-    pre.innerText = error;
+    pre.innerText = error.name;
     document.querySelector('#controls').appendChild(pre);
     console.log(error);
   });
