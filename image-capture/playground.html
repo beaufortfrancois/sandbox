@@ -126,7 +126,11 @@ function addInputRange(capabilityName, value, range) {
     document.querySelector('label[for=' + capabilityName +']').textContent = capabilityName + ' (' + event.target.value + ')';
   }
   var label = document.createElement('label');
-  label.textContent = capabilityName + ' (' + value + ')';
+  if (value > range.min && value < range.max) {
+    label.textContent = capabilityName + ' (' + value + ')';
+  } else {
+    label.textContent = capabilityName;
+  }
   label.setAttribute('for', capabilityName); 
   document.querySelector('#controls').appendChild(input);
   document.querySelector('#controls').appendChild(label);
