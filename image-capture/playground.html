@@ -1,7 +1,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Image Capture Playground</title>
 <style>
-  video { float: right; margin-bottom: 24px; background: rgba(255, 255, 255, .2) }
+  video { float: right; margin-left: 12px; margin-bottom: 12px; background: rgba(255, 255, 255, .2) }
   canvas { float: left; clear: right; }
   pre { clear: both; padding: 12px 0; }
   input { margin: 12px }
@@ -18,7 +18,7 @@
 </style>
 
 <div id="dashboard">
-  <video id="video" autoplay width="160" height="90"></video>
+  <video id="video" autoplay width="142" height="80"></video>
   <div id="devices"></div>
   <br/>
   <button id="getSupportedConstraints">getSupportedConstraints</button>
@@ -71,7 +71,7 @@ navigator.mediaDevices.getUserMedia({video : true})
 })
 .catch(error => {
   let pre = document.createElement('pre');
-  pre.innerText = error;
+  pre.innerText = error.name;
   document.querySelector('#controls').appendChild(pre);
   console.log(error);
 });
@@ -138,7 +138,7 @@ function addInputRange(capabilityName, value, range) {
     document.querySelector('label[for=' + capabilityName +']').textContent = capabilityName + ' (' + event.target.value + ')';
   }
   var label = document.createElement('label');
-  if (value > range.min && value < range.max) {
+  if (value >= range.min && value <= range.max) {
     label.textContent = capabilityName + ' (' + value + ')';
   } else {
     label.textContent = capabilityName;
