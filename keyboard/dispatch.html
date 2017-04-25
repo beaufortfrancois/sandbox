@@ -1,0 +1,12 @@
+<input type="number" value="0">
+<script>
+setInterval(function() {
+  document.querySelector('input').focus();
+  document.querySelector('input').dispatchEvent(new KeyboardEvent('keypress', {
+     key: 'ArrowUp',
+     bubbles: true,
+     cancelable: false
+  }));
+}, 1000);
+</script>
+
