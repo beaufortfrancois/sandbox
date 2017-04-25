@@ -1,7 +1,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Image Capture Playground</title>
 <style>
-  video { float: right; margin-bottom: 24px; background: white }
+  video { float: right; margin-bottom: 24px; background: rgba(255, 255, 255, .2) }
   canvas { float: left; clear: right; }
   pre { clear: both; padding: 12px 0; }
   input { margin: 12px }
@@ -28,6 +28,7 @@
   <button id="getPhotoCapabilities">getPhotoCapabilities</button>
   <button id="grabFrameButton">grabFrame</button>
   <button id="takePhotoButton">takePhoto</button>
+  <button id="takeSmallPhotoButton">takePhoto (small)</button>
   <button id="grabFrameAndTakePhotoButton">grabFrame & takePhoto</button>
   <br/><br/>
   <div id="constraints"></div>
@@ -205,6 +206,7 @@ document.querySelector('#getSettings').addEventListener('click', getSettings);
 document.querySelector('#getPhotoCapabilities').addEventListener('click', getPhotoCapabilities);
 document.querySelector('#grabFrameButton').addEventListener('click', grabFrame);
 document.querySelector('#takePhotoButton').addEventListener('click', takePhoto);
+document.querySelector('#takeSmallPhotoButton').addEventListener('click', takeSmallPhoto);
 document.querySelector('#grabFrameAndTakePhotoButton').addEventListener('click', grabFrameAndTakePhoto);
 
 function getSupportedConstraints() {
@@ -265,7 +267,16 @@ function grabFrame() {
 }
 
 function takePhoto() {
-  return imageCapture.takePhoto({imageWidth: 120, imageHeight: 144})
+  return imageCapture.takePhoto()
+  .then(blob => createImageBitmap(blob))
+  .then(imageBitmap => appendCanvas(imageBitmap))
+  .catch(error => {
+    console.log(error);
+  });
+}
+
+function takeSmallPhoto() {
+  return imageCapture.takePhoto({redEyeReduction: true, imageWidth: 248, imageHeight: 248})
   .then(blob => createImageBitmap(blob))
   .then(imageBitmap => appendCanvas(imageBitmap))
   .catch(error => {
