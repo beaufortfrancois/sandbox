@@ -37,7 +37,9 @@ var imageCapture;
 
 localStorage.deviceId = localStorage.deviceId || 'default';
 
-navigator.mediaDevices.enumerateDevices()
+// Ask permission first and enumerate devices after...
+navigator.mediaDevices.getUserMedia({video : true})
+.then(_ => navigator.mediaDevices.enumerateDevices())
 .then(devices => {
   var videoInputDevices = devices.filter(device => (device.kind == 'videoinput'));
   videoInputDevices.forEach(device => {
@@ -63,8 +65,11 @@ navigator.mediaDevices.enumerateDevices()
     document.querySelector('#devices input:checked').click();
   }
 })
-.catch(function(err) {
-  console.log(err.name + ": " + err.message);
+.catch(error => {
+  let pre = document.createElement('pre');
+  pre.innerText = error;
+  document.querySelector('#controls').appendChild(pre);
+  console.log(error);
 });
 
 function getUserMedia() {
@@ -87,6 +92,9 @@ function getUserMedia() {
     }
   })
   .catch(error => {
+    let pre = document.createElement('pre');
+    pre.innerText = error;
+    document.querySelector('#controls').appendChild(pre);
     console.log(error);
   });
 }
