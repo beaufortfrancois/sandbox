@@ -6,6 +6,7 @@
   pre { clear: both; padding: 12px 0; }
   input { margin: 12px }
   select { margin: 12px; width: 129px }
+  select[disabled] + label { color: buttonface; }
   input[type=checkbox] { width: 129px }
   button { margin: 4px 0 }
   hr { margin: 8px; border: 0 }
@@ -121,6 +122,38 @@ function initControls() {
     }
   }
   document.querySelector('#constraints').textContent = JSON.stringify(constraints, 0, 2);
+  imageCapture.getPhotoCapabilities()
+  .then(photoCapabilities => {
+    document.querySelector('#controls').appendChild(document.createElement('hr'));
+    if ('fillLightMode' in photoCapabilities) {
+      let select = document.createElement('select');
+      select.id = 'fillLightMode';
+      select.disabled = (photoCapabilities['fillLightMode'].length <= 1);
+      for (capability of photoCapabilities['fillLightMode']) {
+        let option = document.createElement('option');
+        option.value = capability;
+        option.textContent = capability; 
+        select.appendChild(option);
+      }
+      var label = document.createElement('label');
+      label.textContent = 'fillLightMode';
+      label.setAttribute('for', 'fillLightMode'); 
+      document.querySelector('#controls').appendChild(select);
+      document.querySelector('#controls').appendChild(label);
+      document.querySelector('#controls').appendChild(document.createElement('br'));
+    }
+    if (photoCapabilities['redEyeReduction'] === 'controllable') {
+      let input = document.createElement('input');
+      input.id = 'redEyeReduction';
+      input.type = 'checkbox';
+      var label = document.createElement('label');
+      label.textContent = 'redEyeReduction';
+      label.setAttribute('for', 'redEyeReduction'); 
+      document.querySelector('#controls').appendChild(input);
+      document.querySelector('#controls').appendChild(label);
+      document.querySelector('#controls').appendChild(document.createElement('br'));
+    }
+  });;
 }
 
 function addInputRange(capabilityName, value, range) {
@@ -170,7 +203,7 @@ function addInputCheckbox(capabilityName, value) {
 function addSelect(capabilityName, value, capabilities) {
   let select = document.createElement('select');
   select.id = capabilityName;
-  select.disabled = (capabilities.length == 1);
+  select.disabled = (capabilities.length <= 1);
   select.oninput = function(event) {
     let options = {};
     options[capabilityName] = event.target.value;
@@ -267,7 +300,14 @@ function grabFrame() {
 }
 
 function takePhoto() {
-  return imageCapture.takePhoto()
+  let options = {};
+  if (document.querySelector('#fillLightMode') && document.querySelector('#fillLightMode').selectedIndex >= 0) {
+    options.fillLightMode = document.querySelector('#fillLightMode')[document.querySelector('#fillLightMode').selectedIndex].value;
+  }
+  if (document.querySelector('#redEyeReduction')) {
+    options.redEyeReduction = document.querySelector('#redEyeReduction').checked;
+  }
+  return imageCapture.takePhoto(options)
   .then(blob => createImageBitmap(blob))
   .then(imageBitmap => appendCanvas(imageBitmap))
   .catch(error => {
