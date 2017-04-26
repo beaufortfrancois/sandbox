@@ -41,6 +41,7 @@
 
 <script>
 var imageCapture;
+var photoSettings = {};
 
 localStorage.deviceId = localStorage.deviceId || 'default';
 
@@ -132,6 +133,9 @@ function initControls() {
       let select = document.createElement('select');
       select.id = 'fillLightMode';
       select.disabled = (photoCapabilities['fillLightMode'].length <= 1);
+      select.oninput = function(event) {
+        photoSettings['fillLightMode'] = event.target.value;
+      }
       for (capability of photoCapabilities['fillLightMode']) {
         let option = document.createElement('option');
         option.value = capability;
@@ -149,6 +153,9 @@ function initControls() {
       let input = document.createElement('input');
       input.id = 'redEyeReduction';
       input.type = 'checkbox';
+      input.onchange = function(event) {
+        photoSettings['redEyeReduction'] = event.target.checked;
+      }
       var label = document.createElement('label');
       label.textContent = 'redEyeReduction';
       label.setAttribute('for', 'redEyeReduction'); 
@@ -304,16 +311,10 @@ function grabFrame() {
 }
 
 function takePhoto() {
-  let options = {};
-  if (document.querySelector('#fillLightMode') && document.querySelector('#fillLightMode').selectedIndex >= 0) {
-    options.fillLightMode = document.querySelector('#fillLightMode')[document.querySelector('#fillLightMode').selectedIndex].value;
-  }
-  if (document.querySelector('#redEyeReduction')) {
-    options.redEyeReduction = document.querySelector('#redEyeReduction').checked;
-  }
-  return imageCapture.takePhoto(options)
+  var settings = photoSettings;
+  return imageCapture.takePhoto(settings)
   .then(blob => createImageBitmap(blob))
-  .then(imageBitmap => appendCanvas(imageBitmap))
+  .then(imageBitmap => appendCanvas(imageBitmap, settings))
   .catch(error => {
     console.log(error);
   });
@@ -333,7 +334,7 @@ function grabFrameAndTakePhoto() {
   .then(_ => takePhoto());
 }
 
-function appendCanvas(imageBitmap) {
+function appendCanvas(imageBitmap, options) {
   let canvas = document.createElement('canvas');
   canvas.width = imageBitmap.width;
   canvas.height = imageBitmap.height;
@@ -344,7 +345,14 @@ function appendCanvas(imageBitmap) {
   context.font = canvas.height / 12 + 'px Cousine';
   context.fillStyle = 'deeppink';
   context.textBaseline = 'top';
-  context.fillText(`${canvas.width}x${canvas.height}`, 0, 0);
+  context.fillText(`${canvas.width}x${canvas.height}`, 4, 0);
+  let offset = canvas.height / 12;
+  if (options) {
+    for (let option of Object.keys(options)) {
+      context.fillText(option + '=' + options[option], 4, offset);
+      offset += canvas.height / 12;
+    }
+  }
   document.querySelector('#shots').appendChild(canvas);
 }
 
