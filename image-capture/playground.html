@@ -4,8 +4,10 @@
   video { float: right; margin-left: 12px; margin-bottom: 12px; background: rgba(255, 255, 255, .2) }
   canvas { float: left; clear: right; }
   pre { clear: both; padding: 12px 0; }
-  input { margin: 12px }
-  select { margin: 12px; width: 129px }
+  input, label { margin: 0; line-height: 28px; vertical-align: middle; }
+  #devices input { margin: 12px; }
+  label { padding-left: 12px; }
+  select { line-height: 24px; width: 129px }
   select[disabled] + label { color: buttonface; }
   input[type=checkbox] { width: 129px }
   button { margin: 4px 0 }
@@ -121,6 +123,7 @@ function initControls() {
       addSelect(capabilityName, value, capability);
     }
   }
+  delete(constraints['deviceId']);
   document.querySelector('#constraints').textContent = JSON.stringify(constraints, 0, 2);
   imageCapture.getPhotoCapabilities()
   .then(photoCapabilities => {
@@ -228,6 +231,7 @@ function applyConstraints(options) {
   imageCapture.track.applyConstraints({advanced: [ options ]})
   .then(_ => {
     let constraints = imageCapture.track.getConstraints();
+    delete(constraints['deviceId']);
     document.querySelector('#constraints').textContent = JSON.stringify(constraints, 0, 2);
   });
 }
