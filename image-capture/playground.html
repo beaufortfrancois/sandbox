@@ -1,22 +1,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Image Capture Playground</title>
 <style>
-  video { float: right; margin-left: 12px; margin-bottom: 12px; background: rgba(255, 255, 255, .2) }
-  canvas { float: left; clear: right; }
-  pre { clear: both; padding: 12px 0; }
+  video { float: right; margin-left: 6px; margin-bottom: 6px; background: rgba(255, 255, 255, .2) }
+  canvas { display: inline-block; }
+  pre { padding: 12px 8px; }
   input, label { margin: 0; line-height: 28px; vertical-align: middle; }
-  #devices input { margin: 12px; }
-  label { padding-left: 12px; }
+  #devices input { margin: 6px; }
+  #controls label { padding-left: 12px; }
   select { line-height: 24px; width: 129px }
   select[disabled] + label { color: buttonface; }
   input[type=checkbox] { width: 129px }
   button { margin: 4px 0 }
-  hr { margin: 8px; border: 0 }
+  hr { margin: 8px 0; border: 0 }
   .bg { width: 100%; height: 100%; position: absolute; object-fit: cover; margin: 0; top: 0; left: 0; right: 0; bottom: 0; z-index: -1}
-  #dashboard { background: #333; color: white; margin: -8; padding: 8px; }
-  #shots { margin: 0 -8; }
-  #controls { margin-top: 16px }
-  #constraints { overflow-wrap: break-word; font-family: monospace; }
+  #dashboard { background: #333; color: white; margin: -8; padding: 4px; }
+  #shots { background: #eee; margin: 0 -8; }
+  #controls { padding: 0 8px; margin: 16px -8px; }
+  #constraints { margin-top: 8px; overflow-wrap: break-word; font-family: monospace; }
   #constraints:before { content: 'Constraints:'; padding-right: 8px; }
 }
 </style>
@@ -24,17 +24,14 @@
 <div id="dashboard">
   <video id="video" autoplay width="142" height="80"></video>
   <div id="devices"></div>
-  <br/>
   <button id="getSupportedConstraints">getSupportedConstraints</button>
   <button id="getCapabilities">getCapabilities</button>
   <button id="getSettings">getSettings</button>
-  <hr/>
+  <br/>
   <button id="getPhotoCapabilities">getPhotoCapabilities</button>
   <button id="grabFrameButton">grabFrame</button>
   <button id="takePhotoButton">takePhoto</button>
-  <button id="takeSmallPhotoButton">takePhoto (small)</button>
   <button id="grabFrameAndTakePhotoButton">grabFrame & takePhoto</button>
-  <br/><br/>
   <div id="constraints"></div>
 </div>
 <div id="controls"></div>
@@ -67,6 +64,7 @@ navigator.mediaDevices.getUserMedia({video : true})
     label.setAttribute('for', device.deviceId); 
     document.querySelector('#devices').appendChild(input);
     document.querySelector('#devices').appendChild(label);
+    document.querySelector('#devices').appendChild(document.createElement('br'));
   });
   if (localStorage.deviceId == 'default') {
     document.querySelector('#devices input').click();
@@ -164,6 +162,26 @@ function initControls() {
       document.querySelector('#controls').appendChild(label);
       document.querySelector('#controls').appendChild(document.createElement('br'));
     }
+    ['imageWidth', 'imageHeight'].forEach(rangeName => {
+      let range = photoCapabilities[rangeName];
+      let input = document.createElement('input');
+      input.id = rangeName;
+      input.type = 'range';
+      input.min = range.min;
+      input.max = range.max;
+      input.step = range.step;
+      input.value = range.max;
+      input.onchange = function(event) {
+        photoSettings[rangeName] = event.target.value;
+        document.querySelector('label[for=' + rangeName +']').textContent = rangeName + ' (' + event.target.value + ')';
+      }
+      var label = document.createElement('label');
+      label.textContent = rangeName + ' (' + range.max + ')';
+      label.setAttribute('for', rangeName); 
+      document.querySelector('#controls').appendChild(input);
+      document.querySelector('#controls').appendChild(label);
+      document.querySelector('#controls').appendChild(document.createElement('br'));
+    });
   });;
 }
 
@@ -251,7 +269,6 @@ document.querySelector('#getSettings').addEventListener('click', getSettings);
 document.querySelector('#getPhotoCapabilities').addEventListener('click', getPhotoCapabilities);
 document.querySelector('#grabFrameButton').addEventListener('click', grabFrame);
 document.querySelector('#takePhotoButton').addEventListener('click', takePhoto);
-document.querySelector('#takeSmallPhotoButton').addEventListener('click', takeSmallPhoto);
 document.querySelector('#grabFrameAndTakePhotoButton').addEventListener('click', grabFrameAndTakePhoto);
 
 function getSupportedConstraints() {
@@ -316,15 +333,6 @@ function takePhoto() {
   return imageCapture.takePhoto(settings)
   .then(blob => createImageBitmap(blob))
   .then(imageBitmap => appendCanvas(imageBitmap, settings))
-  .catch(error => {
-    console.log(error);
-  });
-}
-
-function takeSmallPhoto() {
-  return imageCapture.takePhoto({redEyeReduction: true, imageWidth: 248, imageHeight: 248})
-  .then(blob => createImageBitmap(blob))
-  .then(imageBitmap => appendCanvas(imageBitmap))
   .catch(error => {
     console.log(error);
   });
