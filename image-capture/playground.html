@@ -12,7 +12,7 @@
   input[type=checkbox] { width: 129px }
   button { margin: 4px 0 }
   hr { margin: 8px 0; border: 0 }
-  .bg { width: 100%; height: 100%; position: absolute; object-fit: cover; margin: 0; top: 0; left: 0; right: 0; bottom: 0; z-index: -1}
+  .fg { width: 100%; height: 100%; position: absolute; object-fit: cover; margin: 0; top: 0; left: 0; right: 0; bottom: 0; }
   #dashboard { background: #333; color: white; margin: -8; padding: 4px; }
   #shots { background: #eee; margin: 0 -8; }
   #controls { padding: 0 8px; margin: 16px -8px; }
@@ -366,6 +366,6 @@ function appendCanvas(imageBitmap, options) {
 }
 
 video.addEventListener('click', function() {
-  video.classList.toggle('bg');
+  video.classList.toggle('fg');
 });
 </script>
