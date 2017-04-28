@@ -69,7 +69,7 @@ navigator.mediaDevices.getUserMedia({video : true})
   if (localStorage.deviceId == 'default') {
     document.querySelector('#devices input').click();
   } else {
-    document.querySelector('#devices input:checked').click();
+    document.querySelector('#devices input:checked') && document.querySelector('#devices input:checked').click();
   }
 })
 .catch(error => {
