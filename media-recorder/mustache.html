@@ -1,0 +1,83 @@
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=no">
+<title>Mustache</title>
+<style>
+  html, body { margin: 0 auto; height: 100%; background: #000; color: #fff; }
+  video { display: none; object-fit: cover; width: 100vw; }
+  canvas { width: 100vw; height: 100vh }
+  .recording { background-color: red }
+  button { position: absolute; bottom: 24px; right: 24px }
+  pre { position: absolute; top: 24px; left: 24px; white-space: pre-line; }
+</style>
+<canvas id="canvas"></canvas>
+<video id="video" autoplay muted></video>
+<button id="recordButton">RECORD</button>
+<pre id="log"></pre>
+<script>
+
+let stream;
+let faces = [];
+let recorder;
+let chunks = [];
+
+(async _ => {
+
+  // Grab camera stream.
+  stream = await navigator.mediaDevices.getUserMedia({ video : true });
+  video.srcObject = stream;
+  await video.play();
+
+  canvas.width = window.innerWidth * devicePixelRatio;
+  canvas.height = window.innerHeight * devicePixelRatio;
+  requestAnimationFrame(draw);
+
+})();
+
+async function draw() {
+  const context = canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw video frame.
+  const ratio  = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
+  context.drawImage(video, 0,0, video.videoWidth, video.videoHeight,
+      (canvas.width - video.videoWidth * ratio) / 2,
+      (canvas.height - video.videoHeight * ratio) / 2,
+      video.videoWidth * ratio, video.videoHeight * ratio);  
+
+  const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+  // Draw previously detected faces.
+  for (const face of faces) {
+    context.beginPath();
+    context.rect(face.boundingBox.x, face.boundingBox.y, face.boundingBox.width, face.boundingBox.height);
+    context.lineWidth = 1 * devicePixelRatio;
+    context.strokeStyle = 'deeppink';
+    context.closePath();
+    context.stroke();
+  }
+
+  // Detect new faces.
+  faces = await faceDetector.detect(imageData);
+
+  requestAnimationFrame(draw);
+}
+
+recordButton.addEventListener('click', event => {
+  if (document.body.classList.toggle('recording')) {
+    recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=h264' });
+    recorder.start(10); // collect 10ms of data
+    recorder.addEventListener('dataavailable', event => { chunks.push(event.data); });
+    recorder.addEventListener('stop', event => {
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      window.open(URL.createObjectURL(blob));
+    });
+  } else {
+    recorder.stop();
+  }
+});
+
+window.addEventListener('unhandledrejection', event => {
+  log.textContent = event.promise + ': ' + event.reason;
+});
+</script>
+
