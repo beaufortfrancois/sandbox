@@ -73,6 +73,8 @@ let chunks = [];
 })();
 
 async function draw() {
+  requestAnimationFrame(draw);
+
   const context = canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -96,8 +98,6 @@ async function draw() {
 
   // Detect new faces.
   faces = await faceDetector.detect(imageData);
-
-  requestAnimationFrame(draw);
 }
 
 function onRecordButtonClick(event) {
@@ -109,10 +109,30 @@ function onRecordButtonClick(event) {
     recorder.addEventListener('stop', event => {
       const blob = new Blob(chunks, { type: 'video/webm' });
       window.open(URL.createObjectURL(blob));
+      //uploadVideo(blob);
     });
   } else {
     recorder.stop();
   }
+}
+
+function uploadVideo(blob) {
+  const formData = new FormData();
+  formData.append('key', 'AIzaSyDy2L3xfde9x9uwAIF4QMSmDVtQfJ0Wm8s');
+  formData.append('attachment', blob, 'aRandomFileName');
+
+  // Upload video to Google Cloud Storage.
+  fetch('https://www.googleapis.com/upload/storage/v1/b/pwa-mustache/o?uploadType=media&name=foo', {
+    method: 'POST', 
+    body: formData,
+    headers: new Headers({
+      'Content-Type': 'video/webm',
+      'Content-Length': blob.length
+    })
+  })
+  .then(response => {
+    console.log(response);
+  });
 }
 
 window.addEventListener('unhandledrejection', event => {
