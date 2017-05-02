@@ -1,16 +1,48 @@
 <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=no">
 <title>Mustache</title>
 <style>
-  html, body { margin: 0 auto; height: 100%; background: #000; color: #fff; }
-  video { display: none; object-fit: cover; width: 100vw; }
-  canvas { width: 100vw; height: 100vh }
-  .recording { background-color: red }
-  button { position: absolute; bottom: 24px; right: 24px }
-  pre { position: absolute; top: 24px; left: 24px; white-space: pre-line; }
+  html, body {
+    margin: 0 auto;
+    height: 100%;
+    background: rgb(51, 51, 58);
+    color: #fff;
+  }
+  video {
+    display: none;
+  }
+  canvas {
+    width: 100vw;
+    height: 100vh;
+  }
+  pre {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    white-space: pre-line;
+    right: 24px;
+    text-shadow: 0 0 black;
+   }
+  .recording {
+    background-color: #F44336;
+  }
+  #recordButton {
+    position: absolute;
+    bottom: 48px;
+    right: 0;
+    text-align: center;
+    left: 0;
+    width: 64px;
+    margin: auto;
+    font-size: 48px;
+    background: rgba(0, 193, 233, 0.5);
+    line-height: 64px;
+    border-radius: 50%;
+    box-shadow: 0 0 4px 2px rgb(51, 51, 58);
+  }
 </style>
 <canvas id="canvas"></canvas>
 <video id="video" autoplay muted></video>
-<button id="recordButton">RECORD</button>
+<div id="recordButton">&#9210;</div>
 <pre id="log"></pre>
 <script>
 
@@ -22,13 +54,18 @@ let chunks = [];
 (async _ => {
 
   // Grab camera stream.
-  stream = await navigator.mediaDevices.getUserMedia({ video : true });
+  const constraints = {
+     video: { facingMode: 'user' }
+  };
+  stream = await navigator.mediaDevices.getUserMedia(constraints);
   video.srcObject = stream;
   await video.play();
 
-  canvas.width = window.innerWidth * devicePixelRatio;
-  canvas.height = window.innerHeight * devicePixelRatio;
+  canvas.width = window.innerWidth; // * devicePixelRatio;
+  canvas.height = window.innerHeight; // * devicePixelRatio;
   requestAnimationFrame(draw);
+
+  recordButton.addEventListener('click', onRecordButtonClick);
 
 })();
 
@@ -38,9 +75,8 @@ async function draw() {
 
   // Draw video frame.
   const ratio  = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
-  context.drawImage(video, 0,0, video.videoWidth, video.videoHeight,
-      (canvas.width - video.videoWidth * ratio) / 2,
-      (canvas.height - video.videoHeight * ratio) / 2,
+  context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight,
+      (canvas.width - video.videoWidth * ratio) / 2, 0,
       video.videoWidth * ratio, video.videoHeight * ratio);  
 
   const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
@@ -52,7 +88,7 @@ async function draw() {
     context.rect(face.boundingBox.x, face.boundingBox.y, face.boundingBox.width, face.boundingBox.height);
     context.lineWidth = 1 * devicePixelRatio;
     context.strokeStyle = 'deeppink';
-    context.closePath();
+    //context.closePath();
     context.stroke();
   }
 
@@ -62,7 +98,7 @@ async function draw() {
   requestAnimationFrame(draw);
 }
 
-recordButton.addEventListener('click', event => {
+function onRecordButtonClick(event) {
   if (document.body.classList.toggle('recording')) {
     recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=h264' });
     recorder.start(10); // collect 10ms of data
@@ -74,10 +110,10 @@ recordButton.addEventListener('click', event => {
   } else {
     recorder.stop();
   }
-});
+}
 
 window.addEventListener('unhandledrejection', event => {
-  log.textContent = event.promise + ': ' + event.reason;
+  log.textContent = event.reason;
 });
 </script>
 
