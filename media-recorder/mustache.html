@@ -25,6 +25,9 @@
   .recording {
     background-color: #F44336;
   }
+  #mustache {
+    display: none;
+  }
   #recordButton {
     position: absolute;
     bottom: 48px;
@@ -42,12 +45,13 @@
 </style>
 <canvas id="canvas"></canvas>
 <video id="video" autoplay muted></video>
+<img id="mustache" src="mustache.png">
 <div id="recordButton">&#9210;</div>
 <pre id="log"></pre>
 <script>
 
-let stream;
 let faces = [];
+
 let recorder;
 let chunks = [];
 
@@ -57,8 +61,7 @@ let chunks = [];
   const constraints = {
      video: { facingMode: 'user' }
   };
-  stream = await navigator.mediaDevices.getUserMedia(constraints);
-  video.srcObject = stream;
+  video.srcObject = await navigator.mediaDevices.getUserMedia(constraints);
   await video.play();
 
   canvas.width = window.innerWidth; // * devicePixelRatio;
@@ -82,14 +85,13 @@ async function draw() {
   const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 
-  // Draw previously detected faces.
+  // Draw mustaches on previously detected faces.
   for (const face of faces) {
-    context.beginPath();
-    context.rect(face.boundingBox.x, face.boundingBox.y, face.boundingBox.width, face.boundingBox.height);
-    context.lineWidth = 1 * devicePixelRatio;
-    context.strokeStyle = 'deeppink';
-    //context.closePath();
-    context.stroke();
+    context.drawImage(mustache,
+        face.boundingBox.left,
+        face.boundingBox.bottom - mustache.height * face.boundingBox.width / mustache.width / 2,
+        face.boundingBox.width,
+        mustache.height * face.boundingBox.width / mustache.width);
   }
 
   // Detect new faces.
@@ -100,6 +102,7 @@ async function draw() {
 
 function onRecordButtonClick(event) {
   if (document.body.classList.toggle('recording')) {
+    const stream = canvas.captureStream();
     recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=h264' });
     recorder.start(10); // collect 10ms of data
     recorder.addEventListener('dataavailable', event => { chunks.push(event.data); });
