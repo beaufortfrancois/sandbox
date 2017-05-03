@@ -55,6 +55,8 @@ let faces = [];
 let recorder;
 let chunks = [];
 
+let isDetectingFaces = false;
+
 (async _ => {
 
   // Grab camera stream.
@@ -97,7 +99,11 @@ async function draw() {
   }
 
   // Detect new faces.
-  faces = await faceDetector.detect(imageData);
+  if (!isDetectingFaces) {
+    isDetectingFaces = true;
+    faces = await faceDetector.detect(imageData);
+    isDetectingFaces = false;
+  }
 }
 
 function onRecordButtonClick(event) {
