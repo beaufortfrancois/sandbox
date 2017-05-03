@@ -101,6 +101,14 @@ async function draw() {
   context.textBaseline = 'top';
   context.fillText(`${video.videoWidth}x${video.videoHeight}`, 12, 12);
 
+  // Detect new faces.
+  if (!isDetectingFaces) {
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    // Send video frame to worker.
+    worker.postMessage(imageData);
+    isDetectingFaces = true;
+  }
+
   // Draw mustaches on previously detected faces.
   for (const face of faces) {
     context.drawImage(mustache,
@@ -108,14 +116,6 @@ async function draw() {
         face.bottom - mustache.height * face.width / mustache.width / 2,
         face.width,
         mustache.height * face.width / mustache.width);
-  }
-
-  console.log(isDetectingFaces);
-  // Detect new faces.
-  if (!isDetectingFaces) {
-    isDetectingFaces = true;
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    worker.postMessage(imageData);
   }
 }
 
