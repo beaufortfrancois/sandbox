@@ -165,14 +165,13 @@ async function draw() {
     isDetectingFaces = true;
   }
 
-  // Draw mustaches on previously detected faces.
-  for (const face of faces) {
-    context.drawImage(mustache,
-        face.left,
-        face.bottom - mustache.height * face.width / mustache.width / 2,
-        face.width,
-        mustache.height * face.width / mustache.width);
-  }
+  // Draw mustache on previously detected face.
+  const face = faces[0];
+  context.drawImage(mustache,
+      face.left,
+      face.bottom - mustache.height * face.width / mustache.width / 2,
+      face.width,
+      mustache.height * face.width / mustache.width);
 }
 
 worker.addEventListener('message', event => {
