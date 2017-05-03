@@ -57,7 +57,42 @@
 <div class="bottomBar"></div>
 <div id="recordButton">&#9210;</div>
 <pre id="log"></pre>
+<div style="position: absolute; background-color: orange; bottom: 134px; padding: 0 4px; color: white; left: 6px;">
+  DEBUG:
+  <input type="checkbox" id="canvasSize" onchange="changeCanvasSize()"><label for="canvasSize">Big Canvas</label>
+  <input type="checkbox" checked id="detectFaces" onchange="changeDetectFaces()"><label for="detectFaces">Detect Faces</label>
+</div>
 <script>
+
+/* Debug stuff */
+function changeCanvasSize() {
+  if (canvasSize.checked) {
+    canvas.height = window.innerHeight * devicePixelRatio;
+    canvas.width = window.innerWidth * devicePixelRatio;
+  } else {
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+  }
+  // HACK: Face Detector doesn't accept canvas whose width is odd.
+  if (canvas.width % 2 == 1) {
+    canvas.width += 1;
+  }
+}
+
+function changeDetectFaces() {
+  if (!detectFaces.checked) {
+    worker.terminate();
+    faces = [];
+  } else {
+    isDetectingFaces = false;
+    worker = new Worker('mustache.js');
+    worker.addEventListener('message', event => {
+      faces = JSON.parse(event.data.faces);
+      isDetectingFaces = false;
+    });
+  }
+}
+/* End of Debug stuff */
 
 let faces = [];
 
@@ -81,8 +116,8 @@ let worker = new Worker('mustache.js');
   video.srcObject = await navigator.mediaDevices.getUserMedia(constraints);
   await video.play();
 
-  canvas.height = window.innerHeight * devicePixelRatio;
-  canvas.width = window.innerWidth * devicePixelRatio;
+  canvas.height = window.innerHeight;
+  canvas.width = window.innerWidth;
   // HACK: Face Detector doesn't accept canvas whose width is odd.
   if (canvas.width % 2 == 1) {
     canvas.width += 1;
@@ -120,11 +155,18 @@ async function draw() {
         face.width,
         mustache.height * face.width / mustache.width);
   }
+
+  // Debug info...
+  context.font = '16px Cousine';
+  context.fillStyle = 'deeppink';
+  context.textBaseline = 'top';
+  context.fillText(`Video: ${video.videoWidth}x${video.videoHeight}`, 12, 12);
+  context.fillText(`Canvas: ${canvas.width}x${canvas.height}`, 12, 32);
 }
 
 worker.addEventListener('message', event => {
-  isDetectingFaces = false;
   faces = JSON.parse(event.data.faces);
+  isDetectingFaces = false;
 });
 
 function onRecordButtonClick(event) {
