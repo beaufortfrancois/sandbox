@@ -57,6 +57,14 @@ let chunks = [];
 
 let isDetectingFaces = false;
 
+let worker = new Worker('mustache.js');
+
+worker.addEventListener('message', event => {
+  isDetectingFaces = false;
+  faces = event.data.faces;
+  console.log(event.data);
+});
+
 (async _ => {
   // Grab camera stream.
   const constraints = {
@@ -93,26 +101,22 @@ async function draw() {
   context.textBaseline = 'top';
   context.fillText(`${video.videoWidth}x${video.videoHeight}`, 12, 12);
 
-  const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
-//  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  // Draw mustaches on previously detected faces.
+  for (const face of faces) {
+    context.drawImage(mustache,
+        face.left,
+        face.bottom - mustache.height * face.width / mustache.width / 2,
+        face.width,
+        mustache.height * face.width / mustache.width);
+  }
 
   console.log(isDetectingFaces);
   // Detect new faces.
   if (!isDetectingFaces) {
     isDetectingFaces = true;
-    faces = await faceDetector.detect(canvas);
-    isDetectingFaces = false;
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    worker.postMessage(imageData);
   }
-
-  // Draw mustaches on previously detected faces.
-  for (const face of faces) {
-    context.drawImage(mustache,
-        face.boundingBox.left,
-        face.boundingBox.bottom - mustache.height * face.boundingBox.width / mustache.width / 2,
-        face.boundingBox.width,
-        mustache.height * face.boundingBox.width / mustache.width);
-  }
-
 }
 
 function onRecordButtonClick(event) {
