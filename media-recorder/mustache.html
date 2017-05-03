@@ -22,11 +22,19 @@
     right: 24px;
     text-shadow: 0 0 black;
    }
-  .recording {
+  .recording .bottomBar {
     background-color: #F44336;
   }
   #mustache {
     display: none;
+  }
+  .bottomBar {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    height: 128px;
+    background-color: rgba(51, 51, 58, 0.3);
   }
   #recordButton {
     position: absolute;
@@ -36,8 +44,8 @@
     left: 0;
     width: 64px;
     margin: auto;
-    font-size: 48px;
-    background: rgba(0, 193, 233, 0.5);
+    font-size: 26px;
+    background: rgba(7, 104, 125, .9);
     line-height: 64px;
     border-radius: 50%;
     box-shadow: 0 0 4px 2px rgb(51, 51, 58);
@@ -46,6 +54,7 @@
 <canvas id="canvas"></canvas>
 <video id="video" autoplay muted></video>
 <img id="mustache" src="mustache.png">
+<div class="bottomBar"></div>
 <div id="recordButton">&#9210;</div>
 <pre id="log"></pre>
 <script>
