@@ -58,7 +58,6 @@ let chunks = [];
 let isDetectingFaces = false;
 
 (async _ => {
-
   // Grab camera stream.
   const constraints = {
      video: {
@@ -75,7 +74,6 @@ let isDetectingFaces = false;
   requestAnimationFrame(draw);
 
   recordButton.addEventListener('click', onRecordButtonClick);
-
 })();
 
 async function draw() {
