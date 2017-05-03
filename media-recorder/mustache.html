@@ -61,8 +61,8 @@ let worker = new Worker('mustache.js');
 
 worker.addEventListener('message', event => {
   isDetectingFaces = false;
-  faces = event.data.faces;
-  console.log(event.data);
+  faces = JSON.parse(event.data.faces);
+  console.log(faces);
 });
 
 (async _ => {
