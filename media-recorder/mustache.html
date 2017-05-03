@@ -82,8 +82,12 @@ let worker = new Worker('mustache.js');
   console.log(video.srcObject.getTracks()[0].getSettings());
   await video.play();
 
-  canvas.width = window.innerWidth; // * devicePixelRatio;
-  canvas.height = window.innerHeight; // * devicePixelRatio;
+  canvas.width = window.innerWidth * devicePixelRatio;
+  // HACK: Face Detector doesn't accept canvas whose width is odd.
+  if (canvas.width % 2 == 1) {
+    canvas.width += 1;
+  }
+  canvas.height = window.innerHeight * devicePixelRatio;
   requestAnimationFrame(draw);
 
   recordButton.addEventListener('click', onRecordButtonClick);
@@ -109,7 +113,7 @@ async function draw() {
   // Detect new faces.
   if (!isDetectingFaces) {
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    // Send video frame to worker.
+    // Send video frame to worker for detection work.
     worker.postMessage(imageData);
     isDetectingFaces = true;
   }
