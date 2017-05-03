@@ -79,6 +79,7 @@ function changeCanvasSize() {
   if (canvas.width % 2 == 1) {
     canvas.width += 1;
   }
+  log.textContent = `Video: ${video.videoWidth}x${video.videoHeight}, Canvas: ${canvas.width}x${canvas.height}`;
 }
 
 function changeDetectFaces() {
@@ -91,8 +92,9 @@ function changeDetectFaces() {
     worker = new Worker('mustache.js');
     worker.addEventListener('message', event => {
       if (event.data.error) {
+        faces = [];
         log.textContent = event.data.error;
-      } else {
+      } else if (event.data.faces.length) {
         faces = JSON.parse(event.data.faces);
       }
       isDetectingFaces = false;
@@ -166,18 +168,22 @@ async function draw() {
   }
 
   // Draw mustache on previously detected face.
-  const face = faces[0];
-  context.drawImage(mustache,
-      face.left,
-      face.bottom - mustache.height * face.width / mustache.width / 2,
-      face.width,
-      mustache.height * face.width / mustache.width);
+  if (faces.length) {
+    const face = faces[0];
+    context.drawImage(mustache,
+        face.left,
+        face.bottom - mustache.height * face.width / mustache.width / 2,
+        face.width,
+        mustache.height * face.width / mustache.width);
+  }
 }
 
 worker.addEventListener('message', event => {
   if (event.data.error) {
     log.textContent = event.data.error;
-  } else {
+    faces = [];
+  } else if (event.data.faces.length) {
+    // Let's overwrite faces only when new ones are found.
     faces = JSON.parse(event.data.faces);
   }
   isDetectingFaces = false;
