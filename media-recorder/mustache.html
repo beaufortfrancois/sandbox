@@ -24,8 +24,10 @@
     right: 24px;
     text-shadow: 0 0 black;
    }
-  .recording .bottomBar {
-    background-color: #F44336;
+  .recording #recordButton {
+    transform: scale(3);
+    background: red;
+    font-size: 0;
   }
   #mustache {
     display: none;
@@ -39,6 +41,8 @@
     background-color: rgba(51, 51, 58, 0.3);
   }
   #recordButton {
+    will-change: transform, background;
+    transition: transform .1s ease-out;
     position: absolute;
     bottom: 36px;
     right: 0;
@@ -46,10 +50,10 @@
     left: 0;
     width: 64px;
     margin: auto;
-    background: rgba(7, 104, 125, .9);
+    background: rgb(7, 104, 125);
     line-height: 64px;
     border-radius: 50%;
-    box-shadow: 0 0 4px 0 rgb(51, 51, 58);
+    box-shadow: 0 0 2px 0 rgb(51, 51, 58);
   }
 </style>
 <canvas id="canvas"></canvas>
@@ -58,7 +62,7 @@
 <img id="mustache" src="mustache.png">
 <div id="recordButton">&#9210;</div>
 <pre id="log"></pre>
-<div style="position: absolute; background-color: orange; bottom: 134px; padding: 0 4px; color: white; left: 6px;">
+<div id="debug" style="position: absolute; background-color: orange; bottom: 134px; padding: 0 4px; color: white; left: 6px; display: none">
   DEBUG:
   <input type="checkbox" id="canvasSize" onchange="changeCanvasSize()"><label for="canvasSize">Big Canvas</label>
   <input type="checkbox" id="mirror" onchange="changeMirror()"><label for="mirror">Mirror</label>
@@ -67,6 +71,10 @@
 <script>
 
 /* Debug stuff */
+document.querySelector('.bottomBar').addEventListener('click', event => {
+  debug.style.display = (debug.style.display === 'none') ? 'block' : 'none';
+});
+
 function changeCanvasSize() {
   if (canvasSize.checked) {
     canvas.height = window.innerHeight * devicePixelRatio;
@@ -139,9 +147,6 @@ let worker = new Worker('mustache.js');
     canvas.width += 1;
   }
 
-  // Debug info...
-  log.textContent = `Video: ${video.videoWidth}x${video.videoHeight}, Canvas: ${canvas.width}x${canvas.height}`;
-
   requestAnimationFrame(draw);
 
   recordButton.addEventListener('pointerenter', startRecording);
@@ -192,11 +197,12 @@ worker.addEventListener('message', event => {
 function startRecording() {
   const stream = canvas.captureStream();
   recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=h264' });
-  recorder.start(); // collect 10ms of data
+  recorder.start(10); // collect 10ms of data
   recorder.addEventListener('dataavailable', event => { chunks.push(event.data); });
   recorder.addEventListener('stop', event => {
     const blob = new Blob(chunks, { type: 'video/webm' });
     window.open(URL.createObjectURL(blob));
+    recorder = null;
     //uploadVideo(blob);
   });
   document.body.classList.toggle('recording');
