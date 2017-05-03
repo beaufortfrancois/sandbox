@@ -12,7 +12,7 @@
   }
   canvas {
     width: 100vw;
-    height: calc(100vh - 136px);
+    height: 100vh;
   }
   pre {
     position: absolute;
@@ -65,6 +65,7 @@ let worker = new Worker('mustache.js');
      video: {
        facingMode: 'user',
        frameRate: 60,
+       height: 1080,
      }
   };
   video.srcObject = await navigator.mediaDevices.getUserMedia(constraints);
