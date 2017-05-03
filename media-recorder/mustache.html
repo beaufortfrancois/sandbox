@@ -44,7 +44,6 @@
     left: 0;
     width: 64px;
     margin: auto;
-    font-size: 26px;
     background: rgba(7, 104, 125, .9);
     line-height: 64px;
     border-radius: 50%;
@@ -53,8 +52,8 @@
 </style>
 <canvas id="canvas"></canvas>
 <video id="video" autoplay muted></video>
-<img id="mustache" src="mustache.png">
 <div class="bottomBar"></div>
+<img id="mustache" src="mustache.png">
 <div id="recordButton">&#9210;</div>
 <pre id="log"></pre>
 <div style="position: absolute; background-color: orange; bottom: 134px; padding: 0 4px; color: white; left: 6px;">
@@ -80,6 +79,7 @@ function changeCanvasSize() {
 }
 
 function changeDetectFaces() {
+  log.textContent = '';
   if (!detectFaces.checked) {
     worker.terminate();
     faces = [];
@@ -87,7 +87,11 @@ function changeDetectFaces() {
     isDetectingFaces = false;
     worker = new Worker('mustache.js');
     worker.addEventListener('message', event => {
-      faces = JSON.parse(event.data.faces);
+      if (event.data.error) {
+        log.textContent = event.data.error;
+      } else {
+        faces = JSON.parse(event.data.faces);
+      }
       isDetectingFaces = false;
     });
   }
@@ -131,7 +135,6 @@ async function draw() {
   requestAnimationFrame(draw);
 
   const context = canvas.getContext('2d');
-  //context.clearRect(0, 0, canvas.width, canvas.height);
 
   // Draw video frame.
   const ratio  = Math.max(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
@@ -157,15 +160,18 @@ async function draw() {
   }
 
   // Debug info...
-  context.font = '16px Cousine';
-  context.fillStyle = 'deeppink';
+  context.font = '18px Cousine';
   context.textBaseline = 'top';
   context.fillText(`Video: ${video.videoWidth}x${video.videoHeight}`, 12, 12);
   context.fillText(`Canvas: ${canvas.width}x${canvas.height}`, 12, 32);
 }
 
 worker.addEventListener('message', event => {
-  faces = JSON.parse(event.data.faces);
+  if (event.data.error) {
+    log.textContent = event.data.error;
+  } else {
+    faces = JSON.parse(event.data.faces);
+  }
   isDetectingFaces = false;
 });
 
