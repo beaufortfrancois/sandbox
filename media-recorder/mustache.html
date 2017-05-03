@@ -79,15 +79,14 @@ let worker = new Worker('mustache.js');
      }
   };
   video.srcObject = await navigator.mediaDevices.getUserMedia(constraints);
-  console.log(video.srcObject.getTracks()[0].getSettings());
   await video.play();
 
+  canvas.height = window.innerHeight * devicePixelRatio;
   canvas.width = window.innerWidth * devicePixelRatio;
   // HACK: Face Detector doesn't accept canvas whose width is odd.
   if (canvas.width % 2 == 1) {
     canvas.width += 1;
   }
-  canvas.height = window.innerHeight * devicePixelRatio;
   requestAnimationFrame(draw);
 
   recordButton.addEventListener('click', onRecordButtonClick);
@@ -97,18 +96,13 @@ async function draw() {
   requestAnimationFrame(draw);
 
   const context = canvas.getContext('2d');
-  context.clearRect(0, 0, canvas.width, canvas.height);
+  //context.clearRect(0, 0, canvas.width, canvas.height);
 
   // Draw video frame.
   const ratio  = Math.max(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
   context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight,
       (canvas.width - video.videoWidth * ratio) / 2, 0,
       video.videoWidth * ratio, video.videoHeight * ratio);  
-
-  context.font = '16px Cousine';
-  context.fillStyle = 'deeppink';
-  context.textBaseline = 'top';
-  context.fillText(`${video.videoWidth}x${video.videoHeight}`, 12, 12);
 
   // Detect new faces.
   if (!isDetectingFaces) {
