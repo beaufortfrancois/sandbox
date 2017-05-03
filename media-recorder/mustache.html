@@ -61,9 +61,13 @@ let isDetectingFaces = false;
 
   // Grab camera stream.
   const constraints = {
-     video: { facingMode: 'user' }
+     video: {
+       facingMode: 'user',
+       frameRate: 60,
+     }
   };
   video.srcObject = await navigator.mediaDevices.getUserMedia(constraints);
+  console.log(video.srcObject.getTracks()[0].getSettings());
   await video.play();
 
   canvas.width = window.innerWidth; // * devicePixelRatio;
@@ -86,8 +90,21 @@ async function draw() {
       (canvas.width - video.videoWidth * ratio) / 2, 0,
       video.videoWidth * ratio, video.videoHeight * ratio);  
 
+  context.font = '12px Cousine';
+  context.fillStyle = 'deeppink';
+  context.textBaseline = 'top';
+  context.fillText(`${video.videoWidth}x${video.videoHeight}`, 12, 12);
+
   const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
-  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+//  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+  console.log(isDetectingFaces);
+  // Detect new faces.
+  if (!isDetectingFaces) {
+    isDetectingFaces = true;
+    faces = await faceDetector.detect(canvas);
+    isDetectingFaces = false;
+  }
 
   // Draw mustaches on previously detected faces.
   for (const face of faces) {
@@ -98,12 +115,6 @@ async function draw() {
         mustache.height * face.boundingBox.width / mustache.width);
   }
 
-  // Detect new faces.
-  if (!isDetectingFaces) {
-    isDetectingFaces = true;
-    faces = await faceDetector.detect(imageData);
-    isDetectingFaces = false;
-  }
 }
 
 function onRecordButtonClick(event) {
