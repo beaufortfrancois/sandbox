@@ -284,10 +284,6 @@ shareButton.addEventListener('click', event => {
   });
 });
 
-window.addEventListener('unhandledrejection', event => {
-  log.textContent = event.reason;
-});
-
 // Prevent context menu on desktop touch screen...
 window.oncontextmenu = _ => { return false; };
 </script>
