@@ -233,7 +233,7 @@ function startRecording() {
   recorder.addEventListener('stop', event => {
     const blob = new Blob(chunks, { type: 'video/webm' });
     window.open(URL.createObjectURL(blob));
-    recorder = null;
+    chunks = [];
     //uploadVideo(blob);
   });
   document.body.classList.toggle('recording');
