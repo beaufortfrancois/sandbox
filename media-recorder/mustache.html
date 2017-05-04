@@ -8,6 +8,7 @@
     background: rgb(51, 51, 58);
     color: #fff;
     user-select: none;
+    overflow: hidden;
   }
   video {
     display: none;
@@ -57,12 +58,46 @@
     height: 10px;
     border: 27px solid rgb(7, 104, 125);
   }
+  #preview {
+    transform: translateX(120px);
+    will-change: transform;
+    transition: .1s transform ease-in;
+  }
+  #previewVideo {
+    width: 92px;
+    position: absolute;
+    bottom: 72px;
+    right: 24px;
+    background: black;
+    display: block;
+    border: 2px solid #F44336;
+    border-bottom: 0;
+  }
+  #shareButton {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    text-align: center;
+    width: 96px;
+    background: #F44336;
+    line-height: 48px;
+    font-family: Roboto;
+    font-weight: bold;
+    cursor: default;
+  }
+  .visible {
+    transform: translateX(0) !important;
+  }
 </style>
 <canvas id="canvas"></canvas>
-<video id="video" autoplay muted></video>
+<video id="video" muted></video>
 <div class="bottomBar"></div>
 <img id="mustache" src="mustache.png">
 <div id="recordButton"></div>
+<div id="preview">
+  <video id="previewVideo" muted loop></video>
+  <div id="shareButton">SHARE</div>
+</div>
 <pre id="log"></pre>
 <div id="debug" style="position: absolute; background-color: rgba(0, 0, 0, 0.5); border-radius: 4px; bottom: 138px; padding: 4px; color: white; left: 6px; display: none">
   <input type="checkbox" id="canvasSize" onchange="changeCanvasSize()"><label for="canvasSize">Big Canvas</label><br/>
@@ -186,17 +221,18 @@ async function draw() {
 }
 
 function startRecording() {
+  preview.classList.remove('visible');
+  document.body.classList.add('recording');
+
   const stream = canvas.captureStream();
   recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=h264' });
   recorder.start(10); // collect 10ms of data
   recorder.addEventListener('dataavailable', event => { chunks.push(event.data); });
   recorder.addEventListener('stop', event => {
     const blob = new Blob(chunks, { type: 'video/webm' });
-    window.open(URL.createObjectURL(blob));
+    uploadVideo(blob);
     chunks = [];
-    //uploadVideo(blob);
   });
-  document.body.classList.add('recording');
 }
 
 function stopRecording() {
@@ -204,30 +240,40 @@ function stopRecording() {
   document.body.classList.remove('recording');
 }
 
-function uploadVideo(blob) {
-  const formData = new FormData();
-  formData.append('key', 'AIzaSyDy2L3xfde9x9uwAIF4QMSmDVtQfJ0Wm8s');
-  formData.append('attachment', blob, 'aRandomFileName');
+async function uploadVideo(blob) {
+  const url = new URL('https://www.googleapis.com/upload/storage/v1/b/pwa-mustache/o');
+  url.searchParams.append('uploadType', 'media');
+  url.searchParams.append('name', Date.now() + '.webm');
 
   // Upload video to Google Cloud Storage.
-  fetch('https://www.googleapis.com/upload/storage/v1/b/pwa-mustache/o?uploadType=media&name=foo', {
+  const response = await fetch(url, {
     method: 'POST', 
-    body: formData,
+    body: blob,
     headers: new Headers({
       'Content-Type': 'video/webm',
       'Content-Length': blob.length
     })
-  })
-  .then(response => {
-    console.log(response);
   });
+  const data = await response.json();
+
+  shareButton.dataset.url = data.mediaLink;
+  previewVideo.src = URL.createObjectURL(blob);
+  await previewVideo.play();
+  URL.revokeObjectURL(previewVideo.src);
+  preview.classList.add('visible');
 }
+
+shareButton.addEventListener('click', event => {
+  navigator.share({
+    title: 'Mussssss',
+    text: 'Look at my mustaches!',
+    url: event.target.dataset.url
+  });
+});
 
 window.addEventListener('unhandledrejection', event => {
   log.textContent = event.reason;
 });
-
-window.onresize = _ => location.reload();
 </script>
 
 
