@@ -170,8 +170,8 @@ let worker = new Worker('mustache.js');
 
   requestAnimationFrame(draw);
 
-  recordButton.addEventListener('pointerenter', startRecording);
-  recordButton.addEventListener('pointerout', stopRecording);
+  recordButton.addEventListener('pointerdown', startRecording);
+  recordButton.addEventListener('pointerup', stopRecording);
 })();
 
 async function draw() {
