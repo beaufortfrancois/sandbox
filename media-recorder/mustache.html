@@ -234,9 +234,12 @@ function startRecording() {
   });
 }
 
-function stopRecording() {
+async function stopRecording() {
   recorder.stop();
   document.body.classList.remove('recording');
+
+  // HACK to be able to play preview video later!
+  await previewVideo.play();
 }
 
 async function uploadVideo(blob) {
