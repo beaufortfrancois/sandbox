@@ -25,11 +25,6 @@
     right: 24px;
     text-shadow: 0 0 black;
    }
-  .recording #recordButton {
-    transform: scale(3);
-    background: red;
-    border-color: red;
-  }
   #mustache {
     display: none;
   }
@@ -40,6 +35,9 @@
     left: 0;
     height: 128px;
     background-color: rgba(51, 51, 58, 0.3);
+  }
+  .recording .bottomBar {
+    opacity: 0;
   }
   #recordButton {
     will-change: transform, background;
@@ -58,6 +56,10 @@
     height: 10px;
     border: 27px solid rgb(7, 104, 125);
   }
+  .recording #recordButton {
+    background: red;
+    border-color: red;
+  }
   #preview {
     transform: translateX(120px);
     will-change: transform;
@@ -75,7 +77,7 @@
   }
   #shareButton {
     position: absolute;
-    bottom: 24px;
+    bottom: 70px;
     right: 24px;
     text-align: center;
     width: 96px;
@@ -84,6 +86,11 @@
     font-family: Roboto;
     font-weight: bold;
     cursor: default;
+    will-change: transform;
+    transition: .1s transform ease-in;
+  }
+  #shareButton[data-url] {
+    transform: translateY(46px);
   }
   .visible {
     transform: translateX(0) !important;
@@ -95,8 +102,8 @@
 <img id="mustache" src="mustache.png">
 <div id="recordButton"></div>
 <div id="preview">
-  <video id="previewVideo" autoplay muted loop></video>
   <div id="shareButton">SHARE</div>
+  <video id="previewVideo" autoplay muted loop></video>
 </div>
 <pre id="log"></pre>
 <div id="debug" style="position: absolute; background-color: rgba(0, 0, 0, 0.5); border-radius: 4px; bottom: 138px; padding: 4px; color: white; left: 6px; display: none">
@@ -174,7 +181,7 @@ detectFaces.checked = !isDetectingFaces;
   requestAnimationFrame(draw);
 
   recordButton.addEventListener('pointerdown', startRecording);
-  recordButton.addEventListener('pointerup', stopRecording);
+  recordButton.addEventListener('pointerleave', stopRecording);
 })();
 
 async function draw() {
@@ -220,26 +227,35 @@ async function draw() {
 }
 
 function startRecording() {
+  console.count('startRecording');
   preview.classList.remove('visible');
   document.body.classList.add('recording');
+  shareButton.removeAttribute('data-url');
 
   const stream = canvas.captureStream();
   recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=h264' });
   recorder.start(10); // collect 10ms of data
   recorder.addEventListener('dataavailable', event => { chunks.push(event.data); });
-  recorder.addEventListener('stop', event => {
+  recorder.addEventListener('stop', async event => {
     const blob = new Blob(chunks, { type: 'video/webm' });
+
+    previewVideo.src = URL.createObjectURL(blob);
+    await previewVideo.play();
+    URL.revokeObjectURL(previewVideo.src);
+    preview.classList.add('visible');
+
     uploadVideo(blob);
     chunks = [];
   });
 }
 
 async function stopRecording() {
+  console.count('stopRecording');
   recorder.stop();
   document.body.classList.remove('recording');
 
   // HACK to be able to play preview video later!
-  await previewVideo.play();
+  previewVideo.play();
 }
 
 async function uploadVideo(blob) {
@@ -257,12 +273,7 @@ async function uploadVideo(blob) {
     })
   });
   const data = await response.json();
-
   shareButton.dataset.url = data.mediaLink;
-  previewVideo.src = URL.createObjectURL(blob);
-  await previewVideo.play();
-  URL.revokeObjectURL(previewVideo.src);
-  preview.classList.add('visible');
 }
 
 shareButton.addEventListener('click', event => {
@@ -276,6 +287,9 @@ shareButton.addEventListener('click', event => {
 window.addEventListener('unhandledrejection', event => {
   log.textContent = event.reason;
 });
+
+// Prevent context menu on desktop touch screen...
+window.oncontextmenu = _ => { return false; };
 </script>
 
 
