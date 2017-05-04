@@ -226,6 +226,8 @@ function uploadVideo(blob) {
 window.addEventListener('unhandledrejection', event => {
   log.textContent = event.reason;
 });
+
+window.onresize = _ => location.reload();
 </script>
 
 
