@@ -66,7 +66,6 @@
   <input type="checkbox" id="canvasSize" onchange="changeCanvasSize()"><label for="canvasSize">Big Canvas</label><br/>
   <input type="checkbox" id="mirror" onchange="changeMirror()"><label for="mirror">Mirror</label><br/>
   <input type="checkbox" checked id="detectFaces" onchange="changeDetectFaces()"><label for="detectFaces">Detect Faces</label><br/>
-  <input type="checkbox" checked id="webWorker" onchange="changeWebWorker()"><label for="webWorker">Web Worker</label><br/>
 </div>
 <script>
 
@@ -93,41 +92,10 @@ function changeCanvasSize() {
 function changeDetectFaces() {
   log.textContent = '';
   if (!detectFaces.checked) {
-    worker = null;
-    faces = [];
+    face = null;
     isDetectingFaces = true;
   } else {
     isDetectingFaces = false;
-    worker = new Worker('mustache.js');
-    worker.addEventListener('message', event => {
-      if (event.data.error) {
-        faces = [];
-        log.textContent = event.data.error;
-      } else if (event.data.faces.length) {
-        faces = JSON.parse(event.data.faces);
-      }
-      isDetectingFaces = false;
-    });
-  }
-}
-
-function changeWebWorker() {
-  log.textContent = '';
-  isDetectingFaces = false;
-  if (!webWorker.checked) {
-    worker = null;
-    faces = [];
-  } else {
-    worker = new Worker('mustache.js');
-    worker.addEventListener('message', event => {
-      if (event.data.error) {
-        faces = [];
-        log.textContent = event.data.error;
-      } else if (event.data.faces.length) {
-        faces = JSON.parse(event.data.faces);
-      }
-      isDetectingFaces = false;
-    });
   }
 }
 
@@ -139,14 +107,12 @@ function changeMirror() {
 
 /* End of Debug stuff */
 
-let faces = [];
+let face = null;
 
 let recorder;
 let chunks = [];
 
 let isDetectingFaces = false;
-
-let worker = new Worker('mustache.js');
 
 (async _ => {
   // Grab camera stream.
@@ -186,8 +152,7 @@ async function draw() {
       video.videoWidth * ratio, video.videoHeight * ratio);  
 
   // Draw mustache on previously detected face.
-  if (faces.length) {
-    const face = faces[0];
+  if (face) {
     context.drawImage(mustache,
         face.left,
         face.bottom - mustache.height * face.width / mustache.width / 2,
@@ -195,35 +160,20 @@ async function draw() {
         mustache.height * face.width / mustache.width);
   }
 
-  // Detect new faces.
-  if (!isDetectingFaces) {
-    isDetectingFaces = true;
-    if (worker) {
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      // Send video frame to worker for detection work.
-      worker.postMessage(imageData);
-    } else {
-      const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
-      const detectedFaces = await faceDetector.detect(canvas);
-      if (detectedFaces.length) {
-        // Let's overwrite faces only when new ones are found.
-        faces = detectedFaces.map(face => face.boundingBox);
-      }
-      isDetectingFaces = false;
-    }
+  if (isDetectingFaces) {
+    return;
   }
-}
 
-worker.addEventListener('message', event => {
-  if (event.data.error) {
-    log.textContent = event.data.error;
-    faces = [];
-  } else if (event.data.faces.length) {
-    // Let's overwrite faces only when new ones are found.
-    faces = JSON.parse(event.data.faces);
+  // Detect new faces.
+  isDetectingFaces = true;
+  const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+  const faces = await faceDetector.detect(canvas);
+  if (faces.length) {
+    // Let's overwrite face only when a new one is found.
+    face = faces[0].boundingBox;
   }
   isDetectingFaces = false;
-});
+}
 
 function startRecording() {
   const stream = canvas.captureStream();
@@ -236,12 +186,12 @@ function startRecording() {
     chunks = [];
     //uploadVideo(blob);
   });
-  document.body.classList.toggle('recording');
+  document.body.classList.add('recording');
 }
 
 function stopRecording() {
   recorder.stop();
-  document.body.classList.toggle('recording');
+  document.body.classList.remove('recording');
 }
 
 function uploadVideo(blob) {
