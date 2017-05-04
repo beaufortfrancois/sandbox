@@ -153,11 +153,19 @@ async function draw() {
 
   // Draw mustache on previously detected face.
   if (face) {
+    context.beginPath();
+    context.rect(face.x, face.y, face.width, face.height);
+    context.lineWidth = 1;
+    context.strokeStyle = 'deeppink';
+    context.stroke();
+ 
+    /*
     context.drawImage(mustache,
         face.left,
         face.bottom - mustache.height * face.width / mustache.width / 2,
         face.width,
         mustache.height * face.width / mustache.width);
+    */
   }
 
   if (isDetectingFaces) {
@@ -217,4 +225,5 @@ window.addEventListener('unhandledrejection', event => {
   log.textContent = event.reason;
 });
 </script>
+
 
