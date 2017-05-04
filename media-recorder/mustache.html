@@ -27,7 +27,7 @@
   .recording #recordButton {
     transform: scale(3);
     background: red;
-    font-size: 0;
+    border-color: red;
   }
   #mustache {
     display: none;
@@ -48,19 +48,21 @@
     right: 0;
     text-align: center;
     left: 0;
-    width: 64px;
+    width: 10px;
     margin: auto;
-    background: rgb(7, 104, 125);
+    background: rgb(0, 193, 233);
     line-height: 64px;
     border-radius: 50%;
     box-shadow: 0 0 2px 0 rgb(51, 51, 58);
+    height: 10px;
+    border: 27px solid rgb(7, 104, 125);
   }
 </style>
 <canvas id="canvas"></canvas>
 <video id="video" autoplay muted></video>
 <div class="bottomBar"></div>
 <img id="mustache" src="mustache.png">
-<div id="recordButton">&#9210;</div>
+<div id="recordButton"></div>
 <pre id="log"></pre>
 <div id="debug" style="position: absolute; background-color: rgba(0, 0, 0, 0.5); border-radius: 4px; bottom: 138px; padding: 4px; color: white; left: 6px; display: none">
   <input type="checkbox" id="canvasSize" onchange="changeCanvasSize()"><label for="canvasSize">Big Canvas</label><br/>
@@ -155,7 +157,7 @@ async function draw() {
   if (face) {
     context.beginPath();
     context.rect(face.x, face.y, face.width, face.height);
-    context.lineWidth = 1;
+    context.lineWidth = 4;
     context.strokeStyle = 'deeppink';
     context.stroke();
  
