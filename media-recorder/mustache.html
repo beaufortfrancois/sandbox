@@ -109,7 +109,7 @@
 <div id="debug" style="position: absolute; background-color: rgba(0, 0, 0, 0.5); border-radius: 4px; bottom: 138px; padding: 4px; color: white; left: 6px; display: none">
   <input type="checkbox" id="canvasSize" onchange="changeCanvasSize()"><label for="canvasSize">Big Canvas</label><br/>
   <input type="checkbox" id="mirror" onchange="changeMirror()"><label for="mirror">Mirror</label><br/>
-  <input type="checkbox" id="detectFaces" onchange="changeDetectFaces()"><label for="detectFaces">Detect Faces</label><br/>
+  <input type="checkbox" checked id="detectFaces" onchange="changeDetectFaces()"><label for="detectFaces">Detect Faces</label><br/>
 </div>
 <script>
 
@@ -134,11 +134,7 @@ function changeCanvasSize() {
 }
 
 function changeDetectFaces() {
-  if (!detectFaces.checked) {
-    window.location.search = 'isDetectingFaces=true';
-  } else {
-    window.location.search = '';
-  }
+  shouldDetectFaces = detectFaces.checked;
 }
 
 function changeMirror() {
@@ -147,6 +143,7 @@ function changeMirror() {
   canvas.getContext('2d').scale(-1, 1);
 }
 
+let shouldDetectFaces = true;
 /* End of Debug stuff */
 
 let face = null;
@@ -154,9 +151,7 @@ let face = null;
 let recorder;
 let chunks = [];
 
-let isDetectingFaces = new URL(location).searchParams.has('isDetectingFaces');
-// Debug stuff
-detectFaces.checked = !isDetectingFaces;
+let isDetectingFaces = false;
 
 (async _ => {
   // Grab camera stream.
@@ -211,11 +206,12 @@ async function draw() {
         mustache.height * face.width / mustache.width);
   }
 
-  if (isDetectingFaces) {
+  if (isDetectingFaces || !shouldDetectFaces) {
     return;
   }
 
   // Detect new faces.
+  console.count('Detecting faces...');
   isDetectingFaces = true;
   const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
   const faces = await faceDetector.detect(canvas);
