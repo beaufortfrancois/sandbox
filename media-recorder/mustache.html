@@ -134,6 +134,7 @@ function changeCanvasSize() {
 }
 
 function changeDetectFaces() {
+  face = null;
   shouldDetectFaces = detectFaces.checked;
 }
 
@@ -145,6 +146,8 @@ function changeMirror() {
 
 let shouldDetectFaces = true;
 /* End of Debug stuff */
+
+const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
 
 let face = null;
 
@@ -220,7 +223,6 @@ async function draw() {
   }
   isDetectingFaces = false;
 }
-const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
 
 function startRecording() {
   console.time('recording');
@@ -261,7 +263,7 @@ async function stopRecording() {
 async function uploadVideo(blob) {
   const url = new URL('https://www.googleapis.com/upload/storage/v1/b/pwa-mustache/o');
   url.searchParams.append('uploadType', 'media');
-  url.searchParams.append('name', Date.now() + '.webm');
+  url.searchParams.append('name', new Date().toISOString() + '.webm');
 
   // Upload video to Google Cloud Storage.
   const response = await fetch(url, {
