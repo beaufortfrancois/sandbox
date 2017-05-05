@@ -253,6 +253,7 @@ function startRecording() {
 
 async function stopRecording() {
   console.timeEnd('recording');
+  console.log(recorder);
   recorder.stop();
   document.body.classList.remove('recording');
 
