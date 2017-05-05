@@ -1,0 +1,51 @@
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=no">
+<title>HD getUserMedia</title>
+<style>
+  html, body {
+    margin: 0 auto;
+    color: #fff;
+  }
+  video {
+    width: 100vw;
+    height: 100vh;
+    background: black;
+  }
+  pre {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    right: 24px;
+    text-shadow: 0 0 black;
+   }
+</style>
+<video id="video" autoplay muted></video>
+<pre id="log"></pre>
+<script>
+async function getUserMedia() {
+  const portraitModeConstraints = {
+    video: {
+      facingMode: 'user',
+      width: 1080,
+      height: 1920,
+    }
+  };
+  const landscapeModeConstraints = {
+    video: {
+      facingMode: 'user',
+      width: 1920,
+      height: 1080,
+    }
+  };
+  const options = (screen.orientation.type.startsWith('portrait') ? portraitModeConstraints : landscapeModeConstraints);
+  console.log(options.video);
+  video.srcObject = await navigator.mediaDevices.getUserMedia(options);
+  video.onloadedmetadata = async event => {
+    await video.play();
+    log.textContent = JSON.stringify(options, 0, 2) + '\r\n\r\n';
+    log.textContent += 'Result: ' + video.videoWidth + 'x' + video.videoHeight;
+  }
+}
+
+getUserMedia();
+screen.orientation.addEventListener('change', getUserMedia);
+</script>
