@@ -25,7 +25,7 @@
     right: 24px;
     text-shadow: 0 0 black;
    }
-  #mustache {
+  #mustache, #hat {
     display: none;
   }
   .bottomBar {
@@ -100,6 +100,7 @@
 <video id="video" autoplay muted></video>
 <div class="bottomBar"></div>
 <img id="mustache" src="mustache.png">
+<img id="hat" src="hat.png">
 <div id="recordButton"></div>
 <div id="preview">
   <div id="shareButton">SHARE</div>
@@ -193,7 +194,7 @@ async function draw() {
       (canvas.width - video.videoWidth * ratio) / 2, 0,
       video.videoWidth * ratio, video.videoHeight * ratio);  
 
-  // Draw mustache on previously detected face.
+  // Draw mustache and hat on previously detected face.
   if (face) {
     /*
     context.beginPath();
@@ -202,6 +203,11 @@ async function draw() {
     context.strokeStyle = 'deeppink';
     context.stroke();
     */
+    context.drawImage(hat,
+        face.left,
+        face.top - hat.height * face.width / hat.width,
+        face.width,
+        hat.height * face.width / hat.width);
     context.drawImage(mustache,
         face.left,
         face.bottom - mustache.height * face.width / mustache.width / 2,
