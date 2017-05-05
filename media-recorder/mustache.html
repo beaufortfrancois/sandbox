@@ -227,7 +227,7 @@ async function draw() {
 }
 
 function startRecording() {
-  console.count('startRecording');
+  console.time('recording');
   preview.classList.remove('visible');
   document.body.classList.add('recording');
   shareButton.removeAttribute('data-url');
@@ -242,15 +242,17 @@ function startRecording() {
     previewVideo.src = URL.createObjectURL(blob);
     await previewVideo.play();
     URL.revokeObjectURL(previewVideo.src);
-    preview.classList.add('visible');
 
-    uploadVideo(blob);
+    if (previewVideo.duration > 1) {
+      preview.classList.add('visible');
+      uploadVideo(blob);
+    }
     chunks = [];
   });
 }
 
 async function stopRecording() {
-  console.count('stopRecording');
+  console.timeEnd('recording');
   recorder.stop();
   document.body.classList.remove('recording');
 
