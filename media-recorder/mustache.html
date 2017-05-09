@@ -276,21 +276,30 @@ async function uploadVideo(blob) {
     })
   });
   const data = await response.json();
-  shareButton.dataset.url = data.mediaLink;
+  shareButton.dataset.url = `https://storage.googleapis.com/${data.bucket}/${data.name}`;
 }
 
 shareButton.addEventListener('click', event => {
   const videoUrl = event.target.dataset.url;
 
-  navigator.share({
-    title: 'Mustache',
-    text: 'Check out my new style!',
-    url: videoUrl
-  });
+  if ('share' in navigator) {
+    navigator.share({
+      title: 'Mustache',
+      text: 'Check out my new style!',
+      url: videoUrl
+    });
+  } else {
+    window.open(videoUrl, '_blank');
+  }
 });
 
 // Prevent context menu on desktop touch screen...
 window.oncontextmenu = _ => { return false; };
+
+previewVideo.addEventListener('click', event => {
+  preview.classList.remove('visible');
+  shareButton.removeAttribute('data-url');
+});
 
 switchCameraButton.addEventListener('click', async event => {
   easterEgg = !easterEgg;
