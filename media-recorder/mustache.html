@@ -181,9 +181,9 @@ async function draw() {
     if (easterEgg) {
       context.drawImage(sunglasses,
           face.left,
-          face.top + face.height / 2 - hat.height * face.width / hat.width / 2,
+          face.top + face.height / 2 - sunglasses.height * face.width / sunglasses.width / 2,
           face.width,
-          hat.height * face.width / hat.width);
+          sunglasses.height * face.width / sunglasses.width);
     } else {
       context.drawImage(hat,
           face.left,
