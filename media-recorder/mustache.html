@@ -109,8 +109,13 @@
     font-size: 24px;
     cursor: default;
   }
+  .hidden {
+    opacity: 0;
+    will-change: opacity;
+    transition: .1s opacity ease-out;
+  }
 </style>
-<canvas id="canvas"></canvas>
+<canvas id="canvas" class="hidden"></canvas>
 <video id="video" autoplay muted></video>
 <div class="bottomBar"></div>
 <img id="mustache" src="mustache.png">
@@ -136,6 +141,7 @@ let isDetectingFaces = false;
 let easterEgg = false;
 
 async function getUserMedia() {
+  canvas.classList.add('hidden');
   // Grab camera stream.
   const constraints = {
      video: {
@@ -155,6 +161,7 @@ async function getUserMedia() {
     canvas.width += 1;
   }
 
+  canvas.classList.remove('hidden');
   requestAnimationFrame(draw);
 }
 
