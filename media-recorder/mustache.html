@@ -161,7 +161,10 @@ async function getUserMedia() {
     canvas.width += 1;
   }
 
-  canvas.classList.remove('hidden');
+  setTimeout(_ => {
+    face = null;
+    canvas.classList.remove('hidden');
+  }, 500);
   requestAnimationFrame(draw);
 }
 
@@ -291,6 +294,7 @@ window.oncontextmenu = _ => { return false; };
 
 switchCameraButton.addEventListener('click', async event => {
   easterEgg = !easterEgg;
+  face = [];
   await getUserMedia();
 });
 
