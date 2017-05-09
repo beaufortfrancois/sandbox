@@ -25,7 +25,7 @@
     right: 24px;
     text-shadow: 0 0 black;
    }
-  #mustache, #hat {
+  #mustache, #hat, #sunglasses {
     display: none;
   }
   .bottomBar {
@@ -95,13 +95,28 @@
   .visible {
     transform: translateX(0) !important;
   }
+  #switchCameraButton {
+    position: absolute;
+    bottom: 36px;
+    text-align: center;
+    left: 24px;
+    width: 48px;
+    background: rgb(252, 194, 27);
+    line-height: 48px;
+    border-radius: 50%;
+    box-shadow: 0 0 2px 0 rgb(51, 51, 58);
+    height: 48px;
+    cursor: default;
+  }
 </style>
 <canvas id="canvas"></canvas>
 <video id="video" autoplay muted></video>
 <div class="bottomBar"></div>
 <img id="mustache" src="mustache.png">
 <img id="hat" src="hat.png">
+<img id="sunglasses" src="sunglasses.png">
 <div id="recordButton"></div>
+<div id="switchCameraButton">&#x1f60e;</div>
 <div id="preview">
   <div id="shareButton">SHARE</div>
   <video id="previewVideo" autoplay muted loop></video>
@@ -157,11 +172,13 @@ let chunks = [];
 
 let isDetectingFaces = false;
 
-(async _ => {
+let easterEgg = false;
+
+async function getUserMedia() {
   // Grab camera stream.
   const constraints = {
      video: {
-       facingMode: 'user',
+       facingMode: easterEgg ? 'environment' : 'user',
        frameRate: 60,
        width: 4048,
        height: 3036,
@@ -178,10 +195,7 @@ let isDetectingFaces = false;
   }
 
   requestAnimationFrame(draw);
-
-  recordButton.addEventListener('pointerdown', startRecording);
-  recordButton.addEventListener('pointerleave', stopRecording);
-})();
+}
 
 async function draw() {
   requestAnimationFrame(draw);
@@ -203,16 +217,24 @@ async function draw() {
     context.strokeStyle = 'deeppink';
     context.stroke();
     */
-    context.drawImage(hat,
-        face.left,
-        face.top - hat.height * face.width / hat.width,
-        face.width,
-        hat.height * face.width / hat.width);
-    context.drawImage(mustache,
-        face.left,
-        face.bottom - mustache.height * face.width / mustache.width / 2,
-        face.width,
-        mustache.height * face.width / mustache.width);
+    if (easterEgg) {
+      context.drawImage(sunglasses,
+          face.left,
+          face.top + face.height / 2 - hat.height * face.width / hat.width / 2,
+          face.width,
+          hat.height * face.width / hat.width);
+    } else {
+      context.drawImage(hat,
+          face.left,
+          face.top - hat.height * face.width / hat.width,
+          face.width,
+          hat.height * face.width / hat.width);
+      context.drawImage(mustache,
+          face.left,
+          face.bottom - mustache.height * face.width / mustache.width / 2,
+          face.width,
+          mustache.height * face.width / mustache.width);
+    }
   }
 
   if (isDetectingFaces || !shouldDetectFaces) {
@@ -257,6 +279,9 @@ function startRecording() {
 }
 
 async function stopRecording() {
+  if (!recorder) {
+    return;
+  }
   console.timeEnd('recording');
   console.log(recorder);
   recorder.stop();
@@ -294,6 +319,18 @@ shareButton.addEventListener('click', event => {
 
 // Prevent context menu on desktop touch screen...
 window.oncontextmenu = _ => { return false; };
+
+switchCameraButton.addEventListener('click', async event => {
+  easterEgg = true;
+  await getUserMedia();
+});
+
+document.addEventListener('DOMContentLoaded', async event => {
+  await getUserMedia();
+
+  recordButton.addEventListener('pointerdown', startRecording);
+  recordButton.addEventListener('pointerleave', stopRecording);
+});
 
 // Tries to register a service worker if available.
 navigator.serviceWorker.register('mustache-sw.js');
