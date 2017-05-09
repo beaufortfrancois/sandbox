@@ -294,6 +294,9 @@ shareButton.addEventListener('click', event => {
 
 // Prevent context menu on desktop touch screen...
 window.oncontextmenu = _ => { return false; };
+
+// Tries to register a service worker if available.
+navigator.serviceWorker.register('mustache-sw.js');
 </script>
 
 
