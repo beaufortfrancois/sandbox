@@ -288,6 +288,12 @@ shareButton.addEventListener('click', event => {
       title: 'Mustache',
       text: 'Check out my new style!',
       url: videoUrl
+    })
+    .catch(error => {
+      // HACK!
+      if (error.message == 'WebShare is disabled.') {
+        window.open(videoUrl, '_blank');
+      }
     });
   } else {
     window.open(videoUrl, '_blank');
