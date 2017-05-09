@@ -277,10 +277,12 @@ async function uploadVideo(blob) {
 }
 
 shareButton.addEventListener('click', event => {
+  const videoUrl = event.target.dataset.url;
+
   navigator.share({
-    title: 'Mussssss',
-    text: 'Look at my mustaches!',
-    url: event.target.dataset.url
+    title: 'Mustache',
+    text: 'Check out my new style!',
+    url: videoUrl
   });
 });
 
