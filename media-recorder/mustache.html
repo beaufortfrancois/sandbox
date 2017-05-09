@@ -230,10 +230,10 @@ function startRecording() {
   shareButton.removeAttribute('data-url');
 
   const stream = canvas.captureStream();
-  recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=h264' });
+  recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=h264', bitsPerSecond: 5000000 });
   recorder.start(10); // collect 10ms of data
   recorder.addEventListener('dataavailable', event => { chunks.push(event.data); });
-  recorder.addEventListener('error', event => { log.textContent = error });
+  recorder.addEventListener('error', event => { log.textContent = event.target.error });
   recorder.addEventListener('stop', async event => {
     const blob = new Blob(chunks, { type: 'video/webm' });
 
@@ -250,7 +250,7 @@ function startRecording() {
 }
 
 async function stopRecording() {
-  if (!recorder) {
+  if (!recorder || recorder.state == 'inactive') {
     return;
   }
   console.timeEnd('recording');
