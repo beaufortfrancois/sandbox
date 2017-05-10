@@ -342,8 +342,8 @@ function takePhoto() {
 }
 
 function grabFrameAndTakePhoto() {
-  return grabFrame()
-  .then(_ => takePhoto());
+  grabFrame()
+  takePhoto();
 }
 
 function appendCanvas(imageBitmap, options) {
