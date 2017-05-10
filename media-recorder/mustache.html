@@ -181,13 +181,11 @@ async function draw() {
 
   // Draw mustache and hat on previously detected face.
   if (face) {
-    /*
     context.beginPath();
     context.rect(face.x, face.y, face.width, face.height);
     context.lineWidth = 4;
     context.strokeStyle = 'deeppink';
     context.stroke();
-    */
     if (easterEgg) {
       context.drawImage(sunglasses,
           face.left,
