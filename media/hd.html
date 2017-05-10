@@ -23,18 +23,10 @@
 <script>
 async function getUserMedia() {
   const portraitModeConstraints = {
-    video: {
-      facingMode: 'user',
-      width: 1080,
-      height: 1920,
-    }
+    video: { facingMode: 'user', width: 1080, height: 1920 }
   };
   const landscapeModeConstraints = {
-    video: {
-      facingMode: 'user',
-      width: 1920,
-      height: 1080,
-    }
+    video: { facingMode: 'user', width: 1920, height: 1080 }
   };
   const options = (screen.orientation.type.startsWith('portrait') ? portraitModeConstraints : landscapeModeConstraints);
   console.log(options.video);
