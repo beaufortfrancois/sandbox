@@ -131,10 +131,9 @@ function initControls() {
   imageCapture.getPhotoCapabilities()
   .then(photoCapabilities => {
     document.querySelector('#controls').appendChild(document.createElement('hr'));
-    if ('fillLightMode' in photoCapabilities) {
+    if (photoCapabilities['fillLightMode'].length) {
       let select = document.createElement('select');
       select.id = 'fillLightMode';
-      select.disabled = (photoCapabilities['fillLightMode'].length <= 1);
       select.oninput = function(event) {
         photoSettings['fillLightMode'] = event.target.value;
       }
@@ -167,6 +166,9 @@ function initControls() {
     }
     ['imageWidth', 'imageHeight'].forEach(rangeName => {
       let range = photoCapabilities[rangeName];
+      if (range == null) {
+        return;
+      }
       let input = document.createElement('input');
       input.id = rangeName;
       input.type = 'range';
@@ -310,7 +312,7 @@ function getPhotoCapabilities() {
     for (let capabilityName in photoCapabilities) {
       pre.innerText += `${capabilityName}: `;
       let capability = photoCapabilities[capabilityName];
-      if (capability.toString() === '[object MediaSettingsRange]') {
+      if (capability && capability.toString() === '[object MediaSettingsRange]') {
         pre.innerText += `{ min: ${capability.min}, max: ${capability.max}, step: ${capability.step} }\r\n`;
       } else {
         pre.innerText += JSON.stringify(capability) + '\r\n';
