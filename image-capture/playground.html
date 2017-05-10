@@ -18,11 +18,13 @@
   #controls { padding: 0 8px; margin: 16px -8px; }
   #constraints { margin-top: 8px; overflow-wrap: break-word; font-family: monospace; }
   #constraints:before { content: 'Constraints:'; padding-right: 8px; }
+  #videoSize { position: absolute; top: 84px; right: 4px; width: 142px; text-align: center; }
 }
 </style>
 
 <div id="dashboard">
   <video id="video" autoplay width="142" height="80"></video>
+  <div id="videoSize"></div>
   <div id="devices"></div>
   <button id="getSupportedConstraints">getSupportedConstraints</button>
   <button id="getCapabilities">getCapabilities</button>
@@ -93,6 +95,7 @@ function getUserMedia() {
   .then(mediaStream => {
     video.srcObject = mediaStream;
     video.onplay = function() {
+      videoSize.textContent = `${video.videoWidth}x${video.videoHeight}`; 
       imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
       // Remove timeout when crbug.com/711524 is fixed.
       setTimeout(initControls, 500);
