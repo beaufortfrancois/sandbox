@@ -29,7 +29,6 @@ async function getUserMedia() {
     video: { facingMode: 'user', width: 1920, height: 1080 }
   };
   const options = (screen.orientation.type.startsWith('portrait') ? portraitModeConstraints : landscapeModeConstraints);
-  console.log(options.video);
   video.srcObject = await navigator.mediaDevices.getUserMedia(options);
   video.onloadedmetadata = async event => {
     await video.play();
