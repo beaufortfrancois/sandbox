@@ -42,7 +42,9 @@ async function getUserMedia() {
   video.onloadedmetadata = async event => {
     await video.play();
     log.textContent = JSON.stringify(options, 0, 2) + '\r\n\r\n';
-    log.textContent += 'Result: ' + video.videoWidth + 'x' + video.videoHeight;
+    log.textContent += 'Video element: ' + video.videoWidth + 'x' + video.videoHeight + '\r\n';
+    const track = video.srcObject.getVideoTracks()[0];
+    log.textContent += 'Track settings: ' + track.getSettings().width + 'x' + track.getSettings().height;
   }
 }
 
