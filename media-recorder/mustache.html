@@ -131,7 +131,7 @@
 <script>
 const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
 
-let face = null;
+let faces = [];
 
 let recorder;
 let chunks = [];
@@ -139,6 +139,7 @@ let chunks = [];
 let isDetectingFaces = false;
 
 let easterEgg = false;
+let showFace = false;
 
 async function getUserMedia() {
   canvas.classList.add('hidden');
@@ -162,7 +163,7 @@ async function getUserMedia() {
   }
 
   setTimeout(_ => {
-    face = null;
+    faces = [];
     canvas.classList.remove('hidden');
   }, 500);
   requestAnimationFrame(draw);
@@ -180,12 +181,15 @@ async function draw() {
       video.videoWidth * ratio, video.videoHeight * ratio);  
 
   // Draw mustache and hat on previously detected face.
-  if (face) {
-    context.beginPath();
-    context.rect(face.x, face.y, face.width, face.height);
-    context.lineWidth = 4;
-    context.strokeStyle = 'deeppink';
-    context.stroke();
+  if (faces.length) {
+    const face = faces[0].boundingBox;
+    if (showFace) {
+      context.beginPath();
+      context.rect(face.x, face.y, face.width, face.height);
+      context.lineWidth = 4;
+      context.strokeStyle = 'deeppink';
+      context.stroke();
+    }
     if (easterEgg) {
       context.drawImage(sunglasses,
           face.left,
@@ -195,14 +199,14 @@ async function draw() {
     } else {
       context.drawImage(hat,
           face.left,
-          face.top - hat.height * face.width / hat.width,
+          face.bottom - face.height * 3 / 4 - hat.height * face.width / hat.width,
           face.width,
           hat.height * face.width / hat.width);
       context.drawImage(mustache,
-          face.left,
-          face.bottom - mustache.height * face.width / mustache.width / 2,
-          face.width,
-          mustache.height * face.width / mustache.width);
+          face.left + face.width / 4,
+          face.top + face.height * 3 / 4,
+          face.width / 2,
+          mustache.height * face.width / 2 / mustache.width);
     }
   }
 
@@ -210,14 +214,10 @@ async function draw() {
     return;
   }
 
-  // Detect new faces.
-  console.count('Detecting faces...');
+  // Detect faces.
+  console.count('Detecting faces');
   isDetectingFaces = true;
-  const faces = await faceDetector.detect(canvas);
-  if (faces.length) {
-    // Let's overwrite face only when a new one is found.
-    face = faces[0].boundingBox;
-  }
+  faces = await faceDetector.detect(canvas);
   isDetectingFaces = false;
 }
 
@@ -304,6 +304,10 @@ window.oncontextmenu = _ => { return false; };
 previewVideo.addEventListener('click', event => {
   preview.classList.remove('visible');
   shareButton.removeAttribute('data-url');
+});
+
+canvas.addEventListener('click', event => {
+  showFace = !showFace;
 });
 
 switchCameraButton.addEventListener('click', async event => {
