@@ -224,7 +224,6 @@ async function draw() {
 function startRecording() {
   console.time('recording');
   preview.classList.remove('visible');
-  document.body.classList.add('recording');
   shareButton.removeAttribute('data-url');
 
   const stream = canvas.captureStream();
@@ -254,10 +253,19 @@ async function stopRecording() {
   }
   console.timeEnd('recording');
   recorder.stop();
-  document.body.classList.remove('recording');
 
   // HACK to be able to play preview video later!
   previewVideo.play();
+}
+
+function toggleRecording() {
+  const isRecording = document.body.classList.toggle('recording');
+
+  if (isRecording) {
+    startRecording();
+  } else {
+    stopRecording();
+  }
 }
 
 async function uploadVideo(blob) {
@@ -319,8 +327,7 @@ switchCameraButton.addEventListener('click', async event => {
 document.addEventListener('DOMContentLoaded', async event => {
   await getUserMedia();
 
-  recordButton.addEventListener('pointerdown', startRecording);
-  recordButton.addEventListener('pointerleave', stopRecording);
+  recordButton.addEventListener('click', toggleRecording);
 });
 
 // Tries to register a service worker if available.
