@@ -110,13 +110,8 @@
     font-size: 24px;
     cursor: default;
   }
-  .hidden {
-    opacity: 0;
-    will-change: opacity;
-    transition: .1s opacity ease-out;
-  }
 </style>
-<canvas id="canvas" class="hidden"></canvas>
+<canvas id="canvas"></canvas>
 <video id="video" autoplay muted></video>
 <div class="bottomBar"></div>
 <img id="mustache" src="mustache.png">
@@ -143,14 +138,13 @@ let easterEgg = false;
 let showFace = false;
 
 async function getUserMedia() {
-  canvas.classList.add('hidden');
   // Grab camera stream.
   const constraints = {
      video: {
-       facingMode: easterEgg ? 'environment' : 'user',
+       facingMode: 'user',
        frameRate: 60,
-       width: 4048,
-       height: 3036,
+       width: 1920,
+       height: 1080,
      }
   };
   video.srcObject = await navigator.mediaDevices.getUserMedia(constraints);
@@ -163,11 +157,8 @@ async function getUserMedia() {
     canvas.width += 1;
   }
 
-  setTimeout(_ => {
-    faces = [];
-    canvas.classList.remove('hidden');
-  }, 500);
-  requestAnimationFrame(draw);
+  setTimeout(_ => { faces = []; }, 500);
+  draw();
 }
 
 async function draw() {
@@ -307,9 +298,6 @@ shareButton.addEventListener('click', event => {
   }
 });
 
-// Prevent context menu on desktop touch screen...
-window.oncontextmenu = _ => { return false; };
-
 previewVideo.addEventListener('click', event => {
   preview.classList.remove('visible');
   shareButton.removeAttribute('data-url');
@@ -321,8 +309,6 @@ canvas.addEventListener('click', event => {
 
 switchCameraButton.addEventListener('click', async event => {
   easterEgg = !easterEgg;
-  face = [];
-  await getUserMedia();
 });
 
 document.addEventListener('DOMContentLoaded', async event => {
