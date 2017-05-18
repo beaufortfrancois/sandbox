@@ -1,0 +1,15 @@
+{
+  "name": "HD",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    }
+  ],
+  "background_color": "#33333a",
+  "theme_color": "#33333a",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "hd.html"
+}
