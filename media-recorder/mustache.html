@@ -143,8 +143,8 @@ async function getUserMedia() {
      video: {
        facingMode: 'user',
        frameRate: 60,
-       width: 1920,
-       height: 1080,
+       width:  640,
+       height: 480,
      }
   };
   video.srcObject = await navigator.mediaDevices.getUserMedia(constraints);
