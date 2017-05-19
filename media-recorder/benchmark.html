@@ -1,0 +1,122 @@
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=no">
+<title>Benchmark</title>
+<style>
+  html, body {
+    margin: 0 auto;
+    height: 100%;
+    background: rgb(51, 51, 58);
+    color: #fff;
+  }
+  video {
+    display: none;
+  }
+  canvas {
+    background: rgb(51, 51, 58);
+    width: 100vw;
+    height: 100vh;
+  }
+  pre {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    background: rgba(0,0,0,.5);
+    padding: 12px;
+   }
+</style>
+<canvas id="canvas"></canvas>
+<video id="video" autoplay muted></video>
+<pre id="log"></pre>
+<script>
+const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+
+let faces = [];
+
+let isDetectingFaces = false;
+
+let detectCount = 0;
+
+let intervalId;
+
+let constraintsIndex = 0;
+
+const allConstraints = [
+  { video: { facingMode: 'user', width:  160, height: 120 } },
+  { video: { facingMode: 'user', width:  320, height: 240 } },
+  { video: { facingMode: 'user', width:  640, height: 480 } },
+  { video: { facingMode: 'user', width:  1280, height: 720 } },
+  { video: { facingMode: 'user', width:  1920, height: 1080 } },
+];
+
+async function getUserMedia() {
+  detectCount = 0;
+
+  if (intervalId) {
+    clearInterval(intervalId);
+  }
+
+  intervalId = setInterval(_ => {
+    // Every second, reset detection count.
+    log.textContent += 'detect() per second: ' + detectCount + '\r\n';
+    detectCount = 0;
+  }, 1000);
+
+  if (video.srcObject) {
+    video.srcObject.getTracks()[0].stop();
+  }
+
+  // Grab camera stream.
+  const constraints = allConstraints[constraintsIndex++];
+  log.textContent = 'Constraints: ' + constraints.video.width + 'x' + constraints.video.height + '\r\n';
+  video.srcObject = await navigator.mediaDevices.getUserMedia(constraints);
+  await video.play();
+
+  const trackSettings = video.srcObject.getVideoTracks()[0].getSettings();
+  log.textContent += 'Video track: ' + trackSettings.width + 'x' + trackSettings.height + ' @' + trackSettings.frameRate + '\r\n\r\n';
+
+  canvas.height = window.innerHeight;
+  canvas.width = window.innerWidth;
+
+  draw();
+}
+
+async function draw() {
+  requestAnimationFrame(draw);
+
+  const context = canvas.getContext('2d');
+
+  // Draw video frame.
+  const ratio  = Math.max(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
+  context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight,
+      (canvas.width - video.videoWidth * ratio) / 2, 0,
+      video.videoWidth * ratio, video.videoHeight * ratio);  
+
+  // Draw detected face.
+  if (faces.length) {
+    const face = faces[0].boundingBox;
+    context.beginPath();
+    context.rect(face.x, face.y, face.width, face.height);
+    context.lineWidth = 4;
+    context.strokeStyle = 'deeppink';
+    context.stroke();
+  }
+
+  if (isDetectingFaces) {
+    return;
+  }
+
+  // Detect faces.
+  detectCount++;
+  isDetectingFaces = true;
+  try {
+    faces = await faceDetector.detect(canvas);
+  } finally {
+    isDetectingFaces = false;
+  }
+}
+
+canvas.addEventListener('click', async event => {
+  await getUserMedia();
+});
+
+getUserMedia();
+</script>
