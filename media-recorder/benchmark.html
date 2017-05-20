@@ -56,7 +56,7 @@ async function getUserMedia() {
 
   intervalId = setInterval(_ => {
     // Every second, reset detection count.
-    log.textContent += 'detect() per second: ' + detectCount + '\r\n';
+    log.textContent += detectCount + '\r\n';
     detectCount = 0;
   }, 1000);
 
@@ -72,6 +72,7 @@ async function getUserMedia() {
 
   const trackSettings = video.srcObject.getVideoTracks()[0].getSettings();
   log.textContent += 'Video track: ' + trackSettings.width + 'x' + trackSettings.height + ' @' + trackSettings.frameRate + '\r\n\r\n';
+  log.textContent += 'detect() per second:\r\n';
 
   canvas.height = window.innerHeight;
   canvas.width = window.innerWidth;
@@ -90,14 +91,25 @@ async function draw() {
       (canvas.width - video.videoWidth * ratio) / 2, 0,
       video.videoWidth * ratio, video.videoHeight * ratio);  
 
-  // Draw detected face.
   if (faces.length) {
+    // Draw detected face.
     const face = faces[0].boundingBox;
     context.beginPath();
-    context.rect(face.x, face.y, face.width, face.height);
-    context.lineWidth = 4;
+    context.lineWidth = 2;
     context.strokeStyle = 'deeppink';
+    context.rect(face.x, face.y, face.width, face.height);
     context.stroke();
+    context.closePath();
+
+    // Draw detected landmarks.
+    context.beginPath();
+    context.fillStyle = 'deeppink';
+    faces[0].landmarks.forEach(landmark => {
+      context.moveTo(landmark.location.x, landmark.location.y);
+      context.arc(landmark.location.x, landmark.location.y, 8, 0, Math.PI * 2);
+      context.fill();
+    });
+    context.closePath();
   }
 
   if (isDetectingFaces) {
