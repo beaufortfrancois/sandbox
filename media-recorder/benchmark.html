@@ -22,12 +22,24 @@
     padding: 6px;
     margin: 0;
    }
+  #fastMode {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    border-radius: 4px;
+    padding: 4px;
+    background-color: grey;
+  }
+  .enabled {
+    background-color: limegreen !important;
+  }
 </style>
 <canvas id="canvas"></canvas>
 <video id="video" autoplay muted></video>
+<div id="fastMode" class="enabled">fastMode</div>
 <pre id="log"></pre>
 <script>
-const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+let faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
 
 let faces = [];
 
@@ -156,5 +168,9 @@ canvas.addEventListener('click', async event => {
   await getUserMedia();
 }, { once: true });
 
+fastMode.addEventListener('click', event => {
+  fastMode.classList.toggle('enabled');
+  faceDetector = new FaceDetector({ fastMode: fastMode.classList.contains('enabled'), maxDetectedFaces: 1 });
+});
 getUserMedia();
 </script>
