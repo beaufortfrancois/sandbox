@@ -4,23 +4,24 @@
   html, body {
     margin: 0 auto;
     height: 100%;
-    background: rgb(51, 51, 58);
     color: #fff;
   }
   video {
     display: none;
   }
   canvas {
-    background: rgb(51, 51, 58);
     width: 100vw;
     height: 100vh;
   }
   pre {
     position: absolute;
-    top: 24px;
-    left: 24px;
+    top: 12px;
+    left: 12px;
+    right: 12px;
     background: rgba(0,0,0,.5);
-    padding: 12px;
+    padding: 6px;
+    margin: 0;
+    white-space: pre-line;
    }
 </style>
 <canvas id="canvas"></canvas>
@@ -40,11 +41,13 @@ let intervalId;
 let constraintsIndex = 0;
 
 const allConstraints = [
-  { video: { facingMode: 'user', width:  160, height: 120 } },
-  { video: { facingMode: 'user', width:  320, height: 240 } },
-  { video: { facingMode: 'user', width:  640, height: 480 } },
-  { video: { facingMode: 'user', width:  1280, height: 720 } },
+//  { video: { facingMode: 'user', width:  3840, height: 2160 } },
+//  { video: { facingMode: 'user', width:  2560, height: 1440 } },
   { video: { facingMode: 'user', width:  1920, height: 1080 } },
+  { video: { facingMode: 'user', width:  1280, height: 720 } },
+  { video: { facingMode: 'user', width:  854, height: 480 } },
+  { video: { facingMode: 'user', width:  640, height: 360 } },
+  { video: { facingMode: 'user', width:  426, height: 240 } },
 ];
 
 async function getUserMedia() {
@@ -56,7 +59,7 @@ async function getUserMedia() {
 
   intervalId = setInterval(_ => {
     // Every second, reset detection count.
-    log.textContent += detectCount + '\r\n';
+    log.textContent += detectCount + ' ';
     detectCount = 0;
   }, 1000);
 
@@ -66,13 +69,14 @@ async function getUserMedia() {
 
   // Grab camera stream.
   const constraints = allConstraints[constraintsIndex++];
+  constraintsIndex = (constraintsIndex == allConstraints.length) ? 0 : constraintsIndex;
   log.textContent = 'Constraints: ' + constraints.video.width + 'x' + constraints.video.height + '\r\n';
   video.srcObject = await navigator.mediaDevices.getUserMedia(constraints);
   await video.play();
 
   const trackSettings = video.srcObject.getVideoTracks()[0].getSettings();
   log.textContent += 'Video track: ' + trackSettings.width + 'x' + trackSettings.height + ' @' + trackSettings.frameRate + '\r\n\r\n';
-  log.textContent += 'detect() per second:\r\n';
+  log.textContent += 'detect() per second: ';
 
   canvas.height = window.innerHeight;
   canvas.width = window.innerWidth;
@@ -84,9 +88,10 @@ async function draw() {
   requestAnimationFrame(draw);
 
   const context = canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
 
   // Draw video frame.
-  const ratio  = Math.max(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
+  const ratio  = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
   context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight,
       (canvas.width - video.videoWidth * ratio) / 2, 0,
       video.videoWidth * ratio, video.videoHeight * ratio);  
@@ -96,18 +101,21 @@ async function draw() {
     const face = faces[0].boundingBox;
     context.beginPath();
     context.lineWidth = 2;
-    context.strokeStyle = 'deeppink';
+    context.strokeStyle = '#FFFF40';
     context.rect(face.x, face.y, face.width, face.height);
     context.stroke();
     context.closePath();
 
     // Draw detected landmarks.
     context.beginPath();
-    context.fillStyle = 'deeppink';
+    context.fillStyle = '#FFFF40';
     faces[0].landmarks.forEach(landmark => {
       context.moveTo(landmark.location.x, landmark.location.y);
-      context.arc(landmark.location.x, landmark.location.y, 8, 0, Math.PI * 2);
+      context.arc(landmark.location.x, landmark.location.y, 4, 0, Math.PI * 2);
       context.fill();
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(landmark.type, landmark.location.x, landmark.location.y - 12);
     });
     context.closePath();
   }
