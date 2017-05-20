@@ -5,6 +5,7 @@
     margin: 0 auto;
     height: 100%;
     color: #fff;
+    background: #000;
   }
   video {
     display: none;
@@ -17,11 +18,9 @@
     position: absolute;
     top: 12px;
     left: 12px;
-    right: 12px;
     background: rgba(0,0,0,.5);
     padding: 6px;
     margin: 0;
-    white-space: pre-line;
    }
 </style>
 <canvas id="canvas"></canvas>
@@ -35,6 +34,8 @@ let faces = [];
 let isDetectingFaces = false;
 
 let detectCount = 0;
+let detectCountAvg = 0;
+let detectCountArray = [];
 
 let intervalId;
 
@@ -52,6 +53,8 @@ const allConstraints = [
 
 async function getUserMedia() {
   detectCount = 0;
+  detectCountAvg = 0;
+  detectCountArray = [];
 
   if (intervalId) {
     clearInterval(intervalId);
@@ -59,7 +62,8 @@ async function getUserMedia() {
 
   intervalId = setInterval(_ => {
     // Every second, reset detection count.
-    log.textContent += detectCount + ' ';
+    detectCountArray.push(detectCount);
+    detectCountAvg = detectCountArray.reduce( ( p, c ) => p + c, 0 ) / detectCountArray.length;
     detectCount = 0;
   }, 1000);
 
@@ -79,10 +83,13 @@ async function getUserMedia() {
 
   const trackSettings = video.srcObject.getVideoTracks()[0].getSettings();
   log.textContent += 'Video track: ' + trackSettings.width + 'x' + trackSettings.height + ' @' + trackSettings.frameRate + '\r\n';
-  log.textContent += 'Canvas: ' + canvas.width + 'x' + canvas.height + '\r\n\r\n';
-  log.textContent += 'Number of detect() calls per second: ';
+  log.textContent += 'Canvas: ' + canvas.width + 'x' + canvas.height; // + '\r\n\r\n';
 
   draw();
+
+  canvas.addEventListener('click', async event => {
+    await getUserMedia();
+  }, { once: true });
 }
 
 async function draw() {
@@ -121,6 +128,16 @@ async function draw() {
     context.closePath();
   }
 
+  if (detectCountAvg) {
+    // Draw detected count avg.
+    context.beginPath();
+    context.fillStyle = '#FFFF40';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(Math.round(detectCountAvg) + ' detect() per sec', canvas.width / 2, canvas.height - 14);
+    context.closePath();
+  }
+
   if (isDetectingFaces) {
     return;
   }
@@ -137,7 +154,7 @@ async function draw() {
 
 canvas.addEventListener('click', async event => {
   await getUserMedia();
-});
+}, { once: true });
 
 getUserMedia();
 </script>
