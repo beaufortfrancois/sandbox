@@ -74,12 +74,13 @@ async function getUserMedia() {
   video.srcObject = await navigator.mediaDevices.getUserMedia(constraints);
   await video.play();
 
-  const trackSettings = video.srcObject.getVideoTracks()[0].getSettings();
-  log.textContent += 'Video track: ' + trackSettings.width + 'x' + trackSettings.height + ' @' + trackSettings.frameRate + '\r\n\r\n';
-  log.textContent += 'detect() per second: ';
-
   canvas.height = window.innerHeight;
   canvas.width = window.innerWidth;
+
+  const trackSettings = video.srcObject.getVideoTracks()[0].getSettings();
+  log.textContent += 'Video track: ' + trackSettings.width + 'x' + trackSettings.height + ' @' + trackSettings.frameRate + '\r\n';
+  log.textContent += 'Canvas: ' + canvas.width + 'x' + canvas.height + '\r\n\r\n';
+  log.textContent += 'Number of detect() calls per second: ';
 
   draw();
 }
