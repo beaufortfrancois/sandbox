@@ -1,0 +1,83 @@
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=no">
+<title>createImageBitmap</title>
+<style>
+  html, body {
+    margin: 0 auto;
+    height: 100%;
+    color: #fff;
+    background: #000;
+  }
+  video {
+    display: none;
+  }
+  canvas {
+    width: 100vw;
+    height: 100vh;
+  }
+  pre {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(0,0,0,.5);
+    padding: 6px;
+    margin: 0;
+   }
+</style>
+<canvas id="canvas"></canvas>
+<video id="video" autoplay muted></video>
+<pre id="log"></pre>
+<script>
+
+let useCreateImageBitmap = false;
+
+async function getUserMedia() {
+  // Grab camera stream.
+  const constraints = { video: { width:  1920, height: 1080 } };
+  log.textContent = 'Constraints: ' + constraints.video.width + 'x' + constraints.video.height + '\r\n';
+  video.srcObject = await navigator.mediaDevices.getUserMedia(constraints);
+  await video.play();
+
+  canvas.height = window.innerHeight;
+  canvas.width = window.innerWidth;
+
+  const trackSettings = video.srcObject.getVideoTracks()[0].getSettings();
+  log.textContent += 'Video track: ' + trackSettings.width + 'x' + trackSettings.height + ' @' + trackSettings.frameRate + '\r\n';
+  log.textContent += 'Canvas: ' + canvas.width + 'x' + canvas.height + '\r\n\r\n';
+
+  await draw();
+
+  log.textContent += 'Use CreateImageBitmap: ' + useCreateImageBitmap + '\r\n';
+  console.timeStamp('useCreateImageBitmap: ' + useCreateImageBitmap);
+}
+
+async function draw() {
+  requestAnimationFrame(draw);
+
+  const context = canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw video frame.
+  const ratio  = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
+  if (useCreateImageBitmap) {
+    const imageBitmap = await createImageBitmap(video);
+    context.drawImage(imageBitmap, 0, 0, video.videoWidth, video.videoHeight,
+        (canvas.width - video.videoWidth * ratio) / 2, 0,
+        video.videoWidth * ratio, video.videoHeight * ratio);  
+    imageBitmap.close();
+  } else {
+    context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight,
+        (canvas.width - video.videoWidth * ratio) / 2, 0,
+        video.videoWidth * ratio, video.videoHeight * ratio);  
+  }
+}
+
+canvas.addEventListener('click', function() {
+  useCreateImageBitmap = !useCreateImageBitmap;
+  requestAnimationFrame(_ => {
+    log.textContent += 'Use CreateImageBitmap: ' + useCreateImageBitmap + '\r\n';
+    console.timeStamp('useCreateImageBitmap: ' + useCreateImageBitmap);
+  });
+});
+
+getUserMedia();
+</script>
