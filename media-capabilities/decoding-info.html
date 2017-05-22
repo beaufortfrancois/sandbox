@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>🎮 mediaCapabilities.decodingInfo()</title>
+  <style>
+.warning {
+    margin-bottom: 24px;
+    color: red;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+body {
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
+@media (max-width: 1200px) {
+body {
+    margin: 0 12px;
+}
+}
+a {
+    padding-right: 12px;
+}
+body > div[id] {
+    margin-top: 96px;
+}
+.result {
+    display: inline-block;
+    font-weight: normal;
+}
+hr {
+    border: 0px;
+    height: 48px;
+}
+h3 {
+    text-transform: uppercase;
+    border-bottom: 1px solid;
+}
+h4, ul {
+    width: 50%;
+    display: inline-block;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+}
+h4 {
+    width: calc(50% - 12px);
+    padding-left: 12px;
+    text-transform: capitalize;
+}
+ul {
+    vertical-align: top;
+}
+li {
+    padding: 0 24px;
+    white-space: nowrap;
+    font-family: monospace;
+}
+
+  </style>
+</head>
+<body>
+  <h1>🎮 mediaCapabilities.decodingInfo()</h1>
+</body>
+<script>
+  var $ = document.querySelector.bind(document);
+
+  if (!('mediaCapabilities' in navigator)) {
+    let warningElement = document.createElement('div');
+    warningElement.classList.add('warning');
+    warningElement.innerHTML = 'Warning! The Media Capabilities API is not available: "Everything You See Is Fake".';
+    $('body').appendChild(warningElement);
+  }
+  navigator.mediaCapabilities = navigator.mediaCapabilities || {};
+  navigator.mediaCapabilities.decodingInfo = navigator.mediaCapabilities.decodingInfo || fakeDecodingInfo;
+
+  function fakeDecodingInfo() {
+    let mediaDecodingAbility = {
+      supported: false,
+      smooth: false,
+      powerEfficient: false,
+    }
+    mediaDecodingAbility.supported = (Math.floor(Math.random() * 100) >= 50);
+    if (mediaDecodingAbility.supported) {
+      mediaDecodingAbility.smooth = (Math.floor(Math.random() * 100) >= 50);
+      mediaDecodingAbility.powerEfficient = (Math.floor(Math.random() * 100) >= 50);
+    }
+    return Promise.resolve(mediaDecodingAbility);
+  }
+
+  var mediaConfigurationTypes = ['file', 'media-source'];
+
+  var videoConfigurationContentTypes = [
+    'video/webm; codecs=vp8,opus',
+    'video/webm; codecs=vp8,vorbis',
+    'video/webm; codecs=vp9,opus',
+    'video/webm; codecs=vp9,vorbis',
+  ];
+
+  var videoSizes = [
+    { width: 3840, height: 2160, title: '4K' },
+    { width: 2560, height: 1440, title: 'HD' },
+    { width: 1920, height: 1080, title: 'HD' },
+    { width: 1280, height: 720,  title: 'HD' },
+    { width: 640,  height: 480 },
+    { width: 640,  height: 360 },
+    { width: 320,  height: 240 },
+  ];
+
+  var videoBitrates = [4000, 2500, 1500, 700];
+
+  var videoFramerates = [60, 50, 30, 25, 24];
+
+  var mediaCapabilitiesPromises = [];
+  var mediaCapabilitiesOptions = [];
+
+  let videoSizesElement = document.createElement('div');
+  videoSizesElement.textContent = 'Video sizes: ' + videoSizes.map(e => e.width + 'x' + e.height + (e.title ? ' (' + e.title + ')' : '')).join(', ');
+  $('body').appendChild(videoSizesElement);
+
+  let videoBitratesElement = document.createElement('div');
+  videoBitratesElement.textContent = 'Bit rates: ' + videoBitrates.map(e => e + ' kbps').join(', ');
+  $('body').appendChild(videoBitratesElement);
+
+  let videoFrameratesElement = document.createElement('div');
+  videoFrameratesElement.textContent = 'Frame rates: ' + videoFramerates.map(e => e + ' fps').join(', ');
+  $('body').appendChild(videoFrameratesElement);
+
+  let videoTypesElement = document.createElement('div');
+  videoTypesElement.innerHTML = 'Types:&nbsp';
+  videoTypesElement.style.display = 'inline-block';
+  $('body').appendChild(videoTypesElement);
+
+  for (const videoConfigurationContentType of videoConfigurationContentTypes) {
+    let a = document.createElement('a');
+    a.textContent = videoConfigurationContentType;
+    a.href = '#' + videoConfigurationContentType.replace(/(?![a-z0-9])./g, '');
+    $('body').appendChild(a);
+  }
+
+  for (const videoConfigurationContentType of videoConfigurationContentTypes) {
+    for (const mediaConfigurationType of mediaConfigurationTypes) {
+      for (const videoSize of videoSizes) {
+        for (const videoBitrate of videoBitrates) {
+          for (const videoFramerate of videoFramerates) {
+
+            let options = {
+              type: mediaConfigurationType,
+              video: {
+                contentType: videoConfigurationContentType,
+                width: videoSize.width,
+                height: videoSize.height,
+                bitrate: videoBitrate,
+                framerate: videoFramerate,
+              }
+            }
+            mediaCapabilitiesOptions.push(options);
+
+            let promise = navigator.mediaCapabilities.decodingInfo(options);
+            mediaCapabilitiesPromises.push(promise);
+          }
+        }
+      }
+    }
+  }
+
+  const SECTIONS = ['Smooth & Power Efficient', 'Smooth', 'Power Efficient', 'Supported', 'Not Supported'];
+
+  Promise.all(mediaCapabilitiesPromises)
+  .then(mediaDecodingAbilities => {
+    mediaDecodingAbilities.forEach((mediaDecodingAbility, index) => {
+      let options = mediaCapabilitiesOptions[index];
+
+      let rootElementId = options.video.contentType.replace(/(?![a-z0-9])./g, '');
+      let rootElement = $('#' + rootElementId);
+      if (!rootElement) {
+        rootElement = document.createElement('div');
+        rootElement.id = rootElementId;
+      }
+
+      let sizeElementClass = 's' + options.video.width + 'x' + options.video.height;
+      let sizeElement = rootElement.querySelector(' .' + sizeElementClass);
+      if (!sizeElement) {
+        let titleElement = document.createElement('h2');
+        titleElement.textContent = options.video.contentType;
+        rootElement.appendChild(titleElement);
+
+        sizeElement = document.createElement('h1');
+        sizeElement.classList.add(sizeElementClass);
+        sizeElement.textContent = '🖥 ' + options.video.width + 'x' + options.video.height;
+        rootElement.appendChild(sizeElement);
+        
+        for (var text of SECTIONS) {
+          var h3 = document.createElement('h3');
+          h3.textContent = ((text != 'Not Supported') ? '✔ ' : '❌ ') + text;
+          h3.classList.add('section');
+          rootElement.appendChild(h3);
+          for (var type of mediaConfigurationTypes) {
+            var h4 = document.createElement('h4');
+            h4.textContent = type;
+            rootElement.appendChild(h4);
+          }
+          for (var type of mediaConfigurationTypes) {
+            var ul = document.createElement('ul');
+            ul.id = '_' + SECTIONS.indexOf(text)+ sizeElementClass + type.toLowerCase();
+            rootElement.appendChild(ul);
+          }
+        }
+        rootElement.appendChild(document.createElement('hr'));
+      }
+      $('body').appendChild(rootElement);
+
+      let sectionElementIndexes = [];
+      if (mediaDecodingAbility.smooth & mediaDecodingAbility.powerEfficient) {
+        sectionElementIndexes.push(SECTIONS.indexOf('Smooth & Power Efficient'));
+      }
+      if (mediaDecodingAbility.smooth) {
+        sectionElementIndexes.push(SECTIONS.indexOf('Smooth'));
+      }
+      if (mediaDecodingAbility.powerEfficient) {
+        sectionElementIndexes.push(SECTIONS.indexOf('Power Efficient'));
+      }
+      if (mediaDecodingAbility.supported) {
+        sectionElementIndexes.push(SECTIONS.indexOf('Supported'));
+      }
+      if (sectionElementIndexes.length == 0) {
+        sectionElementIndexes.push(SECTIONS.indexOf('Not Supported'));
+      }
+      for (let sectionElementIndex of sectionElementIndexes) {
+        let parentId = '_' + sectionElementIndex + sizeElementClass + options.type.toLowerCase();
+        let result = document.createElement('li');
+        result.textContent = options.video.bitrate + ' kbps - ' + options.video.framerate + ' fps';
+        result.classList.add('result');
+        rootElement.querySelector('#' + parentId).appendChild(result);
+      }
+    });
+  });
+
+</script>
+</html>
