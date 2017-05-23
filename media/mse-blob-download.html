@@ -15,6 +15,7 @@ video {
 }
 </style>
 <body>
+  <video id="hiddenVideo" hidden controls autoplay muted></video>
   <div>
     <a id="anchorBlob" download="videoBlob.webm">video.src = URL.createObjectURL(blob)</a>
     <video id="videoBlob" controls></video>
@@ -32,7 +33,9 @@ video {
   let chunks;
   
   navigator.mediaDevices.getUserMedia({video : true})
-  .then(stream => {
+  .then(async stream => {
+    hiddenVideo.srcObject = stream;
+    await hiddenVideo.play();
     // Record video when video starts playing.
     recorder = new MediaRecorder(stream, {mimeType: 'video/webm;codecs=vp9'});
     recorder.start(10); // collect 10ms of data
@@ -52,7 +55,7 @@ video {
     // Stop recording after 1s.
     setTimeout(function() {
       recorder.stop();
-    }, 1000);
+    }, 2000);
   });
 
   function loadMseVideo() {
