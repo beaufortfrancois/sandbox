@@ -114,9 +114,9 @@
 <canvas id="canvas"></canvas>
 <video id="video" autoplay muted></video>
 <div class="bottomBar"></div>
-<img id="mustache" src="mustache.png">
-<img id="hat" src="hat.png">
-<img id="sunglasses" src="sunglasses.png">
+<img id="mustache">
+<img id="hat">
+<img id="sunglasses">
 <div id="recordButton"></div>
 <div id="switchCameraButton">&#x1f60e;</div>
 <div id="preview">
@@ -312,6 +312,10 @@ switchCameraButton.addEventListener('click', async event => {
 });
 
 document.addEventListener('DOMContentLoaded', async event => {
+  sunglasses.src = 'sunglasses.png';
+  hat.src = 'hat.png';
+  mustache.src = 'mustache.png';
+
   await getUserMedia();
 
   recordButton.addEventListener('click', toggleRecording);
