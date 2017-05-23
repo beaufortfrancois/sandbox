@@ -196,7 +196,7 @@ function addInputRange(capabilityName, value, range) {
   input.type = 'range';
   input.min = range.min;
   input.max = range.max;
-  input.step = range.step;
+  input.step = Math.round(range.step * 100) / 100;
   input.value = value;
   input.oninput = function(event) {
     let options = {};
