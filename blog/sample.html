@@ -1,0 +1,123 @@
+<p>Published: <time pubdate datetime="2017-03-17">17th April, 2017</time></p>
+<p>
+    You’ve probably heard the term “machine learning” and how it’s <a href="https://www.nytimes.com/2016/12/14/magazine/the-great-ai-awakening.html">changing everything</a>
+    . In this article, I’m going to explain the fundamental concept behind machine learning. 
+</p>
+<p>There will be no math or programming. There will be no scary diagrams. You won’t need a background in computer science or engineering. All you need is the ability to read and think, which you obviously already have if you’ve made it this far. Well done on that reading and thinking! Onward…</p>
+<h3 id="foxes-and-dogs">Foxes and Dogs</h3>
+<p>There’s a nice sequence of words which is famous for containing every letter in the english language in one short sentence. Have you seen it?</p>
+<blockquote>
+    <p>The quick brown fox jumps over the lazy dog.</p>
+</blockquote>
+<p>I’m going to slightly perturb this sentence and I’d like you to read it to yourself, out loud:</p>
+<blockquote>
+    <p>The brown quick fox jumps over the lazy dog.</p>
+</blockquote>
+<p>I’m sure you noticed the small change. If you’re a native english speaker, chances are the part that I altered sounded like fingernails on a blackboard. Do you know why “brown quick fox” sounds so wrong?</p>
+<p>I recently presented this example to a room of 200 people and nearly everyone knew it sounded wrong but only one person had any idea why. The reason you don’t like the sound of that phrase is because there are a very distinct set of rules governing the sequence of adjective types in English. To be more precise, adjectives must be arranged in the following order:</p>
+<ol>
+    <li>Quantity or number</li>
+    <li>Quality or opinion</li>
+    <li>Size</li>
+    <li>Age</li>
+    <li>Shape</li>
+    <li>Color</li>
+    <li>Proper adjective (often nationality, other place of origin, or material)</li>
+    <li>Purpose or qualifier</li>
+</ol>
+<p>Since quick is a quality/opinion and brown is a color, “quick brown” is the proper order, not “brown quick”. To give an extreme example, this is fine: “one really big old antique American car” but perturb that sequence of adjectives in any way you like and the results sound very wrong.</p>
+<p>
+    The amazing thing about this sequence is that nearly every native english speaker knows it, but <strong>very few people know they know it</strong>
+    . In my audience of 200 professional CS and IT people, not a single person could tell me this sequence.
+</p>
+<pre>
+    <code class="javascript">
+
+  pipButton.hidden = !document.pictureInPictureEnabled;
+
+  pipButton.addEventListener('click', function() {
+    if (!document.pictureInPictureElement) {
+      video.requestPictureInPicture().catch(error => {
+        // Video failed to enter Picture In Picture mode.
+      });
+    } else {
+      document.exitPictureInPicture().catch(error => {
+        // Video failed to leave Picture In Picture mode.
+      });
+    }
+  });
+
+  video.addEventListener('enterpictureinpicture', function() {
+    // Video entered Picture In Picture mode.
+  });
+
+  video.addEventListener('leavepictureinpicture', function() {
+    // Video left Picture In Picture mode.
+  });
+
+    </code>
+</pre>
+<p>How did you come to know these things that you don’t even know you know? You’ve been exposed to so many examples of properly and improperly formulated English phrases that you’ve developed a finely tuned adjective order detection engine in your brain.</p>
+<p>
+    <strong>Observation one:</strong>
+    Thanks to repetition of examples, you know some things (actually lots of things) you didn’t even know you know.
+</p>
+<h3 id="my-friend-hal">My Friend Hal</h3>
+<p>I have a friend named Hal. Hal grew up in a non-English speaking household and, at the ripe old age of 30, begins studying English. Hal asks me about this phrase, why “quick brown fox” is fine but “brown quick fox” is incorrect. I do some research and I share with Hal the adjective ordering list above. Hal studies the list exhaustively and whenever he’s about to utter a phrase, he mentally checks his formulation against the list.</p>
+<p>This works ok but there are several problems:</p>
+<ul>
+    <li>It’s tedious and time consuming to consciously check every sentence. Native english speakers do this automatically, subconsciously, and effortlessly.</li>
+    <li>Manual checking is highly error prone and subjective (e.g. is “amorphous” a quality or a shape?)</li>
+    <li>After doing all this work, Hal is able to solve (badly) just one problem from an enormous set of challenges.</li>
+</ul>
+<p>
+    <strong>Observation two:</strong>
+    You can compensate for the lack of an automatic detection mechanism by internalizing a set of rules (a computer scientist would call this an algorithm) but the rule-based engine is likely to be less efficient and less accurate than the experience-based engine.
+</p>
+<h3 id="how-babies-learn">How Babies Learn</h3>
+<p>The difference between the two examples above is basically the difference between how a baby acquires language and how an adult acquires language. A baby acquires language by listening to millions of examples, over and over, for many years, most of which come from their very own personal language trainer (which is why your native language is called your “mother tongue”). At some point, babies learn to make their own sounds, begin to formulate their own sentences, and they receive feedback from their environment about the correctness of such attempts. Without even thinking about it, they build an efficient neural network in their brain that automatically recognizes correct linguistic constructs, like the proper order of adjectives.</p>
+<p>An adult learner, on the other hand, doesn’t have the luxury of spending 18 years building a finely tuned pattern matching engine. The adult may also not have a dedicated language tutor. So the best way for an adult to quickly acquire language skills is to try to boil the language down to a set of algorithmic rules they can apply through conscious thought, usually with less satisfying results.</p>
+<p>This explains why, sadly, after studying French for a few years, I still don’t speak nearly as well as the average four year old in Paris.</p>
+<p>
+    <strong>Observation three:</strong>
+    Experience based learning leads to entities that “know” things more deeply, and more intutively than rule based learning.
+</p>
+<h3 id="so-what-is-machine-learning">So, what is machine learning?</h3>
+<p>Rather than trying to encode a definitive set of rules, which is the method used by previous generations of artificial intelligence research (and which largely failed), machine learning is the process of training a computer to learn something the same way a child acquires language, by repeated exposure to examples and experience.</p>
+<p>
+    In so doing, we’ve enabled a new generation of software capable of doing some amazing things, like automatic <a href="https://research.googleblog.com/2016/09/a-neural-network-for-machine.html">language translation</a>
+    , medical diagnosis (e.g. <a href="https://blog.google/topics/machine-learning/detecting-diabetic-eye-disease-machine-learning/">diabetic retinopathy</a>
+    , and <a href="http://www.diagnosticimaging.com/pacs-and-informatics/machine-learning-algorithms-outperform-inexperienced-radiologists">cancer detection</a>
+    ), and beating humans in <a href="http://reallifemag.com/computer-moves/">Chess</a>
+    , <a href="http://www.techrepublic.com/article/ibm-watson-the-inside-story-of-how-the-jeopardy-winning-supercomputer-was-born-and-what-it-wants-to-do-next/">Jeopardy</a>
+    , and <a href="https://www.wired.com/2016/03/two-moves-alphago-lee-sedol-redefined-future/">Go</a>
+    .
+</p>
+<pre>
+    <code class="javascript">
+
+  pipButton.hidden = !document.pictureInPictureEnabled;
+
+  pipButton.addEventListener('click', function() {
+    if (!document.pictureInPictureElement) {
+      video.requestPictureInPicture().catch(error => {
+        // Video failed to enter Picture In Picture mode.
+      });
+    } else {
+      document.exitPictureInPicture().catch(error => {
+        // Video failed to leave Picture In Picture mode.
+      });
+    }
+  });
+
+  video.addEventListener('enterpictureinpicture', function() {
+    // Video entered Picture In Picture mode.
+  });
+
+  video.addEventListener('leavepictureinpicture', function() {
+    // Video left Picture In Picture mode.
+  });
+
+    </code>
+</pre>
+<p>That, in a nutshell is what machine learning is all about and why people are so excited about its potential. In a future article, I’ll work through a concrete example of a simple machine learning application, to help you understand some of the mechanics behind applying this technology to a real world problem.</p>

@@ -1,0 +1,110 @@
+<meta name="viewport" content="width=device-width">
+<style>
+  html {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  code {
+    background: #F0F0F0;
+    display: block;
+    overflow-x: auto;
+    padding: 0.5em;
+  }
+  canvas {
+    width: 100%;
+  }
+</style>
+<!--<a id="anchor" href="sample2.html">Another article</a>-->
+<body>
+<header>Francois Beaufort wrote</header>
+<article>
+  <h1 id="title">Machine Learning Explained in Three Easy Steps</h1>
+  <canvas id="canvas"></canvas>
+  <section id="article"></section>
+</article>
+</body>
+<script>
+
+// Draw placeholder lines...
+canvas.width = getComputedStyle(canvas).width.split('px')[0];
+canvas.height = canvas.width * 2;
+canvas.hidden = true;
+canvas.getContext('2d').fillStyle = '#eee';
+for (var i = 0; i < canvas.height - 20; i += 20) {
+  if (i % 60 == 0) {
+    console.log(i);
+    continue;
+  }
+  canvas.getContext('2d').fillRect(0, i, canvas.width * Math.random(50) + canvas.width / 2, 12);
+}
+canvas.animate([
+  {opacity: 0.8},
+  {opacity: 1},
+], {
+  direction: 'alternate',
+  duration: 2000,
+  iterations: Infinity,
+});
+
+async function readArticle(url) {
+  const id = setTimeout(function() {
+    canvas.hidden = false;
+  }, 200);
+  const response = await fetch(url);
+  const text = await response.text();
+  clearInterval(id);
+  article.animate([
+    { opacity: 0 },
+    { opacity: 1 },
+  ], {
+    duration: 480,
+    easing: 'ease-out',
+  });
+  article.innerHTML = text;
+  canvas.hidden = true;
+  highlightCode();
+}
+readArticle('sample.html');
+
+function highlightCode() {
+  document.querySelectorAll('pre code').forEach(node => {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+  
+          if ('hljs' in window) {
+            hljs.highlightBlock(entry.target);
+            observer.disconnect();
+            return;
+          } 
+
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js';
+          script.onload = function () {
+            hljs.highlightBlock(entry.target);
+            observer.disconnect();
+          }
+          document.body.appendChild(script);
+
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css';
+          document.body.appendChild(link);
+  
+        }
+      });
+    });
+    observer.observe(node);
+  });
+}
+
+/*
+anchor.addEventListener('click', event => {
+  event.preventDefault();
+  article.textContent = '';
+  title.textContent = event.target.textContent;
+  readArticle(event.target.href);
+});
+*/
+
+</script>
