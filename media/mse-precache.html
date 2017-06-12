@@ -1,0 +1,61 @@
+<html>
+  <meta name="viewport" content="width=device-width">
+  <style> body { margin: 0 auto; } pre { padding: 8px } </style>
+  <video controls id="video" width="640" height="360" poster="https://storage.googleapis.com/fbeaufort-test/poster.jpg"></video>
+  <pre id="log"></pre>
+  <script>
+
+const mediaSource = new MediaSource();
+
+video.src = URL.createObjectURL(mediaSource);
+
+mediaSource.addEventListener('sourceopen', function() {
+  const options = {
+    headers: new Headers({ range: 'bytes=0-567139' })
+  };
+
+  // Prefetch the beginning of the video.
+  fetch('https://storage.googleapis.com/fbeaufort-test/sample.webm', options)
+  .then(response => response.arrayBuffer())
+  .then(data => {
+
+    // Append the data into a new SourceBuffer.
+    const mimeType = 'video/webm; codecs="vp9"';
+    const sourceBuffer = mediaSource.addSourceBuffer(mimeType);
+    sourceBuffer.appendBuffer(data);
+
+    sourceBuffer.addEventListener('updateend', function() {
+      // Video is now ready to play!
+      log.textContent = `We have ${video.buffered.end(0)} seconds of video ready to play right away!`;
+
+      video.addEventListener('play', function() {
+        // Let's fetch the next chunk of the video when user actually plays video...
+        fetchNextSegment();
+      }, { once: true });
+
+    }, { once: true });
+  });
+});
+
+function fetchNextSegment() {
+  const options = {
+    headers: new Headers({ range: 'bytes=567140-1196488' })
+  };
+
+  // Fetch the rest of the video when user plays video...
+  fetch('https://storage.googleapis.com/fbeaufort-test/sample.webm', options)
+  .then(response => response.arrayBuffer())
+  .then(data => {
+    // Append the data into current SourceBuffer.
+    mediaSource.sourceBuffers[0].appendBuffer(data);
+
+    mediaSource.sourceBuffers[0].addEventListener('updateend', function() {
+      // The next segment is now ready to play!
+      log.textContent += `\r\nWe now have ${video.buffered.end(0)} seconds of video available.`;
+      // TODO: Fetch next segment...
+    }, { once: true });
+  });
+}
+
+  </script>
+</html>
