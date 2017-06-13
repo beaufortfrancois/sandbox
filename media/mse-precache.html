@@ -5,45 +5,44 @@
   <pre id="log"></pre>
   <script>
 
+const videoFileUrl = 'https://storage.googleapis.com/fbeaufort-test/sample.webm';
 const mediaSource = new MediaSource();
 
 video.src = URL.createObjectURL(mediaSource);
 
 mediaSource.addEventListener('sourceopen', function() {
-  const options = {
-    headers: new Headers({ range: 'bytes=0-567139' })
-  };
+  URL.revokeObjectURL(video.src);
+
+  const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
 
   // Prefetch the beginning of the video.
-  fetch('https://storage.googleapis.com/fbeaufort-test/sample.webm', options)
+  fetch(videoFileUrl, { headers: { range: 'bytes=0-567139' } })
   .then(response => response.arrayBuffer())
   .then(data => {
 
-    // Append the data into a new SourceBuffer.
-    const mimeType = 'video/webm; codecs="vp9"';
-    const sourceBuffer = mediaSource.addSourceBuffer(mimeType);
+    // Append the data into the new sourceBuffer.
     sourceBuffer.appendBuffer(data);
 
     sourceBuffer.addEventListener('updateend', function() {
       // Video is now ready to play!
-      log.textContent = `We have ${video.buffered.end(0)} seconds of video ready to play right away!`;
+      log.textContent = `We have ${video.buffered.end(0) - video.buffered.start(0)} seconds of video ready to play right away!`;
 
       video.addEventListener('play', function() {
-        // Let's fetch the next chunk of the video when user actually plays video...
+        // Let's fetch the next chunk of the video only when user actually plays video...
         fetchNextSegment();
       }, { once: true });
 
     }, { once: true });
+
+    sourceBuffer.addEventListener('error', function() {
+      // TODO: What to do?
+    });
   });
 });
 
 function fetchNextSegment() {
-  const options = {
-    headers: new Headers({ range: 'bytes=567140-1196488' })
-  };
-
   // Fetch the rest of the video when user plays video...
-  fetch('https://storage.googleapis.com/fbeaufort-test/sample.webm', options)
+  fetch(videoFileUrl, { headers: { range: 'bytes=567140-1196488' } })
   .then(response => response.arrayBuffer())
   .then(data => {
     // Append the data into current SourceBuffer.
