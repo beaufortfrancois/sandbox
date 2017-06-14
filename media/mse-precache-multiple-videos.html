@@ -1,0 +1,101 @@
+<html>
+  <title>MSE precache multiple videos</title>
+  <meta name="viewport" content="width=device-width">
+  <style>body { max-width: 640px; } pre, select { width: 100%; white-space: pre-line; padding: 4px 0;} video { max-width: 100%; background-color: black }</style>
+  <select id="select">
+    <option disabled selected>Pre-caching videos...</option>
+  </select>
+  <video controls id="video" width="640"></video>
+  <pre id="pre"></pre>
+  <script>
+
+const videoFileUrls = [
+  'https://storage.googleapis.com/fbeaufort-test/sample.webm?foo=1',
+  'https://storage.googleapis.com/fbeaufort-test/sample.webm?foo=2',
+  'https://storage.googleapis.com/fbeaufort-test/sample.webm?foo=3',
+];
+
+(async _ => {
+  // Pre-cache all chunks of video beginnings.
+  await Promise.all(videoFileUrls.map(videoFileUrl => prefetchAndCacheVideo(videoFileUrl)))
+
+  // Populate "select" so that user can pick one to play.
+  select.options[0].text = 'Select a video to play';
+  videoFileUrls.forEach(videoFileUrl => {
+    const option = document.createElement('option');
+    option.text = videoFileUrl;
+    select.add(option);
+  });
+  select.addEventListener('click', function() { video.load(); });
+  select.addEventListener('change', onVideoFileUrlChange);
+
+  log('All chunks of video beginnings have been pre-cached.');
+})();
+
+async function prefetchAndCacheVideo(videoFileUrl) {
+  const request = new Request(videoFileUrl, { headers: { range: 'bytes=0-567139' } });
+  const rangeResponse = await fetch(request);
+  const data = await rangeResponse.arrayBuffer();
+  const response = new Response(data);
+
+  const cache = await caches.open('video-pre-cache');
+  await cache.put(videoFileUrl, response);
+}
+
+async function onVideoFileUrlChange(event) {
+  const videoFileUrl = event.target.value;
+
+  const cache = await caches.open('video-pre-cache');
+  const response = await cache.match(videoFileUrl);
+  const data = await response.arrayBuffer();
+   
+  const mediaSource = new MediaSource();
+  video.src = URL.createObjectURL(mediaSource);
+  
+  mediaSource.addEventListener('sourceopen', function() {
+    URL.revokeObjectURL(video.src);
+  
+    const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
+    sourceBuffer.appendBuffer(data);
+    sourceBuffer.addEventListener('updateend', function() {
+      // Video is now ready to play!
+      log(`${video.buffered.end(0) - video.buffered.start(0)} seconds of video are ready to play.`);
+
+      // Fetch the next chunk of the video when video starts to play...
+      fetchNextSegment(videoFileUrl);
+      video.play();
+
+    }, { once: true });
+  });
+}
+
+function fetchNextSegment(videoFileUrl) {
+  // Fetch the rest of the video when user plays video...
+  fetch(videoFileUrl, { headers: { range: 'bytes=567140-1196488' } })
+  .then(response => response.arrayBuffer())
+  .then(data => {
+    const sourceBuffer = video.videoTracks[0].sourceBuffer;
+
+    // Append the data into current SourceBuffer.
+    sourceBuffer.appendBuffer(data);
+
+    sourceBuffer.addEventListener('updateend', function() {
+      // The next segment is now ready to play!
+      log(`${video.buffered.end(0) - video.buffered.start(0)} seconds of video are now available.`);
+      // TODO: Fetch next segment...
+    }, { once: true });
+  });
+}
+
+/* util */
+
+function log(text) {
+  pre.textContent += text + '\r\n';
+}
+
+['stalled', 'suspend'].forEach(eventName => {
+  video.addEventListener(eventName, event => { log('> video event: ' + eventName); });
+});
+
+  </script>
+</html>
