@@ -2,7 +2,7 @@
   <meta name="viewport" content="width=device-width">
   <style> body { margin: 0 auto; } pre { padding: 8px } </style>
   <video controls id="video" width="640" height="360" poster="https://storage.googleapis.com/fbeaufort-test/poster.jpg"></video>
-  <pre id="log"></pre>
+  <pre id="pre"></pre>
   <script>
 
 const videoFileUrl = 'https://storage.googleapis.com/fbeaufort-test/sample.webm';
@@ -10,11 +10,14 @@ const mediaSource = new MediaSource();
 
 video.src = URL.createObjectURL(mediaSource);
 
-mediaSource.addEventListener('sourceopen', function() {
+mediaSource.addEventListener('sourceopen', onSourceOpen);
+
+function onSourceOpen() {
   URL.revokeObjectURL(video.src);
 
   const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
 
+  log('Fetching beginning of the video...');
   // Prefetch the beginning of the video.
   fetch(videoFileUrl, { headers: { range: 'bytes=0-567139' } })
   .then(response => response.arrayBuffer())
@@ -25,12 +28,7 @@ mediaSource.addEventListener('sourceopen', function() {
 
     sourceBuffer.addEventListener('updateend', function() {
       // Video is now ready to play!
-      log.textContent = `We have ${video.buffered.end(0) - video.buffered.start(0)} seconds of video ready to play right away!`;
-
-      video.addEventListener('play', function() {
-        // Let's fetch the next chunk of the video only when user actually plays video...
-        fetchNextSegment();
-      }, { once: true });
+      log(`We have ${video.buffered.end(0) - video.buffered.start(0)} seconds of video ready to play right away!`);
 
     }, { once: true });
 
@@ -38,9 +36,12 @@ mediaSource.addEventListener('sourceopen', function() {
       // TODO: What to do?
     });
   });
-});
+}
+
+video.addEventListener('play', fetchNextSegment, { once: true });
 
 function fetchNextSegment() {
+  log('Fetching rest of the video...');
   // Fetch the rest of the video when user plays video...
   fetch(videoFileUrl, { headers: { range: 'bytes=567140-1196488' } })
   .then(response => response.arrayBuffer())
@@ -50,10 +51,16 @@ function fetchNextSegment() {
 
     mediaSource.sourceBuffers[0].addEventListener('updateend', function() {
       // The next segment is now ready to play!
-      log.textContent += `\r\nWe now have ${video.buffered.end(0)} seconds of video available.`;
+      log(`We now have ${video.buffered.end(0) - video.buffered.start(0)} seconds of video available.`);
       // TODO: Fetch next segment...
     }, { once: true });
   });
+}
+
+/* util */
+
+function log(text) {
+  pre.textContent += text + '\r\n';
 }
 
   </script>
