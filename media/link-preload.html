@@ -1,0 +1,59 @@
+<html>
+  <meta name="viewport" content="width=device-width">
+  <style> body { margin: 0 auto; } pre { padding: 8px } </style>
+  <link rel="preload" as="video" href="https://storage.googleapis.com/fbeaufort-test/sample_bytes=0-567139.webm"
+    crossorigin onload="preloadFinished()" onerror="preloadError()">
+  <video controls id="video" width="640" height="360"></video>
+  <pre id="pre"></pre>
+  <script>
+
+function preloadFinished() {
+  log('Preload finished from link rel="preload"');
+  initVideo();
+}
+
+function preloadError() {
+  log('Preload errored from link rel="preload"');
+  initVideo();
+}
+
+function initVideo() {
+  const mediaSource = new MediaSource();
+  video.src = URL.createObjectURL(mediaSource);
+  
+  mediaSource.addEventListener('sourceopen', function() {
+    URL.revokeObjectURL(video.src);
+  
+    const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
+  
+    log('Fetching beginning of the video...');
+    // Fetch the beginning of the video from cache if preloaded has successed.
+    fetch(document.querySelector('link').href)
+    .then(response => response.arrayBuffer())
+    .then(data => {
+  
+      // Append the data into the new sourceBuffer.
+      sourceBuffer.appendBuffer(data);
+  
+      sourceBuffer.addEventListener('updateend', function() {
+        // Video is now ready to play!
+        log(`We have ${video.buffered.end(0) - video.buffered.start(0)} seconds of video ready to play right away!`);
+  
+      }, { once: true });
+  
+      sourceBuffer.addEventListener('error', function() {
+        // TODO: What to do?
+      });
+    });
+  });
+}
+
+/* util */
+
+function log(text) {
+  pre.textContent += text + '\r\n';
+}
+
+  </script>
+</html>
+
