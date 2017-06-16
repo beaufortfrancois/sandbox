@@ -1,21 +1,25 @@
 <html>
   <title>background fetch video</title>
   <meta name="viewport" content="width=device-width">
-  <style> body { margin: 0 auto; } pre { padding: 8px } </style>
-  <video controls id="video" width="640" height="360" preload="none"
+  <style> body { margin: 0 auto; max-width: 640px; } pre { padding: 8px } input { font-family: monospace }</style>
+  <video id="video" width="640" height="360" preload="none"
       src='https://storage.googleapis.com/fbeaufort-test/sample.webm'
       poster="https://storage.googleapis.com/fbeaufort-test/poster.jpg"></video>
-  <br/>
-  <br/>
-  <button id="buttonServiceWorker" disabled>Make available offline (background)</button>
-  <button id="buttonCache" disabled>Make available offline (foreground)</button>
+  <br/><br/>
+  <button id="buttonServiceWorker" disabled>Save (background fetch)</button>
+  <button id="buttonCache" disabled>Save (cache.add)</button>
+  <br/><br/>
+  <fieldset>
+    <legend>Get video chunk method:</legend>
+    <label>
+    <input type="radio" name="radio"  id="arraybuffer" value="arraybuffer"> response.arrayBuffer()<br>
+    </label>
+    <label>
+    <input type="radio" name="radio"  id="blob" value="blob" checked> response.blob()<br>
+    </label>
+  </fieldset>
   <pre id="pre"></pre>
   <script>
-
-const channel = new BroadcastChannel('channel');
-channel.onmessage = function(e) {
-  log(e.data.status);
-};
 
 if ('serviceWorker' in navigator) {
   buttonCache.disabled = false;
@@ -51,8 +55,32 @@ async function onButtonCacheClick() {
   const cache = await caches.open('video-cache');
   await cache.add(video.src);
   log('Downloaded!');
+  video.controls = true;
 }
 
+(async _ => {
+  const response = await caches.match(video.src);
+  if (response) {
+    video.controls = true;
+    log('Video is already saved for offline.');
+  }
+})();
+
+arraybuffer.addEventListener('change', onRadioButtonChange);
+blob.addEventListener('change', onRadioButtonChange);
+
+function onRadioButtonChange(event) {
+  const action = event.target.value;
+  navigator.serviceWorker.controller.postMessage({ action });
+}
+
+const channel = new BroadcastChannel('channel');
+channel.onmessage = function(e) {
+  log('SW: ' + e.data.status);
+  if (e.data.status == 'Downloaded video') {
+    video.controls = true;
+  }
+};
 
 /* util */
 
