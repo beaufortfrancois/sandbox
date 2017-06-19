@@ -47,7 +47,11 @@ localStorage.deviceId = localStorage.deviceId || 'default';
 
 // Ask permission first and enumerate devices after...
 navigator.mediaDevices.getUserMedia({video : true})
-.then(_ => navigator.mediaDevices.enumerateDevices())
+.then(stream => {
+  // Stop tracks.
+  stream.getTracks().forEach(track => track.stop());
+  return navigator.mediaDevices.enumerateDevices()
+})
 .then(devices => {
   var videoInputDevices = devices.filter(device => (device.kind == 'videoinput'));
   videoInputDevices.forEach(device => {
