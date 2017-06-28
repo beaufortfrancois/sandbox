@@ -116,7 +116,7 @@
             $('#buttons').appendChild(newButton);
             peanut.rgbColor = window.getComputedStyle(newButton).color;
             drawChart(activePeanut);
-            window.onResize();
+            window.onresize();
           }
 
           for (const button of document.querySelectorAll('button[data-color]')) {
