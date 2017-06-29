@@ -2,10 +2,15 @@
   <meta name="viewport" content="width=device-width">
   <style> body { margin: 0 auto; } pre { padding: 8px } </style>
   <link rel="preload" as="video" href="https://storage.googleapis.com/fbeaufort-test/sample_bytes=0-567139.webm"
-    crossorigin onload="preloadFinished()" onerror="preloadError()">
+    onload="preloadFinished()" onerror="preloadError()">
   <video controls id="video" width="640" height="360"></video>
   <pre id="pre"></pre>
   <script>
+
+if (!preloadSupported()) {
+  log('Preload is not supported');
+  initVideo();
+}
 
 function preloadFinished() {
   log('Preload finished from link rel="preload"');
@@ -14,7 +19,6 @@ function preloadFinished() {
 
 function preloadError() {
   log('Preload errored from link rel="preload"');
-  initVideo();
 }
 
 function initVideo() {
@@ -52,6 +56,14 @@ function initVideo() {
 
 function log(text) {
   pre.textContent += text + '\r\n';
+}
+
+
+function preloadSupported() {
+  const relList = document.createElement('link').relList;
+  if (!relList || !relList.supports)
+    return false;
+  return relList.supports('preload');
 }
 
   </script>
