@@ -1,0 +1,53 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+    margin: 0 auto;
+    text-align: center;
+    max-width: 640px;
+    font-family: monospace;
+}
+a {
+    display: block;
+    margin: 24px auto 12px auto;
+}
+video {
+    width: 100%;
+}
+</style>
+<body>
+  <div>
+    <a id="anchorBlob" download="videoBlob.webm">video.src = URL.createObjectURL(blob)</a>
+    <video id="videoBlob" controls></video>
+  </div>
+  <div>
+    <a id="anchorMse" download="videoMse.webm">video.src = URL.createObjectURL(mediaSource)</a>
+    <video id="videoMse" controls></video>
+  </div>
+</body>
+<script>
+
+  fetch('https://storage.googleapis.com/fbeaufort-test/sample_bytes=0-567139.webm')
+  .then(response => response.blob())
+  .then(blob => {
+    videoBlob.src = URL.createObjectURL(blob);
+    anchorBlob.href = videoBlob.src;
+  });
+
+  fetch('https://storage.googleapis.com/fbeaufort-test/sample_bytes=0-567139.webm')
+  .then(response => response.arrayBuffer())
+  .then(data => {
+    const mediaSource = new MediaSource();
+    videoMse.src = URL.createObjectURL(mediaSource);
+    anchorMse.href = videoMse.src;
+    mediaSource.addEventListener('sourceopen', function(e) {
+      URL.revokeObjectURL(videoMse.src);
+      const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
+      sourceBuffer.addEventListener('updateend', function(e) {
+        if (!sourceBuffer.updating && mediaSource.readyState === 'open') {
+          mediaSource.endOfStream();
+        }
+      });
+      sourceBuffer.appendBuffer(data);
+    });
+  });
+</script>
