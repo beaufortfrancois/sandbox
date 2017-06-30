@@ -1,0 +1,33 @@
+<html dir="rtl">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+    max-width: 616px;
+    margin: 0 auto;
+    padding: 8px;
+    background: #dadada;
+}
+div {
+    padding: 4px;
+    background: #fafafa;
+}
+video {
+    width: 100%;
+}
+p {
+    position: fixed;
+    bottom: 0;
+}
+</style>
+<body>
+  <div>
+    <video id="video" dir="rtl" controls playsinline loop src="//storage.googleapis.com/media-session/caminandes/short.mp4#t=113"></video>
+  </div>
+  <p id="credits">Credits: Media files are © copyright Blender Foundation | <a href="http://www.blender.org">www.blender.org </a>.</p>
+</body>
+<script>
+  for (var i=0; i < 3; i++) {
+    video.addTextTrack('captions');
+  }
+</script>
+</html>
