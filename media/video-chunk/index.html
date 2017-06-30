@@ -1,0 +1,127 @@
+<html>
+  <title>video chunk</title>
+  <meta name="viewport" content="width=device-width">
+  <style> body { margin: 0 auto; max-width: 640px; } pre { padding: 8px } input { font-family: monospace } .grey { filter: grayscale(1); }</style>
+  <video id="video" width="640" height="360" preload="none"
+      class="grey"
+      src='https://storage.googleapis.com/fbeaufort-test/sample.webm'
+      poster="https://storage.googleapis.com/fbeaufort-test/poster.jpg"></video>
+  <br/><br/>
+  <button id="buttonServiceWorker" disabled>Save (background fetch)</button>
+  <button id="buttonCache" disabled>Save (fetch)</button>
+  <span id="progress"></span>
+  <br/><br/>
+  <fieldset>
+    <legend>Get video chunk method:</legend>
+    <label>
+    <input type="radio" name="radio"  id="arraybuffer" value="arraybuffer"> response.arrayBuffer()<br>
+    </label>
+    <label>
+    <input type="radio" name="radio"  id="blob" value="blob" checked> response.blob()<br>
+    </label>
+  </fieldset>
+  <br/>
+  <fieldset>
+    <label>
+    <input type="checkbox" id="chunk" checked>Chunk in thin slices!
+    </label>
+  </fieldset>
+  <pre id="pre"></pre>
+  <script>
+
+if ('serviceWorker' in navigator) {
+  buttonCache.disabled = false;
+  buttonCache.addEventListener('click', onButtonCacheClick);
+  registerServiceWorker();
+} else {
+  log('Browser doesn\'t support service workers');
+}
+
+async function registerServiceWorker() {
+  try {
+    const registration = await navigator.serviceWorker.register('sw.js');
+    log('Service worker registered successfully');
+    if ('backgroundFetch' in registration) {
+      buttonServiceWorker.disabled = false;
+      buttonServiceWorker.addEventListener('click', onButtonServiceWorkerClick);
+    }
+  } catch(error) {
+    log('Error registering service worker', error);
+  }
+}
+
+async function onButtonServiceWorkerClick() {
+  log('Downloading in background...');
+  const registration = await navigator.serviceWorker.ready;
+  const requests = [video.src];
+  const tag = video.src; // Because it's just easier...
+  const bgFetchJob = await registration.backgroundFetch.fetch(tag, requests);
+}
+
+async function onButtonCacheClick() {
+  log('Downloading in foreground...');
+  progress.textContent = '';
+  const cache = await caches.open('video-cache');
+  const response = await fetch(video.src);
+  if (response.headers.has('Content-Length')) {
+    monitorVideoDownloading(response.clone());
+  }
+  await cache.put(video.src, response);
+
+  log('Downloaded!');
+  video.classList.remove('grey');
+  video.controls = true;
+}
+
+async function monitorVideoDownloading(response) {
+  const length = Number(response.headers.get('Content-Length'));
+  const reader = response.body.getReader();
+  let total = 0;
+
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) return total;
+    total += value.length;
+    progress.textContent = Math.round(total * 100 / length) + '%';
+  }
+}
+
+(async _ => {
+  const response = await caches.match(video.src);
+  if (response) {
+    video.classList.remove('grey');
+    video.controls = true;
+    log('Video is already saved for offline.');
+  }
+})();
+
+arraybuffer.addEventListener('change', onRadioButtonChange);
+blob.addEventListener('change', onRadioButtonChange);
+
+function onRadioButtonChange(event) {
+  const action = event.target.value;
+  navigator.serviceWorker.controller.postMessage({ 'radio': action });
+}
+
+chunk.addEventListener('change', onCheckboxChange);
+
+function onCheckboxChange(event) {
+  const action = event.target.checked;
+  navigator.serviceWorker.controller.postMessage({ 'checkbox': action });
+}
+
+const channel = new BroadcastChannel('channel');
+channel.onmessage = function(e) {
+  log('SW: ' + e.data.status);
+  if (e.data.status == 'Downloaded video') {
+    video.controls = true;
+  }
+};
+
+/* util */
+
+function log(text) {
+  pre.textContent += text + '\r\n';
+}
+  </script>
+</html>
