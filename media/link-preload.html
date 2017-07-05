@@ -9,7 +9,7 @@
   <pre id="pre"></pre>
   <script>
 
-if (!preloadSupported()) {
+if (!preloadVideoSupported()) {
   log('Preload is not supported');
   initVideo();
 }
@@ -70,11 +70,10 @@ function log(text) {
 }
 
 
-function preloadSupported() {
-  const relList = document.createElement('link').relList;
-  if (!relList || !relList.supports)
-    return false;
-  return relList.supports('preload');
+function preloadVideoSupported() {
+  const link = document.createElement('link');
+  link.as = 'video';
+  return (link.as === 'video');
 }
 
   </script>
