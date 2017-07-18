@@ -1,0 +1,33 @@
+<meta name="viewport" content="initial-scale=1, maximum-scale=1">
+<style>
+body {
+  margin: 0;
+  background: #E91E63;
+  color: white;
+}
+video {
+  width: 100%;
+  background: #3E50B4;
+  height: 231.75px;
+}
+p {
+  padding: 24px;
+  text-align: center;
+  font-size: 200%;
+  font-weight: bold;
+  font-family: Roboto;
+  margin: 0;
+  background: #FF3F80;
+}
+</style>
+<body>
+  <video id="video" controls playsinline preload="none" loop src="https://storage.googleapis.com/media-session/big-buck-bunny/trailer.mov"></video>
+  <p id="p"></p>
+</body>
+<script>
+  if (location.search.includes('preload')) {
+    p.innerHTML = 'PRELOAD';
+  } else {
+    p.innerHTML = 'NO PRELOAD';
+  }
+</script>
