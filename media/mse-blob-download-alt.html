@@ -40,7 +40,9 @@ video {
     videoMse.src = URL.createObjectURL(mediaSource);
     anchorMse.href = videoMse.src;
     mediaSource.addEventListener('sourceopen', function(e) {
-      URL.revokeObjectURL(videoMse.src);
+      if (location.search.includes('revokeObjectURL')) {
+        URL.revokeObjectURL(videoMse.src);
+      }
       const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
       sourceBuffer.addEventListener('updateend', function(e) {
         if (!sourceBuffer.updating && mediaSource.readyState === 'open') {
