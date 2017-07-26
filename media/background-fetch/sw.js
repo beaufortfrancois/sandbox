@@ -80,6 +80,16 @@ addEventListener('backgroundfetched', event => {
   }());
 });
 
+addEventListener('backgroundfetchfail', event => {
+  const channel = new BroadcastChannel('channel');
+  channel.postMessage({ status: 'Failed to download video' });
+});
+
+addEventListener('backgroundfetchabort', event => {
+  const channel = new BroadcastChannel('channel');
+  channel.postMessage({ status: 'Downloading video aborted' });
+});
+
 addEventListener('message', event => {
   const channel = new BroadcastChannel('channel');
   useArrayBuffer = (event.data.action == 'arraybuffer');

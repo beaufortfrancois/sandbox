@@ -1,10 +1,10 @@
 <html>
   <title>background fetch video</title>
   <meta name="viewport" content="width=device-width">
-  <style> body { margin: 0 auto; max-width: 640px; } pre { padding: 8px } input { font-family: monospace }</style>
+  <style> body { margin: 0 auto; max-width: 640px; } pre { padding: 8px } input { font-family: monospace } video { background: black }</style>
   <video id="video" width="640" height="360" preload="none"
       src='https://storage.googleapis.com/fbeaufort-test/sample.webm'
-      poster="https://storage.googleapis.com/fbeaufort-test/poster.jpg"></video>
+      poster2="https://storage.googleapis.com/fbeaufort-test/poster.jpg"></video>
   <br/><br/>
   <button id="buttonServiceWorker" disabled>Save (background fetch)</button>
   <button id="buttonCache" disabled>Save (cache.add)</button>
@@ -47,6 +47,10 @@ async function onButtonServiceWorkerClick() {
   const registration = await navigator.serviceWorker.ready;
   const requests = [video.src];
   const tag = video.src; // Because it's just easier...
+  const options = {
+    title: 'Downloading video...',
+    totalDownloadSize: 83216545,
+  };
   const bgFetchJob = await registration.backgroundFetch.fetch(tag, requests);
 }
 
@@ -62,6 +66,7 @@ async function onButtonCacheClick() {
   const response = await caches.match(video.src);
   if (response) {
     video.controls = true;
+    video.preload = "auto";
     log('Video is already saved for offline.');
   }
 })();
