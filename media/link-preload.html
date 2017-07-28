@@ -1,15 +1,13 @@
 <html>
   <meta name="viewport" content="width=device-width">
   <style> body { margin: 0 auto; } pre { padding: 8px } </style>
-  <link rel="preload" href="https://storage.googleapis.com/fbeaufort-test/sample_bytes=0-567139.webm"
+  <link rel="preload" as="fetch" href="https://storage.googleapis.com/fbeaufort-test/sample_bytes=0-567139.webm"
     onload="preloadFinished()" onerror="preloadError()">
-  <link rel="preload" as="video" href="https://storage.googleapis.com/fbeaufort-test/sample_bytes=0-567139.webm"
-    onload="preloadAsVideoFinished()" onerror="preloadAsVideoError()">
   <video controls id="video" width="640" height="360"></video>
   <pre id="pre"></pre>
   <script>
 
-if (!preloadVideoSupported()) {
+if (!preloadFirstSegmentSupported()) {
   log('Preload is not supported');
   initVideo();
 }
@@ -21,15 +19,6 @@ function preloadFinished() {
 
 function preloadError() {
   log('Preload errored from link rel="preload"');
-}
-
-function preloadAsVideoFinished() {
-  log('Preload as=video finished from link rel="preload"');
-  initVideo();
-}
-
-function preloadAsVideoError() {
-  log('Preload as=video errored from link rel="preload"');
 }
 
 function initVideo() {
@@ -70,10 +59,10 @@ function log(text) {
 }
 
 
-function preloadVideoSupported() {
+function preloadFirstSegmentSupported() {
   const link = document.createElement('link');
-  link.as = 'video';
-  return (link.as === 'video');
+  link.as = 'fetch';
+  return (link.as === 'fetch');
 }
 
   </script>
