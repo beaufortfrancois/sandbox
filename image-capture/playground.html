@@ -31,6 +31,7 @@
   <button id="getSettings">getSettings</button>
   <br/>
   <button id="getPhotoCapabilities">getPhotoCapabilities</button>
+  <button id="getPhotoSettings">getPhotoSettings</button>
   <button id="grabFrameButton">grabFrame</button>
   <button id="takePhotoButton">takePhoto</button>
   <button id="grabFrameAndTakePhotoButton">grabFrame & takePhoto</button>
@@ -41,7 +42,7 @@
 
 <script>
 var imageCapture;
-var photoSettings = {};
+var takePhotoSettings = {};
 
 localStorage.deviceId = localStorage.deviceId || 'default';
 
@@ -67,7 +68,7 @@ navigator.mediaDevices.getUserMedia({video : true})
     }
     var label = document.createElement('label');
     label.textContent = device.label;
-    label.setAttribute('for', device.deviceId); 
+    label.setAttribute('for', device.deviceId);
     document.querySelector('#devices').appendChild(input);
     document.querySelector('#devices').appendChild(label);
     document.querySelector('#devices').appendChild(document.createElement('br'));
@@ -99,7 +100,7 @@ function getUserMedia() {
   .then(mediaStream => {
     video.srcObject = mediaStream;
     video.onplay = function() {
-      videoSize.textContent = `${video.videoWidth}x${video.videoHeight}`; 
+      videoSize.textContent = `${video.videoWidth}x${video.videoHeight}`;
       imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
       // Remove timeout when crbug.com/711524 is fixed.
       setTimeout(initControls, 500);
@@ -132,66 +133,73 @@ function initControls() {
   }
   delete(constraints['deviceId']);
   document.querySelector('#constraints').textContent = JSON.stringify(constraints, 0, 2);
-  imageCapture.getPhotoCapabilities()
-  .then(photoCapabilities => {
-    document.querySelector('#controls').appendChild(document.createElement('hr'));
-    if (photoCapabilities['fillLightMode'].length) {
-      let select = document.createElement('select');
-      select.id = 'fillLightMode';
-      select.oninput = function(event) {
-        photoSettings['fillLightMode'] = event.target.value;
+  imageCapture.getPhotoSettings()
+  .then(photoSettings => {
+    return imageCapture.getPhotoCapabilities()
+    .then(photoCapabilities => {
+      document.querySelector('#controls').appendChild(document.createElement('hr'));
+      if (photoCapabilities['fillLightMode'].length) {
+        let select = document.createElement('select');
+        select.id = 'fillLightMode';
+        select.oninput = function(event) {
+          takePhotoSettings['fillLightMode'] = event.target.value;
+        }
+        for (capability of photoCapabilities['fillLightMode']) {
+          let option = document.createElement('option');
+          option.value = capability;
+          option.textContent = capability;
+          if (capability == photoSettings.fillLightMode) {
+            option.selected = true;
+          }
+          select.appendChild(option);
+        }
+        var label = document.createElement('label');
+        label.textContent = 'fillLightMode';
+        label.setAttribute('for', 'fillLightMode');
+        document.querySelector('#controls').appendChild(select);
+        document.querySelector('#controls').appendChild(label);
+        document.querySelector('#controls').appendChild(document.createElement('br'));
       }
-      for (capability of photoCapabilities['fillLightMode']) {
-        let option = document.createElement('option');
-        option.value = capability;
-        option.textContent = capability; 
-        select.appendChild(option);
+      if (photoCapabilities['redEyeReduction'] === 'controllable') {
+        let input = document.createElement('input');
+        input.id = 'redEyeReduction';
+        input.type = 'checkbox';
+        input.checked = photoSettings.redEyeReduction;
+        input.onchange = function(event) {
+          takePhotoSettings['redEyeReduction'] = event.target.checked;
+        }
+        var label = document.createElement('label');
+        label.textContent = 'redEyeReduction';
+        label.setAttribute('for', 'redEyeReduction');
+        document.querySelector('#controls').appendChild(input);
+        document.querySelector('#controls').appendChild(label);
+        document.querySelector('#controls').appendChild(document.createElement('br'));
       }
-      var label = document.createElement('label');
-      label.textContent = 'fillLightMode';
-      label.setAttribute('for', 'fillLightMode'); 
-      document.querySelector('#controls').appendChild(select);
-      document.querySelector('#controls').appendChild(label);
-      document.querySelector('#controls').appendChild(document.createElement('br'));
-    }
-    if (photoCapabilities['redEyeReduction'] === 'controllable') {
-      let input = document.createElement('input');
-      input.id = 'redEyeReduction';
-      input.type = 'checkbox';
-      input.onchange = function(event) {
-        photoSettings['redEyeReduction'] = event.target.checked;
-      }
-      var label = document.createElement('label');
-      label.textContent = 'redEyeReduction';
-      label.setAttribute('for', 'redEyeReduction'); 
-      document.querySelector('#controls').appendChild(input);
-      document.querySelector('#controls').appendChild(label);
-      document.querySelector('#controls').appendChild(document.createElement('br'));
-    }
-    ['imageWidth', 'imageHeight'].forEach(rangeName => {
-      let range = photoCapabilities[rangeName];
-      if (range == null) {
-        return;
-      }
-      let input = document.createElement('input');
-      input.id = rangeName;
-      input.type = 'range';
-      input.min = range.min;
-      input.max = range.max;
-      input.step = range.step;
-      input.value = range.max;
-      input.onchange = function(event) {
-        photoSettings[rangeName] = event.target.value;
-        document.querySelector('label[for=' + rangeName +']').textContent = rangeName + ' (' + event.target.value + ')';
-      }
-      var label = document.createElement('label');
-      label.textContent = rangeName + ' (' + range.max + ')';
-      label.setAttribute('for', rangeName); 
-      document.querySelector('#controls').appendChild(input);
-      document.querySelector('#controls').appendChild(label);
-      document.querySelector('#controls').appendChild(document.createElement('br'));
+      ['imageWidth', 'imageHeight'].forEach(rangeName => {
+        let range = photoCapabilities[rangeName];
+        if (range == null) {
+          return;
+        }
+        let input = document.createElement('input');
+        input.id = rangeName;
+        input.type = 'range';
+        input.min = range.min;
+        input.max = range.max;
+        input.step = range.step;
+        input.value = photoSettings[rangeName];
+        input.onchange = function(event) {
+          takePhotoSettings[rangeName] = event.target.value;
+          document.querySelector('label[for=' + rangeName +']').textContent = rangeName + ' (' + event.target.value + ')';
+        }
+        var label = document.createElement('label');
+        label.textContent = rangeName + ' (' + photoSettings[rangeName] + ')';
+        label.setAttribute('for', rangeName);
+        document.querySelector('#controls').appendChild(input);
+        document.querySelector('#controls').appendChild(label);
+        document.querySelector('#controls').appendChild(document.createElement('br'));
+      });
     });
-  });;
+  });
 }
 
 function addInputRange(capabilityName, value, range) {
@@ -214,7 +222,7 @@ function addInputRange(capabilityName, value, range) {
   } else {
     label.textContent = capabilityName;
   }
-  label.setAttribute('for', capabilityName); 
+  label.setAttribute('for', capabilityName);
   document.querySelector('#controls').appendChild(input);
   document.querySelector('#controls').appendChild(label);
   document.querySelector('#controls').appendChild(document.createElement('br'));
@@ -232,7 +240,7 @@ function addInputCheckbox(capabilityName, value) {
   }
   var label = document.createElement('label');
   label.textContent = capabilityName;
-  label.setAttribute('for', capabilityName); 
+  label.setAttribute('for', capabilityName);
   document.querySelector('#controls').appendChild(input);
   document.querySelector('#controls').appendChild(label);
   document.querySelector('#controls').appendChild(document.createElement('br'));
@@ -250,13 +258,13 @@ function addSelect(capabilityName, value, capabilities) {
   for (capability of capabilities) {
     let option = document.createElement('option');
     option.value = capability;
-    option.textContent = capability; 
+    option.textContent = capability;
     option.selected = (capability == value);
     select.appendChild(option);
   }
   var label = document.createElement('label');
   label.textContent = capabilityName;
-  label.setAttribute('for', capabilityName); 
+  label.setAttribute('for', capabilityName);
   document.querySelector('#controls').appendChild(select);
   document.querySelector('#controls').appendChild(label);
   document.querySelector('#controls').appendChild(document.createElement('br'));
@@ -276,6 +284,7 @@ document.querySelector('#getSupportedConstraints').addEventListener('click', get
 document.querySelector('#getCapabilities').addEventListener('click', getCapabilities);
 document.querySelector('#getSettings').addEventListener('click', getSettings);
 document.querySelector('#getPhotoCapabilities').addEventListener('click', getPhotoCapabilities);
+document.querySelector('#getPhotoSettings').addEventListener('click', getPhotoSettings);
 document.querySelector('#grabFrameButton').addEventListener('click', grabFrame);
 document.querySelector('#takePhotoButton').addEventListener('click', takePhoto);
 document.querySelector('#grabFrameAndTakePhotoButton').addEventListener('click', grabFrameAndTakePhoto);
@@ -329,6 +338,18 @@ function getPhotoCapabilities() {
   });
 }
 
+function getPhotoSettings() {
+  imageCapture.getPhotoSettings()
+  .then(photoSettings => {
+    let pre = document.createElement('pre');
+    pre.innerText += JSON.stringify(photoSettings, 0, 2);
+    document.querySelector('#shots').appendChild(pre);
+  })
+  .catch(error => {
+    console.log(error);
+  });
+}
+
 function grabFrame() {
   return imageCapture.grabFrame()
   .then(imageBitmap => appendCanvas(imageBitmap))
@@ -338,7 +359,7 @@ function grabFrame() {
 }
 
 function takePhoto() {
-  var settings = photoSettings;
+  const settings = takePhotoSettings;
   return imageCapture.takePhoto(settings)
   .then(blob => createImageBitmap(blob))
   .then(imageBitmap => appendCanvas(imageBitmap, settings))
@@ -357,7 +378,7 @@ function appendCanvas(imageBitmap, options) {
   canvas.width = imageBitmap.width;
   canvas.height = imageBitmap.height;
   canvas.style.height = '180';
-  
+
   let context = canvas.getContext('2d');
   context.drawImage(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height);
   context.font = canvas.height / 12 + 'px Cousine';
