@@ -3,8 +3,9 @@
   <style> body { margin: 0 auto; } pre { padding: 8px; }</style>
   <video controls id="video" width="640" height="360"></video>
   <br/>
-  <button id="setButton">setLiveSeekableRange(40,42)</button>
-  <button id="clearButton">clearLiveSeekableRange()</button>
+  <button id="setButton">mediaSource.setLiveSeekableRange(40, 42)</button>
+  <button id="clearButton">mediaSource.clearLiveSeekableRange()</button>
+  <button id="removeButton">sourceBuffer.remove(3, 6)</button>
   <pre id="pre"></pre>
   <script>
 
@@ -46,7 +47,7 @@
 
   setButton.addEventListener('click', function() {
     log('');
-    log('User clicked "setLiveSeekableRange(40, 42)" button');
+    log('User clicked "mediaSource.setLiveSeekableRange(40, 42)" button');
     mediaSource.setLiveSeekableRange(40, 42);
     logSeekableRanges();
   });
@@ -58,6 +59,15 @@
     logSeekableRanges();
   });
 
+  removeButton.addEventListener('click', function() {
+    log('');
+    log('User clicked "sourceBuffer.remove(3, 6)" button');
+    mediaSource.sourceBuffers[0].remove(3, 6);
+    mediaSource.sourceBuffers[0].addEventListener('updateend', function() {
+      logSeekableRanges();
+    }, { once: true });
+  });
+
 /* util */
 
 function log(text) {
@@ -65,10 +75,11 @@ function log(text) {
 }
 
 function logSeekableRanges() {
-  if (video.seekable.length == 0) {
-    return;
-  }
+  //if (video.seekable.length == 0) {
+  //  return;
+  //}
   log(`> Seekable time ranges are ${timeRangesToString(video.seekable)}.`);
+  log(`> Buffered time ranges are ${timeRangesToString(video.buffered)}.`);
 }
 
 
