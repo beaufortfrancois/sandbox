@@ -1,0 +1,23 @@
+<style>
+  video {
+    background: grey;
+    max-width: 100%;
+  }
+</style>
+<h1 id="log"></h1>
+<video id="video" controls>
+  <source type="video/webm; codecs=vp9,vorbis"
+      src="https://storage.googleapis.com/media.webmproject.org/devsite/vp9/bitrate-modeling/output/CBR_500_realtime_speed_8_120s_tears_of_steel_1080p.webm">
+  <source type="video/webm; codecs=vp8,vorbis"
+      src="https://storage.googleapis.com/webfundamentals-assets/videos/chrome.webm">
+  <source type="video/mp4"
+      src="https://storage.googleapis.com/webfundamentals-assets/videos/chrome.mp4">
+  <p>This browser does not support the video element.</p>
+</video>
+<script>
+  video.addEventListener('loadeddata', function() {
+    var source = document.querySelector('[src="'+video.currentSrc+'"]');
+    log.textContent = source.type;
+  });
+</script>
+
