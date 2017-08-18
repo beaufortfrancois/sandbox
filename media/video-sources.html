@@ -15,6 +15,8 @@
   <p>This browser does not support the video element.</p>
 </video>
 <script>
+  video.load();
+  video.play();
   video.addEventListener('loadeddata', function() {
     var source = document.querySelector('[src="'+video.currentSrc+'"]');
     if ('type' in source) {
