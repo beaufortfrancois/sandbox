@@ -1,0 +1,42 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<video id="video" controls style="height: 300px"></video>
+<pre id="time"></pre>
+<script>
+var t0, t1;
+
+t0 = performance.now();
+const mediaSource = new MediaSource();
+t1 = performance.now();
+log(t0, t1, 'new MediaSource');
+video.src = URL.createObjectURL(mediaSource);
+
+t0 = performance.now();
+mediaSource.addEventListener('sourceopen', function() {
+  t1 = performance.now();
+  log(t0, t1, 'sourceopen     ');
+  URL.revokeObjectURL(video.src);
+
+  t0 = performance.now();
+  const sourceBuffer = mediaSource.addSourceBuffer('video/mp4;codecs="avc1.4D4001,mp4a.40.2"');
+  t1 = performance.now();
+  log(t0, t1, 'addSourceBuffer');
+
+  fetch('https://storage.googleapis.com/media-session/bear-1280x720-av_frag.mp4')
+  .then(response => response.arrayBuffer())
+  .then(data => {
+    t0 = performance.now();
+    sourceBuffer.appendBuffer(data);
+    sourceBuffer.addEventListener('updateend', function() {
+      t1 = performance.now();
+      log(t0, t1, 'appendBuffer   ');
+      if (!sourceBuffer.updating && mediaSource.readyState === 'open') {
+        mediaSource.endOfStream();
+      }
+    });
+  });
+});
+
+function log(t0, t1, text) {
+  time.textContent += text + ': ' + (t1 - t0).toFixed(2) + ' ms\n';
+}
+</script>
