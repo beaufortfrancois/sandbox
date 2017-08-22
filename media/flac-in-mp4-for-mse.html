@@ -1,0 +1,46 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<audio id="audio" controls></audio>
+<pre id="time"></pre>
+<script>
+if (!MediaSource.isTypeSupported('audio/mp4; codecs="flac"')) {
+  time.textContent = 'FLAC in ISO-BMFF with MSE is not supported on this platform.\n\n';
+}
+
+var t0, t1;
+
+t0 = performance.now();
+const mediaSource = new MediaSource();
+t1 = performance.now();
+log(t0, t1, 'new MediaSource');
+audio.src = URL.createObjectURL(mediaSource);
+
+t0 = performance.now();
+mediaSource.addEventListener('sourceopen', function() {
+  t1 = performance.now();
+  log(t0, t1, 'sourceopen     ');
+  URL.revokeObjectURL(audio.src);
+
+  t0 = performance.now();
+  const sourceBuffer = mediaSource.addSourceBuffer('audio/mp4; codecs="flac"');
+  t1 = performance.now();
+  log(t0, t1, 'addSourceBuffer');
+
+  fetch('https://storage.googleapis.com/media-session/flac.mp4')
+  .then(response => response.arrayBuffer())
+  .then(data => {
+    t0 = performance.now();
+    sourceBuffer.appendBuffer(data);
+    sourceBuffer.addEventListener('updateend', function() {
+      t1 = performance.now();
+      log(t0, t1, 'appendBuffer   ');
+      if (!sourceBuffer.updating && mediaSource.readyState === 'open') {
+        mediaSource.endOfStream();
+      }
+    });
+  });
+});
+
+function log(t0, t1, text) {
+  time.textContent += text + ': ' + (t1 - t0).toFixed(2) + ' ms\n';
+}
+</script>
