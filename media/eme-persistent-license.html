@@ -1,0 +1,49 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<body>
+<video id="video" controls autoplay src="TODO" width="100%"></video>  
+<script>
+const configuration = [
+  {
+    persistentState: 'required',
+    sessionTypes: ['persistent-license'],
+    videoCapabilities: [
+      { contentType: 'video/webm; codecs="vp9"' }
+    ]
+  }
+];
+
+(async function() {
+  const mediaKeySystemAccess = await navigator.requestMediaKeySystemAccess('com.widevine.alpha', configuration);
+  log(mediaKeySystemAccess.getConfiguration());
+
+  const mediaKeys = await mediaKeySystemAccess.createMediaKeys();
+  await video.setMediaKeys(mediaKeys);
+})();
+  
+video.addEventListener('encrypted', function(event) {  
+  const session = video.mediaKeys.createSession('persistent-license');
+  
+  session.generateRequest(event.initDataType, event.initData);
+  session.addEventListener('message', function(event) {
+    console.log(event.message);
+
+    var request = JSON.parse(new TextDecoder().decode(event.message));
+    console.log(request);
+
+    //TODO: Get license from the server by sending event.message
+    var license = new Uint8Array([1, 2, 3]);
+    session.update(license);
+  });
+});
+
+video.addEventListener('waitingforkey', function() {
+  log('waitingforkey');
+});
+ 
+function log(s) {
+  const pre = document.createElement('pre');
+  pre.textContent = JSON.stringify(s, 0, 2);
+  document.body.appendChild(pre);
+}
+</script>
+</body>
