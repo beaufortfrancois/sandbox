@@ -1,0 +1,99 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<video id="video" autoplay controls style="height: 300px"></video>
+<pre id="time"></pre>
+<script>
+const mediaSource = new MediaSource();
+video.src = URL.createObjectURL(mediaSource);
+
+video.addEventListener('error', function() {
+  log(video.error.message);
+});
+
+var size = 0;
+var s;
+
+mediaSource.addEventListener('sourceopen', function() {
+  URL.revokeObjectURL(video.src);
+
+  //mediaSource.duration = 3600 * 24 * 100000;
+
+  const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
+  sourceBuffer.mode = 'sequence';
+  s = sourceBuffer;
+
+  sourceBuffer.addEventListener('abort', function() {
+    console.count('abort');
+  });
+  sourceBuffer.addEventListener('error', function() {
+    console.count('error');
+  });
+  sourceBuffer.addEventListener('updatestart', function() {
+    console.count('updatestart');
+  });
+  sourceBuffer.addEventListener('update', function() {
+    console.count('update');
+  });
+  sourceBuffer.addEventListener('updateend', function() {
+    console.count('updateend');
+    log();
+  });
+
+  Promise.resolve()
+  .then(_ => fetch('https://storage.googleapis.com/fbeaufort-test/sample_bytes=0-299.webm'))
+  .then(response => response.arrayBuffer())
+  .then(data => {
+     return new Promise((resolve, reject) => {
+       sourceBuffer.appendBuffer(data);
+       sourceBuffer.addEventListener('updateend', function() {
+         size += data.byteLength;
+         resolve();
+       });
+     });
+  })
+  .then(_ => fetch('https://storage.googleapis.com/fbeaufort-test/sample_bytes=300-2506.webm'))
+  .then(response => response.arrayBuffer())
+  .then(data => {
+     return new Promise((resolve, reject) => {
+       sourceBuffer.appendBuffer(data);
+       sourceBuffer.addEventListener('updateend', function() {
+         size += data.byteLength;
+         resolve();
+       });
+     });
+  })
+  .then(_ => fetch('https://storage.googleapis.com/fbeaufort-test/sample_bytes=2507-567139.webm'))
+  .then(response => response.arrayBuffer())
+  .then(data => {
+
+    (function appendSomeData() {
+      try {
+        sourceBuffer.appendBuffer(data);
+        sourceBuffer.addEventListener('updateend', function() {
+          size += data.byteLength;
+          //sourceBuffer.timestampOffset += 1;
+          appendSomeData();
+        }, { once: true });
+      } catch(error) {
+        log(error);
+      }
+    })();
+
+  });
+
+});
+
+function log(text) {
+  time.textContent = 'Buffer size:    ' + (size / 1024 / 1024).toFixed(0) + ' MB\n';
+  if (video.buffered.length) {
+    time.textContent += `Buffered range: [${video.buffered.start(0)} - ${video.buffered.end(0)}) | Length: ${video.buffered.length}\n`;
+  }
+  if (video.seekable.length) {
+    time.textContent += `Seekable range: [${video.seekable.start(0)} - ${video.seekable.end(0)}) | Length: ${video.seekable.length}\n`;
+  }
+  time.textContent += 'MediaSource duration ' + mediaSource.duration + 's\n';
+  if (text) {
+    time.textContent += text;
+  }
+}
+</script>
+
