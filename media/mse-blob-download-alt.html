@@ -8,7 +8,11 @@ body {
 }
 a {
     display: block;
-    margin: 24px auto 12px auto;
+    margin: 12px auto 6px auto;
+}
+span {
+    display: inline-block;
+    margin-bottom: 6px;
 }
 video {
     width: 100%;
@@ -16,40 +20,51 @@ video {
 </style>
 <body>
   <div>
-    <a id="anchorBlob" download="videoBlob.webm">video.src = URL.createObjectURL(blob)</a>
+    <a id="anchorBlob" download="videoBlob.webm">src=URL.createObjectURL(blob)</a>
+    <span>video.duration=</span><span id="videoBlobDuration"></span>
     <video id="videoBlob" controls></video>
   </div>
   <div>
-    <a id="anchorMse" download="videoMse.webm">video.src = URL.createObjectURL(mediaSource)</a>
+    <a id="anchorMse" download="videoMse.webm">src=URL.createObjectURL(mediaSource)</a>
+    <span>video.duration=</span><span id="videoMseDuration"></span> | 
+    <span>mediaSource.duration=</span><span id="mediaSourceDuration"></span>
     <video id="videoMse" controls></video>
   </div>
 </body>
 <script>
 
-  fetch('https://storage.googleapis.com/fbeaufort-test/sample_bytes=0-567139.webm')
+  const videoUrl = 'https://storage.googleapis.com/fbeaufort-test/big-buck-bunny_trailer.webm';
+
+  fetch(videoUrl)
   .then(response => response.blob())
   .then(blob => {
     videoBlob.src = URL.createObjectURL(blob);
     anchorBlob.href = videoBlob.src;
+    videoBlob.currentTime = 5;
+    videoBlob.addEventListener('loadedmetadata', function() {
+      videoBlobDuration.textContent = videoBlob.duration;
+    });
   });
 
-  fetch('https://storage.googleapis.com/fbeaufort-test/sample_bytes=0-567139.webm')
+  fetch(videoUrl)
   .then(response => response.arrayBuffer())
   .then(data => {
     const mediaSource = new MediaSource();
     videoMse.src = URL.createObjectURL(mediaSource);
     anchorMse.href = videoMse.src;
     mediaSource.addEventListener('sourceopen', function(e) {
-      if (location.search.includes('revokeObjectURL')) {
-        URL.revokeObjectURL(videoMse.src);
-      }
-      const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
+      const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8,vorbis"');
       sourceBuffer.addEventListener('updateend', function(e) {
         if (!sourceBuffer.updating && mediaSource.readyState === 'open') {
           mediaSource.endOfStream();
         }
+        videoMse.currentTime = 5;
       });
       sourceBuffer.appendBuffer(data);
+    });
+    videoMse.addEventListener('loadedmetadata', function() {
+      videoMseDuration.textContent = videoMse.duration;
+      mediaSourceDuration.textContent = mediaSource.duration;
     });
   });
 </script>
