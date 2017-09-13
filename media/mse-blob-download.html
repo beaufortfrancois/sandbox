@@ -29,7 +29,10 @@ video {
 
   const shouldRevokeObjectUrl = location.search.includes('shouldRevokeObjectUrl');
 
-  // Record 2 seconds clip from camera.
+  const array = location.search.match(/t=([0-9]*)/);
+  const recordingTimeInSeconds = (array && array.length) ? array[1] : 2;
+
+  // Record x seconds clip from camera.
   
   let recorder;
   let chunks;
@@ -54,10 +57,9 @@ video {
       loadMseVideo();
       stream.getVideoTracks()[0].stop();
     });
-    // Stop recording after 1s.
     setTimeout(function() {
       recorder.stop();
-    }, 2000);
+    }, recordingTimeInSeconds * 1000);
   });
 
   function loadMseVideo() {
