@@ -27,6 +27,8 @@ video {
 </body>
 <script>
 
+  const shouldRevokeObjectUrl = location.search.includes('shouldRevokeObjectUrl');
+
   // Record 2 seconds clip from camera.
   
   let recorder;
@@ -64,7 +66,9 @@ video {
     anchorMse.href = videoMse.src;
     videoMse.play();
     mediaSource.addEventListener('sourceopen', function(e) {
-      URL.revokeObjectURL(videoMse.src);
+      if (shouldRevokeObjectUrl) {
+        URL.revokeObjectURL(videoMse.src);
+      }
       var mime = 'video/webm;codecs=vp9';
       var sourceBuffer = mediaSource.addSourceBuffer(mime);
       fetch(videoBlob.src)

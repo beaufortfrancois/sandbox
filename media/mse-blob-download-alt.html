@@ -33,6 +33,8 @@ video {
 </body>
 <script>
 
+  const shouldRevokeObjectUrl = location.search.includes('shouldRevokeObjectUrl');
+
   const videoUrl = 'https://storage.googleapis.com/fbeaufort-test/big-buck-bunny_trailer.webm';
 
   fetch(videoUrl)
@@ -53,6 +55,9 @@ video {
     videoMse.src = URL.createObjectURL(mediaSource);
     anchorMse.href = videoMse.src;
     mediaSource.addEventListener('sourceopen', function(e) {
+      if (shouldRevokeObjectUrl) {
+        URL.revokeObjectURL(videoMse.src);
+      }
       const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8,vorbis"');
       sourceBuffer.addEventListener('updateend', function(e) {
         if (!sourceBuffer.updating && mediaSource.readyState === 'open') {
