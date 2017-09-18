@@ -24,26 +24,33 @@ a {
     padding-right: 12px;
 }
 body > div[id] {
-    margin-top: 96px;
+    margin-top: 64px;
 }
 .result {
     display: inline-block;
     font-weight: normal;
 }
 hr {
+    margin: 0;
     border: 0px;
-    height: 48px;
+}
+h2 {
+    width: 200px;
+    display: inline-block;
+    margin-bottom: 0;
 }
 h3 {
-    text-transform: uppercase;
-    border-bottom: 1px solid;
+    cursor: default;
+    display: inline-block;
+    margin-right: 24px;
+    font-weight: normal;
 }
 h4, ul {
     width: 50%;
     display: inline-block;
-    overflow: hidden;
-    padding: 0;
-    margin: 0;
+    padding: 12px 0;
+    background: #ddd;
+    margin: 4px 0;
 }
 h4 {
     width: calc(50% - 12px);
@@ -57,6 +64,12 @@ li {
     padding: 0 24px;
     white-space: nowrap;
     font-family: monospace;
+}
+.collapsed {
+    display: none;
+}
+.selected {
+    display: block;
 }
 
   </style>
@@ -93,10 +106,15 @@ li {
   var mediaConfigurationTypes = ['file', 'media-source'];
 
   var videoConfigurationContentTypes = [
-    'video/webm; codecs=vp8,opus',
-    'video/webm; codecs=vp8,vorbis',
-    'video/webm; codecs=vp9,opus',
-    'video/webm; codecs=vp9,vorbis',
+    'video/webm; codecs=vp8', // WebM video in Webm container
+    'video/webm; codecs=vp9', // Some VP9 profile
+    'video/webm; codecs=vp09.00.10.08', // VP9, Profile 0, level 1, bit depth 8 (later fields defaulted)
+    'video/webm; codecs=vp09.01.20.08.01', // VP9, Profile 1, level 2, bit depth 8, 4:2:0 chroma subsampling colocated with (0,0) luma, (later fields defaulted)
+    'video/webm; codecs=vp09.01.20.08.01.01.01.01.00', // VP9, Profile 1, level 2, bit depth 8, 4:2:0 chroma subsampling colocated with (0,0) luma, REC709 color/transfer/matrix, luma/chroma encoded in the "legal" range.
+    'video/webm; codecs=vp09.02.10.10.01.09.16.09.01', // VP9, Profile 2, level 1, 10-bit YUV content, 4:2:0 colocated with luma (0,0) chroma subsampling, ITU-R BT.2020 primaries, ST 2084 EOTF, ITU-R BT.2020 non-constant luminance color matrix, full-range chroma/luma encoding.
+    'video/mp4; codecs=avc1.64001E', // H.264 'High' profile video
+    'video/ogg; codecs=theora', // Theora video in Ogg container
+
   ];
 
   var videoSizes = [
@@ -180,14 +198,16 @@ li {
         rootElement.id = rootElementId;
       }
 
+      if (!rootElement.querySelector('h1')) {
+        let titleElement = document.createElement('h1');
+        titleElement.textContent = options.video.contentType;
+        rootElement.appendChild(titleElement);
+      }
+
       let sizeElementClass = 's' + options.video.width + 'x' + options.video.height;
       let sizeElement = rootElement.querySelector(' .' + sizeElementClass);
       if (!sizeElement) {
-        let titleElement = document.createElement('h2');
-        titleElement.textContent = options.video.contentType;
-        rootElement.appendChild(titleElement);
-
-        sizeElement = document.createElement('h1');
+        sizeElement = document.createElement('h2');
         sizeElement.classList.add(sizeElementClass);
         sizeElement.textContent = '🖥 ' + options.video.width + 'x' + options.video.height;
         rootElement.appendChild(sizeElement);
@@ -235,8 +255,41 @@ li {
         result.classList.add('result');
         rootElement.querySelector('#' + parentId).appendChild(result);
       }
+
     });
+    // Collapse by default all results
+    for (let result of document.querySelectorAll('h3')) {
+      const fileResults = result.nextElementSibling.nextElementSibling.nextElementSibling;
+      const mediaSourceResults = fileResults.nextElementSibling;
+      const sumResult = fileResults.childElementCount + mediaSourceResults.childElementCount;
+      if (sumResult == 0) {
+        result.style.display = 'none';
+        result.nextElementSibling.style.display = 'none';
+        result.nextElementSibling.nextElementSibling.style.display = 'none';
+        fileResults.style.display = 'none';
+        mediaSourceResults.style.display = 'none';
+      } else {
+        result.addEventListener('click', toggle);
+        result.nextElementSibling.classList.add('collapsed');
+        result.nextElementSibling.nextElementSibling.classList.add('collapsed');
+        fileResults.classList.add('collapsed');
+        mediaSourceResults.classList.add('collapsed');
+      }
+      result.textContent += ` (${sumResult})`;
+    }
   });
+
+  function toggle(event) {
+    const section = event.target;
+    const fileResults = section.nextElementSibling.nextElementSibling.nextElementSibling;
+    const mediaSourceResults = fileResults.nextElementSibling;
+
+    section.classList.toggle('selected');
+    section.nextElementSibling.classList.toggle('collapsed');
+    section.nextElementSibling.nextElementSibling.classList.toggle('collapsed');
+    fileResults.classList.toggle('collapsed');
+    mediaSourceResults.classList.toggle('collapsed');
+  }
 
 </script>
 </html>
