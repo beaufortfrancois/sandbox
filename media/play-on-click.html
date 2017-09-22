@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play on click event</title>
+  <style>
+    video { background: #333; height: calc((100vw - 16px ) * 9 / 16); width: calc(100vw - 16px); max-height: 34vh; }
+    div { margin: 8px 0 }
+    pre { white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <video id="video" controls></video>
+  <div>
+    <input type="radio" name="radio" id="nothing">
+    <label for="nothing">fetch, video.play()</label>
+  </div>
+  <div>
+    <input type="radio" name="radio" id="load">
+    <label for="load">video.load(), fetch, video.play()</label>
+  </div>
+  <div>
+    <input type="radio" name="radio" id="play">
+    <label for="play">video.play(), fetch</label>
+  </div>
+  <div>
+    <input type="radio" name="radio" id="playAfterFetch">
+    <label for="playAfterFetch">video.play(), fetch, video.play()</label>
+  </div>
+  <div>
+    <button id="button">click</button>
+  </div>
+  <pre id="pre">
+  </pre>
+</body>
+<script>
+  video.addEventListener('canplay', logEvent);
+  video.addEventListener('canplaythrough', logEvent);
+  video.addEventListener('durationchange', logEvent);
+  video.addEventListener('emptied', logEvent);
+  video.addEventListener('loadeddata', logEvent);
+  video.addEventListener('loadedmetadata', logEvent);
+  video.addEventListener('play', logEvent);
+  video.addEventListener('playing', logEvent);
+  video.addEventListener('timeupdate', logEvent);
+  video.addEventListener('pause', logEvent);
+  video.addEventListener('waiting', logEvent);
+
+  const mediaSource = new MediaSource();
+
+  button.addEventListener('click', function() {
+    if (load.checked) {
+      loadVideo();
+    } else if (play.checked || playAfterFetch.checked) {
+      playVideo();
+    }
+
+    video.src = URL.createObjectURL(mediaSource);
+
+    mediaSource.addEventListener('sourceopen', e => {
+      URL.revokeObjectURL(video.src);
+
+      mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
+
+      fetchAndAppendSegment('bytes=0-299');
+    }, { once: true });
+
+  });
+
+
+/* Utils */
+
+function logEvent(event) {
+  log(event.target.toString() + ' - ' + event.type);
+}
+
+function log(text) {
+  pre.textContent += text + '\r\n';
+}
+
+function loadVideo() {
+  log('video.load()');
+  video.load();
+}
+
+function playVideo() {
+  log('video.play()');
+  video.play()
+  .then(_ => { log('> video.play() promise succeeded!'); })
+  .catch(e => { log('> ' + e); });
+}
+
+function fetchAndAppendSegment(range) {
+  const videoUrl = 'https://storage.googleapis.com/media-session/sample.webm';
+  const sourceBuffer = mediaSource.sourceBuffers[0];
+
+  log('Fetching data...', range);
+  fetch(videoUrl, { headers: { range } })
+  .then(response => response.arrayBuffer())
+  .then(data => {
+    sourceBuffer.appendBuffer(data);
+    sourceBuffer.addEventListener('updateend', e => {
+      logEvent(e);
+        if (range == 'bytes=0-299') {
+          setTimeout(_ => {
+            // Fetch segment in 1s.
+            fetchAndAppendSegment('bytes=300-567140'); // 3s
+          }, 1000);
+        } else if (range.startsWith('bytes=300') && !play.checked) {
+          setTimeout(_ => {
+            // Play video in 1s.
+            playVideo();
+          }, 1000);
+        }
+    }, { once: true });
+  });
+}
+
+  
+</script>
+</html>
