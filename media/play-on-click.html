@@ -2,9 +2,9 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Play on click event</title>
+  <title>Play or load on click event</title>
   <style>
-    video { background: #333; height: calc((100vw - 16px ) * 9 / 16); width: calc(100vw - 16px); max-height: 34vh; }
+    video { background: #333; height: calc((100vw - 16px ) * 9 / 16); width: calc(100vw - 16px); max-height: 34vh; max-width: 640px; }
     div { margin: 8px 0 }
     pre { white-space: pre-line; }
   </style>
@@ -60,9 +60,9 @@
     mediaSource.addEventListener('sourceopen', e => {
       URL.revokeObjectURL(video.src);
 
-      mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
+      mediaSource.addSourceBuffer('video/mp4; codecs="avc1.4d401f"');
 
-      fetchAndAppendSegment('bytes=0-299');
+      fetchAndAppendSegment('bytes=0-811');
     }, { once: true });
 
   });
@@ -91,7 +91,7 @@ function playVideo() {
 }
 
 function fetchAndAppendSegment(range) {
-  const videoUrl = 'https://storage.googleapis.com/media-session/sample.webm';
+  const videoUrl = 'https://storage.googleapis.com/fbeaufort-test/sample.mp4';
   const sourceBuffer = mediaSource.sourceBuffers[0];
 
   log('Fetching data...', range);
@@ -101,12 +101,12 @@ function fetchAndAppendSegment(range) {
     sourceBuffer.appendBuffer(data);
     sourceBuffer.addEventListener('updateend', e => {
       logEvent(e);
-        if (range == 'bytes=0-299') {
+        if (range == 'bytes=0-811') {
           setTimeout(_ => {
             // Fetch segment in 1s.
-            fetchAndAppendSegment('bytes=300-567140'); // 3s
+            fetchAndAppendSegment('bytes=812-2060760');
           }, 1000);
-        } else if (range.startsWith('bytes=300') && !play.checked) {
+        } else if (range.startsWith('bytes=812') && !play.checked) {
           setTimeout(_ => {
             // Play video in 1s.
             playVideo();
