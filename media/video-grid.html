@@ -12,16 +12,19 @@
        }
        video {
          width: 100%;
+         background-color: #fdd045;
        }
      </style>
   </head>
   <body>
     <div id="container"></div>
     <script>
-      for (var i = 0; i < 48; i++) {
+      const array = location.search.match(/num=([0-9]*)/);
+      const num = (array && array.length) ? array[1] : 48;
+      for (var i = 0; i < num; i++) {
         const video = document.createElement('video');
-        video.autoplay = true;
-        video.muted = true;
+        video.setAttribute('autoplay', true);
+        video.setAttribute('muted', true);
         video.src = 'https://storage.googleapis.com/fbeaufort-test/sample.mp4';
         container.appendChild(video);
       }
