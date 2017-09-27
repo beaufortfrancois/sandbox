@@ -1,0 +1,31 @@
+<html>
+  <head>
+     <style>
+       html, body { margin: 0 }
+       #container {
+         display: grid;
+         grid-template-columns: repeat(4, 1fr);
+         grid-template-rows:    repeat(3, 1fr);
+         grid-row-gap:    2px;
+         grid-column-gap: 2px;
+         background-color: #fff;
+       }
+       video {
+         width: 100%;
+       }
+     </style>
+  </head>
+  <body>
+    <div id="container"></div>
+    <script>
+      for (var i = 0; i < 48; i++) {
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.muted = true;
+        video.src = 'https://storage.googleapis.com/fbeaufort-test/sample.mp4';
+        container.appendChild(video);
+      }
+    </script>
+  </body>
+</html>
+
