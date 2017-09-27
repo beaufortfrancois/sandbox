@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create .webm video from list of .png image files</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Product+Sans">
+  <style>
+    html, body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background: #111;
+      color: #fff;
+      font-weight: 300;
+      font-family: 'Product Sans', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.8;
+    }
+    h1 {
+      color: #4285f4;
+    }
+    main {
+      width: calc(100vw - 16px);
+    }
+    @media screen and (min-width: 640px) {
+      main {
+        width: 640px;
+      }
+    }
+    video {
+      display: block;
+      background: #222;
+      border-radius: 4px;
+      width: 100%;
+      margin: 8px 0;
+    }
+    .status {
+      text-transform: capitalize;
+    }
+    .warning {
+      background-color: red;
+      padding: 4px;
+      margin-left: 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Smart Video Preload</h1>
+    <div>Battery: <span id="batteryStatus" class="status">N/A</span></div>
+    <div>Network: <span id="networkStatus" class="status">N/A</span></div>
+    <div>Data Saver: <span id="dataSaverStatus" class="status">N/A</span></div>
+    <div>Device Memory: <span id="deviceMemoryStatus" class="status">N/A</span></div>
+    <video muted id="video"></video>
+    Status: <i id="videoStatus"></i>
+  </main>
+  <script>
+
+    const shouldFetchVideo = preloadVideoPolicy();
+
+    const mediaSource = new MediaSource();
+    video.src = URL.createObjectURL(mediaSource);
+
+    mediaSource.addEventListener('sourceopen', async _ => {
+      URL.revokeObjectURL(video.src);
+
+      mediaSource.addSourceBuffer('video/mp4; codecs="avc1.4d401f"');
+
+      if (await shouldFetchVideo) {
+        fetchVideoAndPlay();
+      } else {
+        videoStatus.textContent = 'Video is not preloaded.';
+        video.addEventListener('play', fetchVideoAndPlay);
+        video.controls = true;
+      }
+
+    }, {once: true});
+
+    async function preloadVideoPolicy() {
+      let result = true;
+
+      if ('connection' in navigator) {
+        networkStatus.textContent = navigator.connection.type;
+        if (navigator.connection.type == 'cellular') {
+          networkStatus.classList.add('warning');
+          result = false;
+        }
+      }
+
+      if ('getBattery' in navigator) {
+        const battery = await navigator.getBattery();
+        batteryStatus.textContent = (battery.charging ? 'Charging' : (battery.level * 100 + '%'));
+        if (!battery.charging && battery.level < 0.15) {
+          batteryStatus.classList.add('warning');
+          result = false;
+        }
+      }
+
+      const fakeVideo = document.createElement('video');
+      fakeVideo.preload = 'auto';
+      dataSaverStatus.textContent = (fakeVideo.preload === 'none' ? 'ON' : 'OFF');
+      if (fakeVideo.preload === 'none') {
+        dataSaverStatus.classList.add('warning');
+        result = false;
+      }
+
+      if ('deviceMemory' in navigator) {
+        deviceMemoryStatus.textContent = navigator.deviceMemory + 'GiB';
+        if (navigator.deviceMemory < 1) {
+          deviceMemoryStatus.classList.add('warning');
+          result = false;
+        }
+      }
+
+      return result;
+    }
+
+    async function fetchVideoAndPlay() {
+      videoStatus.textContent = 'Fetching...';
+      const response = await fetch('https://storage.googleapis.com/fbeaufort-test/sample.mp4', { headers: { range: 'bytes=0-2060760' } });
+      const data = await response.arrayBuffer();
+
+      const sourceBuffer = mediaSource.sourceBuffers[0];
+      sourceBuffer.appendBuffer(data);
+      sourceBuffer.addEventListener('updateend', async _ => {
+        try {
+          await video.play();
+          videoStatus.textContent = 'Playing beginning of a muted video...';
+        } catch(e) {
+          videoStatus.textContent = e;
+        }
+      }, { once: true });
+    }
+  </script>
+</body>
+</html>
