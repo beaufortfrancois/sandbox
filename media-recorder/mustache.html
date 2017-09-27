@@ -125,6 +125,14 @@
 </div>
 <pre id="log"></pre>
 <script>
+if (!('FaceDetector' in window)) {
+  FaceDetector = function() {
+    console.log('Fake Face Detector used...');
+    return {
+      detect: async function() { return [] }
+    }
+  }
+}
 const faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
 
 let faces = [];
