@@ -92,7 +92,7 @@
 
       if ('getBattery' in navigator) {
         const battery = await navigator.getBattery();
-        batteryStatus.textContent = (battery.charging ? 'Charging' : (battery.level * 100 + '%'));
+        batteryStatus.textContent = (battery.charging ? 'Charging' : (Math.round(battery.level * 100) + '%'));
         if (!battery.charging && battery.level < 0.15) {
           batteryStatus.classList.add('warning');
           result = false;
