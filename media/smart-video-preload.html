@@ -47,6 +47,7 @@
 <body>
   <main>
     <h1>Smart Video Preload 🐤</h1>
+    <div>Poster: <span id="posterStatus" class="status">N/A</span></div>
     <div>Battery: <span id="batteryStatus" class="status">N/A</span></div>
     <div>Network: <span id="networkStatus" class="status">N/A</span></div>
     <div>Data Saver: <span id="dataSaverStatus" class="status">N/A</span></div>
@@ -55,6 +56,11 @@
     Status: <i id="videoStatus"></i>
   </main>
   <script>
+
+    const url = new URL(location);
+    if (url.searchParams.has('poster')) {
+      video.poster = 'https://placebear.com/640/360';
+    }
 
     const shouldFetchVideo = preloadVideoPolicy();
 
@@ -78,6 +84,12 @@
 
     async function preloadVideoPolicy() {
       let result = true;
+
+      posterStatus.textContent = video.hasAttribute('poster') ? 'YES': 'NO';
+      if (video.hasAttribute('poster')) {
+        posterStatus.classList.add('warning');
+        result = false;
+      }
 
       if ('connection' in navigator) {
         networkStatus.textContent = navigator.connection.type;
