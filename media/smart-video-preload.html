@@ -77,7 +77,7 @@
         fetchVideoAndPlay();
       } else {
         videoStatus.textContent = 'Video is not preloaded.';
-        video.addEventListener('play', fetchVideoAndPlay);
+        video.addEventListener('play', fetchVideoAndPlay, {once: true});
         video.controls = true;
       }
 
