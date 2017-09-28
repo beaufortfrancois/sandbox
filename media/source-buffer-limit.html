@@ -1,21 +1,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <video id="video" autoplay controls style="height: 300px"></video>
-<pre id="time"></pre>
+<pre id="time" style="white-space: pre-wrap;"></pre>
 <script>
 const mediaSource = new MediaSource();
 video.src = URL.createObjectURL(mediaSource);
 
 video.addEventListener('error', function() {
-  log(video.error.message);
+  time.textContent += '\nvideo.error.message = ' + video.error.message;
 });
 
 var size = 0;
 var s;
 
 mediaSource.addEventListener('sourceopen', function() {
+  mediaSource.duration = +Infinity;
   URL.revokeObjectURL(video.src);
-
-  //mediaSource.duration = 3600 * 24 * 100000;
 
   const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
   sourceBuffer.mode = 'sequence';
@@ -65,34 +64,42 @@ mediaSource.addEventListener('sourceopen', function() {
   .then(response => response.arrayBuffer())
   .then(data => {
 
-    (function appendSomeData() {
+    (function appendSomeData(percent) {
       try {
-        sourceBuffer.appendBuffer(data);
+        var byteLength = (percent === 100) ? data.byteLength : Math.round(data.byteLength * percent / 100);
+        sourceBuffer.appendBuffer(data.slice(0, byteLength));
         sourceBuffer.addEventListener('updateend', function() {
-          size += data.byteLength;
-          //sourceBuffer.timestampOffset += 1;
-          appendSomeData();
+          size += byteLength;
+          appendSomeData(percent);
         }, { once: true });
       } catch(error) {
-        log(error);
+        console.debug(percent, byteLength, error.name);
+        if (error.name !== 'QuotaExceededError') {
+          log(error);
+          return;
+        }
+        if (percent <= 5) {
+          log(error);
+          return;
+        }
+        appendSomeData(percent - 5);
       }
-    })();
+    })(100);
 
   });
 
-});
+}, {once: true});
 
 function log(text) {
-  time.textContent = 'Buffer size:    ' + (size / 1024 / 1024).toFixed(0) + ' MB\n';
+  time.textContent = 'Buffer size:    ' + (size / 1024 / 1024).toFixed(2) + ' MB\n';
   if (video.buffered.length) {
     time.textContent += `Buffered range: [${video.buffered.start(0)} - ${video.buffered.end(0)}) | Length: ${video.buffered.length}\n`;
   }
   if (video.seekable.length) {
     time.textContent += `Seekable range: [${video.seekable.start(0)} - ${video.seekable.end(0)}) | Length: ${video.seekable.length}\n`;
   }
-  time.textContent += 'MediaSource duration ' + mediaSource.duration + 's\n';
   if (text) {
-    time.textContent += text;
+    time.textContent += '\n' + text;
   }
 }
 </script>
