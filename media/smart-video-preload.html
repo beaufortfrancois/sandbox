@@ -70,6 +70,7 @@
     mediaSource.addEventListener('sourceopen', async _ => {
       URL.revokeObjectURL(video.src);
 
+      mediaSource.duration = 5.932733;
       mediaSource.addSourceBuffer('video/mp4; codecs="avc1.4d401f"');
 
       if (await shouldFetchVideo) {
@@ -137,7 +138,7 @@
       sourceBuffer.addEventListener('updateend', async _ => {
         try {
           await video.play();
-          videoStatus.textContent = 'Playing beginning of a muted video...';
+          videoStatus.textContent = 'Playing muted video...';
         } catch(e) {
           videoStatus.textContent = e;
         }
