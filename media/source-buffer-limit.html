@@ -13,7 +13,7 @@ var size = 0;
 var s;
 
 mediaSource.addEventListener('sourceopen', function() {
-  mediaSource.duration = +Infinity;
+  //mediaSource.duration = +Infinity;
   URL.revokeObjectURL(video.src);
 
   const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.4d401f"');
