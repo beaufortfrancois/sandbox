@@ -16,7 +16,7 @@ mediaSource.addEventListener('sourceopen', function() {
   mediaSource.duration = +Infinity;
   URL.revokeObjectURL(video.src);
 
-  const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp9"');
+  const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.4d401f"');
   sourceBuffer.mode = 'sequence';
   s = sourceBuffer;
 
@@ -38,7 +38,7 @@ mediaSource.addEventListener('sourceopen', function() {
   });
 
   Promise.resolve()
-  .then(_ => fetch('https://storage.googleapis.com/fbeaufort-test/sample_bytes=0-299.webm'))
+  .then(_ => fetch('https://storage.googleapis.com/fbeaufort-test/sample.mp4', { headers: { range: 'bytes=0-2343' }}))
   .then(response => response.arrayBuffer())
   .then(data => {
      return new Promise((resolve, reject) => {
@@ -49,18 +49,7 @@ mediaSource.addEventListener('sourceopen', function() {
        });
      });
   })
-  .then(_ => fetch('https://storage.googleapis.com/fbeaufort-test/sample_bytes=300-2506.webm'))
-  .then(response => response.arrayBuffer())
-  .then(data => {
-     return new Promise((resolve, reject) => {
-       sourceBuffer.appendBuffer(data);
-       sourceBuffer.addEventListener('updateend', function() {
-         size += data.byteLength;
-         resolve();
-       });
-     });
-  })
-  .then(_ => fetch('https://storage.googleapis.com/fbeaufort-test/sample_bytes=2507-567139.webm'))
+  .then(_ => fetch('https://storage.googleapis.com/fbeaufort-test/sample.mp4', { headers: { range: 'bytes=2344-939299' }}))
   .then(response => response.arrayBuffer())
   .then(data => {
 
