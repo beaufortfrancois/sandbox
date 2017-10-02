@@ -52,6 +52,7 @@
     <div>Network: <span id="networkStatus" class="status">N/A</span></div>
     <div>Data Saver: <span id="dataSaverStatus" class="status">N/A</span></div>
     <div>Device Memory: <span id="deviceMemoryStatus" class="status">N/A</span></div>
+    <div>Available Storage: <span id="storageStatus" class="status">N/A</span></div>
     <video muted id="video"></video>
     Status: <i id="videoStatus"></i>
   </main>
@@ -118,9 +119,18 @@
       }
 
       if ('deviceMemory' in navigator) {
-        deviceMemoryStatus.textContent = navigator.deviceMemory + 'GiB';
+        deviceMemoryStatus.textContent = navigator.deviceMemory + ' GiB';
         if (navigator.deviceMemory < 1) {
           deviceMemoryStatus.classList.add('warning');
+          result = false;
+        }
+      }
+
+      if ('storage' in navigator) {
+        const { quota, usage } = await navigator.storage.estimate();
+        storageStatus.textContent = formatBytes(quota - usage);
+        if (quota - usage < 2060761 /* video size */) {
+          storageStatus.classList.add('warning');
           result = false;
         }
       }
@@ -143,6 +153,16 @@
           videoStatus.textContent = e;
         }
       }, { once: true });
+    }
+
+    /* Utils */
+    function formatBytes(bytes,decimals) {
+     if(bytes == 0) return '0 Bytes';
+     var k = 1024,
+       dm = decimals || 2,
+       sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+       i = Math.floor(Math.log(bytes) / Math.log(k));
+     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
   </script>
 </body>
