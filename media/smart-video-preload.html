@@ -53,7 +53,7 @@
     <div>Data Saver: <span id="dataSaverStatus" class="status">N/A</span></div>
     <div>Device Memory: <span id="deviceMemoryStatus" class="status">N/A</span></div>
     <div>Available Storage: <span id="storageStatus" class="status">N/A</span></div>
-    <video muted id="video"></video>
+    <video muted controls id="video"></video>
     Status: <i id="videoStatus"></i>
   </main>
   <script>
@@ -79,7 +79,6 @@
       } else {
         videoStatus.textContent = 'Video is not preloaded.';
         video.addEventListener('play', fetchVideoAndPlay, {once: true});
-        video.controls = true;
       }
 
     }, {once: true});
