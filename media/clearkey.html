@@ -1,6 +1,4 @@
-<video autoplay controls id="video" width="640" style="background-color: #333"></video>
-<br/>
-<br/>
+<video crossorigin autoplay controls id="video" width="640" height="360"></video>
 <select id="select">
   <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.webm">VP9 - No Clear Lead</option>
   <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.webm">VP9 - Clear Lead of 10s</option>
@@ -16,7 +14,7 @@
 
   video.addEventListener('encrypted', function(event) {
     console.log('encrypted event:', event);
-  
+
     const session = video.mediaKeys.createSession();
     session.addEventListener('message', handleSessionMessage);
 
