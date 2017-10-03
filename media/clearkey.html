@@ -1,10 +1,10 @@
-<video crossorigin autoplay controls id="video" width="640" height="360"></video>
-<select id="select">
+<select id="select" style="display: block; margin-bottom: 8px;">
   <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.webm">VP9 - No Clear Lead</option>
   <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.webm">VP9 - Clear Lead of 10s</option>
   <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.mp4">H264 - No Clear Lead</option>
   <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.mp4">H264 - Clear Lead of 10s</option>
 </select>
+<video crossorigin autoplay controls id="video" width="640" height="360"></video>
 <script>
 
   const KEY = new Uint8Array([
