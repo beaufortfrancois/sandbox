@@ -1,10 +1,12 @@
-<select id="select" style="display: block; margin-bottom: 8px;">
+<select id="select">
   <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.webm">VP9 - No Clear Lead</option>
   <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.webm">VP9 - Clear Lead of 10s</option>
   <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.mp4">H264 - No Clear Lead</option>
   <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.mp4">H264 - Clear Lead of 10s</option>
 </select>
-<video crossorigin autoplay controls id="video" width="640" height="360"></video>
+<label for="checkbox">Use Wrong Encryption Key</label>
+<input type="checkbox" id="checkbox">
+<video crossorigin autoplay controls id="video" width="640" height="360" style="display: block; margin-top: 8px"></video>
 <script>
 
   const KEY = new Uint8Array([
@@ -64,7 +66,7 @@
           keys: [{
             kty: 'oct', /* key type */
             kid: licenseRequest.kids[0], /* base64url encoding of the octet sequence containing the key ID value */
-            k: toBase64(KEY) /* base64url encoding of the octet sequence containing the symmetric key value */
+            k: toBase64(getKey()) /* base64url encoding of the octet sequence containing the symmetric key value */
           }]
         };
         console.log('license response:', jwk);
@@ -76,6 +78,13 @@
     });
   }
 
+  function getKey() {
+    if (checkbox.checked) {
+      return new Uint8Array(16);
+    }
+    return KEY;
+  }
+
   // Convert Uint8Array into base64 using base64url alphabet, without padding.
   function toBase64(u8arr) {
     // See https://en.wikipedia.org/wiki/Base64#URL_applications
@@ -84,12 +93,20 @@
   }
 
   select.addEventListener('change', function(event) {
-    video.src = select.options[select.selectedIndex].value;
+    updateVideoSource();
   });
+
+  checkbox.addEventListener('change', function(event) {
+    updateVideoSource();
+  });
+
+  function updateVideoSource() {
+    video.src = select.options[select.selectedIndex].value;
+  }
 
   // Play first video at load.
   select.selectedIndex = 0;
-  video.src = select.options[select.selectedIndex].value;
+  updateVideoSource();
   
 </script>
 
