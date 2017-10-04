@@ -1,0 +1,7 @@
+<video autoplay controls id="video" width="640" height="360" src="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.webm"></video>
+<script>
+  video.addEventListener('encrypted', function(event) {
+    console.log('encrypted event:', event);
+  });
+</script>
+
