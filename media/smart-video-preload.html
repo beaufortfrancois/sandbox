@@ -139,7 +139,7 @@
 
     async function fetchVideoAndPlay() {
       videoStatus.textContent = 'Fetching...';
-      const response = await fetch('https://storage.googleapis.com/fbeaufort-test/sample.mp4', { headers: { range: 'bytes=0-2060760' } });
+      const response = await fetch('https://storage.googleapis.com/fbeaufort-test/sample-video.mp4', { headers: { range: 'bytes=0-2060760' } });
       const data = await response.arrayBuffer();
 
       const sourceBuffer = mediaSource.sourceBuffers[0];
