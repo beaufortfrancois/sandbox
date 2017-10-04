@@ -1,8 +1,14 @@
 <select id="select">
-  <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.webm">VP9 - No Clear Lead</option>
-  <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.webm">VP9 - Clear Lead of 10s</option>
-  <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.mp4">H264 - No Clear Lead</option>
-  <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.mp4">H264 - Clear Lead of 10s</option>
+  <optgroup label="Encrypted">
+    <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.webm">VP9 - No Clear Lead</option>
+    <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.webm">VP9 - Clear Lead of 10s</option>
+    <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.mp4">H264 - No Clear Lead</option>
+    <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.mp4">H264 - Clear Lead of 10s</option>
+  </optgroup>
+  <optgroup label="Not Encrypted">
+    <option value="https://storage.googleapis.com/fbeaufort-test/sample.mp4">H264</option>
+    <option value="https://storage.googleapis.com/fbeaufort-test/sample.webm">VP9</option>
+  </optgroup>
 </select>
 <label for="checkbox">Use Wrong Encryption Key</label>
 <input type="checkbox" id="checkbox">
