@@ -1,17 +1,25 @@
 <select id="select">
   <optgroup label="Encrypted">
-    <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.webm">VP9 - No Clear Lead</option>
-    <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.webm">VP9 - Clear Lead of 10s</option>
-    <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.mp4">H264 - No Clear Lead</option>
-    <option value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.mp4">H264 - Clear Lead of 10s</option>
-  </optgroup>
+    <option data-mime-type="video/webm; codecs=vp9" data-range="bytes=0-1196488"
+            value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.webm">VP9 - No Clear Lead</option>
+    <option data-mime-type="video/webm; codecs=vp9" data-range="bytes=0-1196488"
+            value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.webm">VP9 - Clear Lead of 3s</option>
+    <option data-mime-type="video/mp4; codecs=avc1.4d401f" data-range="bytes=0-2060760"
+            value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.mp4">H264 - No Clear Lead</option>
+    <option data-mime-type="video/mp4; codecs=avc1.4d401f" data-range="bytes=0-2060760"
+            value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.mp4">H264 - Clear Lead of 3s</option>
+  </optgroupdata=mime-type="" >
   <optgroup label="Not Encrypted">
-    <option value="https://storage.googleapis.com/fbeaufort-test/sample-video.webm">VP9</option>
-    <option value="https://storage.googleapis.com/fbeaufort-test/sample-video.mp4">H264</option>
+    <option data-mime-type="video/webm; codecs=vp9" data-range="bytes=0-1196488"
+            value="https://storage.googleapis.com/fbeaufort-test/sample-video.webm">VP9</option>
+    <option data-mime-type="video/mp4; codecs=avc1.4d401f" data-range="bytes=0-2060760"
+            value="https://storage.googleapis.com/fbeaufort-test/sample-video.mp4">H264</option>
   </optgroup>
 </select>
-<label for="checkbox">Use Wrong Encryption Key</label>
-<input type="checkbox" id="checkbox">
+<label for="keyCheckbox">Use Wrong Encryption Key</label>
+<input type="checkbox" id="keyCheckbox">
+<label for="mseCheckbox">Use MSE</label>
+<input type="checkbox" id="mseCheckbox">
 <video crossorigin autoplay controls id="video" width="640" height="360" style="display: block; margin-top: 8px"></video>
 <script>
 
@@ -48,7 +56,7 @@
   async function handleSessionMessage(event) {
     console.log('message event: ', event);
 
-    const license = await fetch('fake-license.html', { body: event.message });
+    const license = await fetchLicense('license-server.html', { body: event.message });
 
     const session = event.target;
     await session.update(license);
@@ -59,7 +67,7 @@
   /* Utils */
   
   // This takes the place of a license server.
-  async function fetch(fakeUrl, init) {
+  async function fetchLicense(fakeUrl, init) {
     return new Promise((resolve, reject) => { setTimeout(_ => {
 
         // Parse the clearkey license request.
@@ -85,7 +93,7 @@
   }
 
   function getKey() {
-    if (checkbox.checked) {
+    if (keyCheckbox.checked) {
       return new Uint8Array(16);
     }
     return KEY;
@@ -98,16 +106,33 @@
       replace(/\+/g, '-').replace(/\//g, '_').replace(/=*$/, '');
   }
 
-  select.addEventListener('change', function(event) {
-    updateVideoSource();
-  });
-
-  checkbox.addEventListener('change', function(event) {
-    updateVideoSource();
-  });
+  select.addEventListener('change', updateVideoSource);
+  keyCheckbox.addEventListener('change', updateVideoSource);
+  mseCheckbox.addEventListener('change', updateVideoSource);
 
   function updateVideoSource() {
-    video.src = select.options[select.selectedIndex].value;
+    if (mseCheckbox.checked) {
+      const mediaSource = new MediaSource();
+      video.src = URL.createObjectURL(mediaSource);
+      mediaSource.addEventListener('sourceopen', async function() {
+        URL.revokeObjectURL(video.src);
+        const mimeType = select.options[select.selectedIndex].dataset.mimeType;
+        const sourceBuffer = mediaSource.addSourceBuffer(mimeType);
+        const url = select.options[select.selectedIndex].value;
+        const range = select.options[select.selectedIndex].dataset.range;
+        const response = await fetch(url, { headers: { range }});
+        const data = await response.arrayBuffer();
+        sourceBuffer.appendBuffer(data);
+        sourceBuffer.addEventListener('updateend', function(e) {
+          if (!sourceBuffer.updating && mediaSource.readyState === 'open') {
+            mediaSource.endOfStream();
+          }
+          video.play();
+        });
+      });
+    } else {
+      video.src = select.options[select.selectedIndex].value;
+    }
   }
 
   // Play first video at load.
