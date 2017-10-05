@@ -118,15 +118,27 @@
         const sourceBuffer = mediaSource.addSourceBuffer(mimeType);
         const url = select.options[select.selectedIndex].value;
         const range = select.options[select.selectedIndex].dataset.range;
+        console.log('Fetching...', url);
         const response = await fetch(url, { headers: { range }});
         const data = await response.arrayBuffer();
-        sourceBuffer.appendBuffer(data);
+        console.log('Fetched', data);
+        sourceBuffer.addEventListener('updatestart', function(e) {
+          console.log('updatestart', e);
+        });
+        sourceBuffer.addEventListener('error', function(e) {
+          console.log('error', e);
+        });
+        sourceBuffer.addEventListener('abort', function(e) {
+          console.log('abort', e);
+        });
         sourceBuffer.addEventListener('updateend', function(e) {
           if (!sourceBuffer.updating && mediaSource.readyState === 'open') {
             mediaSource.endOfStream();
           }
           video.play();
         });
+        console.log('Append Buffer', data);
+        sourceBuffer.appendBuffer(data);
       });
     } else {
       video.src = select.options[select.selectedIndex].value;
