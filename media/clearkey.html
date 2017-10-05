@@ -2,12 +2,12 @@
   <optgroup label="Encrypted">
     <option data-mime-type="video/webm; codecs=vp9" data-range="bytes=0-1196488"
             value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.webm">VP9 - No Clear Lead</option>
-    <option data-mime-type="video/webm; codecs=vp9" data-range="bytes=0-1196488"
-            value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.webm">VP9 - Clear Lead of 3s</option>
+    <option data-mime-type="video/webm; codecs=vp9" data-range="bytes=0-3600000"
+            value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.webm">VP9 - Clear Lead of 10s</option>
     <option data-mime-type="video/mp4; codecs=avc1.4d401f" data-range="bytes=0-2060760"
             value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-no-clear-lead.mp4">H264 - No Clear Lead</option>
-    <option data-mime-type="video/mp4; codecs=avc1.4d401f" data-range="bytes=0-2060760"
-            value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.mp4">H264 - Clear Lead of 3s</option>
+    <option data-mime-type="video/mp4; codecs=avc1.4d401f" data-range="bytes=0-60000000"
+            value="https://storage.googleapis.com/fbeaufort-test/sample-video-encrypted-with-clear-lead.mp4">H264 - Clear Lead of 10s</option>
   </optgroupdata=mime-type="" >
   <optgroup label="Not Encrypted">
     <option data-mime-type="video/webm; codecs=vp9" data-range="bytes=0-1196488"
@@ -16,11 +16,12 @@
             value="https://storage.googleapis.com/fbeaufort-test/sample-video.mp4">H264</option>
   </optgroup>
 </select>
-<label for="keyCheckbox">Use Wrong Encryption Key</label>
+<label for="keyCheckbox">Wrong Encryption Key</label>
 <input type="checkbox" id="keyCheckbox">
-<label for="mseCheckbox">Use MSE</label>
+<label for="mseCheckbox">MSE</label>
 <input type="checkbox" id="mseCheckbox">
-<video crossorigin autoplay controls id="video" width="640" height="360" style="display: block; margin-top: 8px"></video>
+<button id="loadButton">Load & Play</button>
+<video muted crossorigin controls id="video" width="640" height="360" style="display: block; margin-top: 8px"></video>
 <script>
 
   const KEY = new Uint8Array([
@@ -106,11 +107,8 @@
       replace(/\+/g, '-').replace(/\//g, '_').replace(/=*$/, '');
   }
 
-  select.addEventListener('change', updateVideoSource);
-  keyCheckbox.addEventListener('change', updateVideoSource);
-  mseCheckbox.addEventListener('change', updateVideoSource);
-
-  function updateVideoSource() {
+  loadButton.addEventListener('click', function() {
+    video.src = '';
     if (mseCheckbox.checked) {
       const mediaSource = new MediaSource();
       video.src = URL.createObjectURL(mediaSource);
@@ -132,12 +130,17 @@
       });
     } else {
       video.src = select.options[select.selectedIndex].value;
+      video.play();
     }
-  }
+  });
 
-  // Play first video at load.
-  select.selectedIndex = 0;
-  updateVideoSource();
-  
 </script>
-
+<style>
+  select, input {
+    margin-right: 24px;
+  }
+  video {
+    display: block;
+    margin-top: 8px;
+  }
+</style>
