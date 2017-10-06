@@ -1,26 +1,23 @@
 <html>
   <meta name="viewport" content="width=device-width">
-  <style> body { margin: 0 auto; } pre { padding: 8px } </style>
-  <link rel="preload" as="video" href="https://storage.googleapis.com/fbeaufort-test/sample-video.webm"
-    crossorigin onload="preloadFinished()" onerror="preloadError()">
+  <link rel="preload" as="video" href="https://storage.googleapis.com/fbeaufort-test/sample_bytes%3D0-567139.webm"
+    onload="preloadFinished()" onerror="preloadError()">
   <video controls id="video" width="640" height="360"></video>
-  <pre id="pre"></pre>
   <script>
 
 function preloadFinished() {
-  log('Preload finished from link rel="preload"');
+  console.log('Preload finished from link rel="preload"');
+  console.log('Set video.src to ' + document.querySelector('link').href);
   video.src = document.querySelector('link').href;
 }
 
 function preloadError() {
-  log('Preload errored from link rel="preload"');
+  console.log('Preload errored from link rel="preload"');
   video.src = document.querySelector('link').href;
 }
 
-/* util */
-
-function log(text) {
-  pre.textContent += text + '\r\n';
+window.onload = function() {
+  console.log('onload');
 }
 
   </script>
