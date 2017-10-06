@@ -53,6 +53,11 @@ mediaSource.addEventListener('sourceopen', function() {
   .then(response => response.arrayBuffer())
   .then(data => {
 
+    const url = new URL(location);
+    if (url.searchParams.has('currentTime')) {
+      video.currentTime = Number(url.searchParams.get('currentTime'));
+    }
+
     (function appendSomeData(percent) {
       try {
         var byteLength = (percent === 100) ? data.byteLength : Math.round(data.byteLength * percent / 100);
