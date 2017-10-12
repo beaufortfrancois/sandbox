@@ -27,7 +27,7 @@
     text-align: center;
   }
   img {
-    border: 2px solid white;
+    box-shadow: 0 2px 0px black;
     border-radius: 50%;
     margin-top: 35px;
     background: white;
@@ -53,6 +53,9 @@
   }
   li {
     list-style-type: none
+  }
+  .hidden {
+    opacity: 0;
   }
 </style>
 <div id="wrapper">
@@ -120,5 +123,10 @@
       (window.matchMedia("(color-gamut: p3)").matches) ? '&#x2714;' : '&#x274C;';
   document.querySelector('#rec2020').innerHTML =
       (window.matchMedia("(color-gamut: rec2020)").matches) ? '&#x2714;' : '&#x274C;';
+  Array.from(document.querySelectorAll('img')).forEach(img => {
+    img.addEventListener('click', function() {
+      img.classList.toggle('hidden');
+    });
+  })
 </script>
 </body>
