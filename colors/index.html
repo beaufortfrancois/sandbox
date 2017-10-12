@@ -27,7 +27,7 @@
     text-align: center;
   }
   img {
-    box-shadow: 0 2px 0px black;
+    box-shadow: -2px 4px 0px black;
     border-radius: 50%;
     margin-top: 35px;
     background: white;
@@ -124,6 +124,9 @@
   document.querySelector('#rec2020').innerHTML =
       (window.matchMedia("(color-gamut: rec2020)").matches) ? '&#x2714;' : '&#x274C;';
   Array.from(document.querySelectorAll('img')).forEach(img => {
+    img.addEventListener('load', function() {
+      img.style.backgroundColor = 'transparent';
+    });
     img.addEventListener('click', function() {
       img.classList.toggle('hidden');
     });
