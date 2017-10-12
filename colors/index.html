@@ -1,60 +1,100 @@
 <meta name="viewport" content="width=device-width">
 <body>
 <style>
- body {
-   margin: 0;
- }
- #bg {
-   background-color: rgb(255, 0 , 0);
-   padding: 24px;
- }
- img {
-   border: 2px solid white;
-   border-radius: 50%;
- }
- div {
-   margin-bottom: 12px;
- }
- pre {
-   line-height: 104px;
-   display: inline-block;
-   vertical-align: top;
-   margin: 0 0 0 24px;
-   color: white;
- }
- #log {
-   margin: 12px;
-   white-space: pre-wrap;
-   color: white;
-   line-height: 150%;
- }
- ul, p {
-   margin: 0;
-   padding: 12px;
- }
- li {
-   list-style-type: none
- }
+  body {
+    margin: 0;
+  }
+  #wrapper {
+    max-width: 600px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: repeat(4, 25%);
+  }
+  #wrapper div:nth-child(4n + 1) {
+  }
+  #wrapper div:nth-child(4n + 2) {
+    background: red;
+  }
+  #wrapper div:nth-child(4n + 3) {
+    background: green;
+  }
+  #wrapper div:nth-child(4n + 4) {
+    background: blue;
+  }
+  #wrapper div {
+    height: 150px;
+    line-height: 150px;
+    text-align: center;
+  }
+  img {
+    border: 2px solid white;
+    border-radius: 50%;
+    margin-top: 25px;
+    background: white;
+    width: 100px;
+    height: 100px;
+  }
+  pre {
+    line-height: 104px;
+    display: inline-block;
+    vertical-align: top;
+    margin: 0 0 0 24px;
+    color: white;
+  }
+  #log {
+    margin: 12px;
+    white-space: pre-wrap;
+    color: white;
+    line-height: 150%;
+  }
+  ul, p {
+    margin: 0;
+    padding: 12px;
+  }
+  li {
+    list-style-type: none
+  }
 </style>
-<div id="bg">
+<div id="wrapper">
+  <div>Rec. 2020</div>
   <div>
     <img src="red-rec2020.png">
-  <pre>img Rec. 2020</pre>
   </div>
+  <div>
+    <img src="green-rec2020.png">
+  </div>
+  <div>
+    <img src="blue-rec2020.png">
+  </div>
+  <div>DCI P3</div>
   <div>
     <img src="red-p3.png">
-    <pre>img DCI-P3</pre>
   </div>
+  <div>
+    <img src="green-p3.png">
+  </div>
+  <div>
+    <img src="blue-p3.png">
+  </div>
+  <div>sRGB</div>
   <div>
     <img src="red-srgb.png">
-    <pre>img sRGB</pre>
   </div>
+  <div>
+    <img src="green-srgb.png">
+  </div>
+  <div>
+    <img src="blue-srgb.png">
+  </div>
+  <div>No Color Profile</div>
   <div>
     <img src="red-nocolorprofile.png">
-    <pre>img with no color profile</pre>
   </div>
   <div>
-    <pre>background with no color profile</pre>
+    <img src="green-nocolorprofile.png">
+  </div>
+  <div>
+    <img src="blue-nocolorprofile.png">
   </div>
 </div>
 
