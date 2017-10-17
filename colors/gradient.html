@@ -4,11 +4,12 @@
     grid-template-columns: 300px auto;
     grid-column-gap: 24px;
     grid-row-gap: 1px;
+    align-items: center;
   }
   h2 {
     font-family: monospace;
-    margin: 0;
-    line-height: 150px;
+    font-weight: normal;
+    font-size: 100%;
   }
   div, canvas {
     display: block;
@@ -26,8 +27,14 @@
 <canvas id="customCanvas"></canvas>
 <h2>Gamma Corrected Gradient&trade; in JS</h2>
   
-<canvas id="colorSpaceCanvas"></canvas>
+<canvas id="srgbColorSpaceCanvas"></canvas>
 <h2>canvas.getContext('2d', { colorSpace: 'srgb', pixelFormat: 'float16', linearPixelMath: true })</h2>
+
+<canvas id="p3ColorSpaceCanvas"></canvas>
+<h2>canvas.getContext('2d', { colorSpace: 'p3' })</h2>
+
+<canvas id="rec2020ColorSpaceCanvas"></canvas>
+<h2>canvas.getContext('2d', { colorSpace: 'rec2020' })</h2>
 
 <script>
 div.style.background = 'linear-gradient(to right, #00FF00, #0000FF)';
@@ -76,7 +83,7 @@ for (var i = 0; i <= customCanvas.width; i++) {
 
 //
 
-var ctx = colorSpaceCanvas.getContext('2d', { colorSpace: 'srgb', pixelFormat: 'float16', linearPixelMath: true });
+var ctx = linearGradientCanvas.getContext('2d');
 
 var grd = ctx.createLinearGradient(0, 0, linearGradientCanvas.width, 0);
 grd.addColorStop(0, '#00FF00');
@@ -88,12 +95,42 @@ ctx.fillRect(0, 0, 300, 150);
 
 //
 
-var ctx = linearGradientCanvas.getContext('2d');
+var ctx = srgbColorSpaceCanvas.getContext('2d', { colorSpace: 'srgb', pixelFormat: 'float16', linearPixelMath: true });
 
-var grd = ctx.createLinearGradient(0, 0, linearGradientCanvas.width, 0);
+var grd = ctx.createLinearGradient(0, 0, srgbColorSpaceCanvas.width, 0);
 grd.addColorStop(0, '#00FF00');
 grd.addColorStop(1, '#0000FF');
 
 ctx.fillStyle = grd;
 ctx.fillRect(0, 0, 300, 150);
+
+
+
+
+//
+
+var ctx = p3ColorSpaceCanvas.getContext('2d', { colorSpace: 'p3' });
+
+var grd = ctx.createLinearGradient(0, 0, p3ColorSpaceCanvas.width, 0);
+grd.addColorStop(0, '#00FF00');
+grd.addColorStop(1, '#0000FF');
+
+ctx.fillStyle = grd;
+ctx.fillRect(0, 0, 300, 150);
+
+
+
+
+//
+
+var ctx = rec2020ColorSpaceCanvas.getContext('2d', { colorSpace: 'rec2020' });
+
+var grd = ctx.createLinearGradient(0, 0, rec2020ColorSpaceCanvas.width, 0);
+grd.addColorStop(0, '#00FF00');
+grd.addColorStop(1, '#0000FF');
+
+ctx.fillStyle = grd;
+ctx.fillRect(0, 0, 300, 150);
+
+
 </script>
