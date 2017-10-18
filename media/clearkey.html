@@ -138,7 +138,11 @@
           video.play();
         });
         console.log('Append Buffer', data);
-        sourceBuffer.appendBuffer(data);
+        try {
+          sourceBuffer.appendBuffer(data);
+        } catch(e) {
+          console.log(e);
+        }
       });
     } else {
       video.src = select.options[select.selectedIndex].value;
