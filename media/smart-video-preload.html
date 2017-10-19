@@ -92,6 +92,8 @@
         result = false;
       }
 
+      // Requies Chrome 61 desktop, Chrome for Android 38, or
+      //  another implementing browser.
       if ('connection' in navigator) {
         networkStatus.textContent = navigator.connection.type;
         if (navigator.connection.type == 'cellular') {
@@ -100,6 +102,7 @@
         }
       }
 
+      // Requires Chrome 38 or later, or another implementing browser.
       if ('getBattery' in navigator) {
         const battery = await navigator.getBattery();
         batteryStatus.textContent = (battery.charging ? 'Charging' : (Math.round(battery.level * 100) + '%'));
@@ -117,6 +120,7 @@
         result = false;
       }
 
+      // Requires Chrome 63 or later, or another implementing browser.
       if ('deviceMemory' in navigator) {
         deviceMemoryStatus.textContent = navigator.deviceMemory + ' GiB';
         if (navigator.deviceMemory < 1) {
@@ -125,6 +129,7 @@
         }
       }
 
+      // Requires Chrome 55 or later, or another implementing browser.
       if ('storage' in navigator) {
         const { quota, usage } = await navigator.storage.estimate();
         storageStatus.textContent = formatBytes(quota - usage);
