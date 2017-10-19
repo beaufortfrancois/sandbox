@@ -1,0 +1,87 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-color: #fafafa;
+}
+video {
+  width: 100%;
+  max-width: 640px;
+}
+input {
+  width: 100%;
+  max-width: 640px;
+  margin-bottom: 24px;
+}
+div {
+  width: 100%;
+  max-width: 640px;
+  margin-top: 24px;
+  white-space: pre-line;
+  height: 180px;
+  font-family: sans-serif;
+}
+.blur {
+  filter: blur(20px);
+}
+</style>
+<body>
+  <input id="userLabel" autofocus placeholder="Enter anything you want to blur in the video..."> 
+  <video id="video" loop muted autoplay src="https://storage.googleapis.com/fbeaufort-test/big-buck-bunny_trailer.webm"></video>
+  <p>Credits: Media files are © copyright Blender Foundation | <a href="http://www.blender.org">www.blender.org </a>.</p>
+  <div id="div">Detecting objects with Google Cloud Video Intelligence API...</div>
+</body>
+<script>
+  (async _ => {
+ 
+  const key = 'AIzaSyA2IU3BRELRvD4FjoneK-jtJstO1bT3g1w';
+  const annotateRequestUrl = `https://videointelligence.googleapis.com/v1/videos:annotate?key=${key}`;
+  const body = JSON.stringify({ 
+    inputUri: 'gs://fbeaufort-test/big-buck-bunny_trailer.webm',
+    features: ['LABEL_DETECTION'] 
+  });
+
+  const annotateResponse = await fetch(annotateRequestUrl, { method: 'POST', body });
+  const name = (await annotateResponse.json()).name;
+  
+  (async function getLabelAnnotations() {
+    const operationRequestUrl = `https://videointelligence.googleapis.com/v1/operations/${name}?key=${key}`;
+
+    const operationResponse = await fetch(operationRequestUrl);
+    const json = await operationResponse.json();
+
+    if (!json.done) {
+      setTimeout(getLabelAnnotations, 1000);
+      return;
+    }
+
+    const labelAnnotations = json.response.annotationResults[0].labelAnnotations;
+    div.textContent = 'Detected Objects: ' + labelAnnotations.map(l => l.description).join(', ');
+
+    video.addEventListener('timeupdate', function() {
+      const filteredLabelAnnotations = labelAnnotations.filter(l => l.description.toLowerCase() === userLabel.value.toLowerCase());
+      if (filteredLabelAnnotations.length === 0) {
+        return;
+      }
+      let shouldBlurVideo = false;
+      for (const location of filteredLabelAnnotations[0].locations) {
+        if (!location.segment.startTime || !location.segment.endTime) {
+          continue;
+        }
+        if (video.currentTime > parseFloat(location.segment.startTime) &&
+            video.currentTime < parseFloat(location.segment.endTime)) {
+          shouldBlurVideo = true;
+          break;
+        }
+      }
+      video.classList.toggle('blur', shouldBlurVideo);
+    });
+  })();
+
+  })();
+</script>
+
