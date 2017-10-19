@@ -109,10 +109,10 @@
         }
       }
 
-      const fakeVideo = document.createElement('video');
-      fakeVideo.preload = 'auto';
-      dataSaverStatus.textContent = (fakeVideo.preload === 'none' ? 'ON' : 'OFF');
-      if (fakeVideo.preload === 'none') {
+      const fakeMediaElement = document.createElement('video');
+      fakeMediaElement.preload = 'auto';
+      dataSaverStatus.textContent = (fakeMediaElement.preload === 'none' ? 'ON' : 'OFF');
+      if (fakeMediaElement.preload === 'none') {
         dataSaverStatus.classList.add('warning');
         result = false;
       }
