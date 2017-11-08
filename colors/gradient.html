@@ -1,0 +1,136 @@
+<style>
+  body {
+    display: grid;
+    grid-template-columns: 300px auto;
+    grid-column-gap: 24px;
+    grid-row-gap: 1px;
+    align-items: center;
+  }
+  h2 {
+    font-family: monospace;
+    font-weight: normal;
+    font-size: 100%;
+  }
+  div, canvas {
+    display: block;
+    width: 300px;
+    height: 150px;
+  }
+</style>
+
+<div id="div"></div>
+<h2>div.style.background = "linear-gradient"</h2>
+
+<canvas id="linearGradientCanvas"></canvas>
+<h2>canvas.getContext('2d').createLinearGradient</h2>
+
+<canvas id="customCanvas"></canvas>
+<h2>Gamma Corrected Gradient&trade; in JS</h2>
+  
+<canvas id="srgbColorSpaceCanvas"></canvas>
+<h2>canvas.getContext('2d', { colorSpace: 'srgb', pixelFormat: 'float16', linearPixelMath: true })</h2>
+
+<canvas id="p3ColorSpaceCanvas"></canvas>
+<h2>canvas.getContext('2d', { colorSpace: 'p3' })</h2>
+
+<canvas id="rec2020ColorSpaceCanvas"></canvas>
+<h2>canvas.getContext('2d', { colorSpace: 'rec2020' })</h2>
+
+<script>
+div.style.background = 'linear-gradient(to right, #00FF00, #0000FF)';
+
+function hexToRgb(hex) {
+  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+}
+
+function map(value, fromSource, toSource) {
+  return (value - fromSource) / (toSource - fromSource);
+}
+
+function getColour(startColour, endColour, min, max, value) {
+  var startRGB = hexToRgb(startColour);
+  var endRGB = hexToRgb(endColour);
+  var percentFade = map(value, min, max);
+
+  var diffRed = Math.pow(endRGB.r, 2.2) - Math.pow(startRGB.r, 2.2);
+  var diffGreen = Math.pow(endRGB.g, 2.2) - Math.pow(startRGB.g, 2.2);
+  var diffBlue = Math.pow(endRGB.b, 2.2) - Math.pow(startRGB.b, 2.2);
+
+  var red = Math.pow( Math.pow(startRGB.r, 2.2) + (diffRed * percentFade), 1 / 2.2);
+  var green = Math.pow( Math.pow(startRGB.g, 2.2) + (diffGreen * percentFade), 1 / 2.2);
+  var blue = Math.pow( Math.pow(startRGB.b, 2.2) + (diffBlue * percentFade), 1 / 2.2);
+
+  var result = 'rgb(' + Math.round(red) + ', ' + Math.round(green) + ', ' + Math.round(blue) + ')';
+  return result;
+}
+
+var ctx = customCanvas.getContext('2d');
+for (var i = 0; i <= customCanvas.width; i++) {
+  var newColour = getColour('#00FF00', '#0000FF', 0, customCanvas.width, i);
+    
+  ctx.beginPath();
+  ctx.moveTo(i, 0);
+  ctx.lineTo(i, customCanvas.height);
+  ctx.strokeStyle = newColour;
+  ctx.stroke();
+}
+ 
+
+//
+
+var ctx = linearGradientCanvas.getContext('2d');
+
+var grd = ctx.createLinearGradient(0, 0, linearGradientCanvas.width, 0);
+grd.addColorStop(0, '#00FF00');
+grd.addColorStop(1, '#0000FF');
+
+ctx.fillStyle = grd;
+ctx.fillRect(0, 0, 300, 150);
+
+
+//
+
+var ctx = srgbColorSpaceCanvas.getContext('2d', { colorSpace: 'srgb', pixelFormat: 'float16', linearPixelMath: true });
+
+var grd = ctx.createLinearGradient(0, 0, srgbColorSpaceCanvas.width, 0);
+grd.addColorStop(0, '#00FF00');
+grd.addColorStop(1, '#0000FF');
+
+ctx.fillStyle = grd;
+ctx.fillRect(0, 0, 300, 150);
+
+
+
+
+//
+
+var ctx = p3ColorSpaceCanvas.getContext('2d', { colorSpace: 'p3' });
+
+var grd = ctx.createLinearGradient(0, 0, p3ColorSpaceCanvas.width, 0);
+grd.addColorStop(0, '#00FF00');
+grd.addColorStop(1, '#0000FF');
+
+ctx.fillStyle = grd;
+ctx.fillRect(0, 0, 300, 150);
+
+
+
+
+//
+
+var ctx = rec2020ColorSpaceCanvas.getContext('2d', { colorSpace: 'rec2020' });
+
+var grd = ctx.createLinearGradient(0, 0, rec2020ColorSpaceCanvas.width, 0);
+grd.addColorStop(0, '#00FF00');
+grd.addColorStop(1, '#0000FF');
+
+ctx.fillStyle = grd;
+ctx.fillRect(0, 0, 300, 150);
+
+
+</script>

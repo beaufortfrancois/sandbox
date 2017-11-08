@@ -1,0 +1,412 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Image Capture Playground</title>
+<style>
+  body { margin: 0 auto; }
+  video { height: 100vh; width: 100vw; object-fit: cover; z-index: -1; position: absolute; }
+  canvas { display: inline-block; }
+  #devices { line-height: 24px; padding: 24px; text-align: center }
+  label { padding-right: 24px; 
+      font-weight: 300;
+      font-family: 'Product Sans', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased; }
+  pre { padding: 12px 8px; }
+  #controls label { margin: 0 20px; line-height: 24px; font-size: 16px; margin-bottom: 12px;
+    display: block; text-transform: capitalize; }
+  select { 
+      font-weight: 300;
+      font-family: 'Product Sans', Arial, sans-serif;
+    margin-bottom: 4px;
+    margin-left: 20px;
+    background: #333;
+    border: 0;
+    display: block;
+    height: 36px;
+    color: white;
+    padding: 4px;
+    border-radius: 4px;
+}
+  button { margin: 4px 0 }
+  .fg { width: 100%; height: 100%; position: absolute; object-fit: cover; margin: 0; top: 0; left: 0; right: 0; bottom: 0; }
+  #dashboard { background: #333; padding: 4px; }
+  #shots { background: #eee; margin: 0 -8; }
+  #controls { height: calc(100vh - 72px); overflow: scroll; max-width: 412px; margin: 0 auto;}
+}
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Product+Sans">
+<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.green-light_green.min.css">
+<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+<video id="video" autoplay></video>
+<div id="devices"></div>
+<div id="controls"></div>
+<div id="shots"></div>
+
+<script>
+var imageCapture;
+var takePhotoSettings = {};
+
+localStorage.deviceId = localStorage.deviceId || 'default';
+
+// Ask permission first and enumerate devices after...
+navigator.mediaDevices.getUserMedia({video : true})
+.then(stream => {
+  // Stop tracks.
+  stream.getTracks().forEach(track => track.stop());
+  return navigator.mediaDevices.enumerateDevices()
+})
+.then(devices => {
+  var videoInputDevices = devices.filter(device => (device.kind == 'videoinput'));
+  videoInputDevices.forEach(device => {
+    var input = document.createElement('input');
+    input.type = 'radio';
+    input.classList.add('mdl-radio__button');
+    input.name = 'device';
+    input.value = device.deviceId;
+    input.id = device.deviceId;
+    input.checked = (localStorage.deviceId == device.deviceId);
+    input.onclick = function(event) {
+      localStorage.deviceId = event.target.value;
+      getUserMedia();
+    }
+    var label = document.createElement('label');
+    var span = document.createElement('span');
+    span.classList.add('mdl-radio__label',);
+    if (device.label.includes(', ')) {
+      span.textContent = device.label.split(', ')[1];
+    } else {
+      span.textContent = device.label;
+    }
+    label.setAttribute('for', device.deviceId);
+    label.classList.add('mdl-radio', 'mdl-js-radio');
+    label.appendChild(input);
+    label.appendChild(span);
+    componentHandler.upgradeElement(label);
+
+    document.querySelector('#devices').appendChild(label);
+  });
+  if (localStorage.deviceId == 'default') {
+    document.querySelector('#devices input').click();
+  } else {
+    document.querySelector('#devices input:checked') && document.querySelector('#devices input:checked').click();
+  }
+})
+.catch(error => {
+  let pre = document.createElement('pre');
+  pre.innerText = error.name;
+  document.querySelector('#controls').appendChild(pre);
+  console.log(error);
+});
+
+function getUserMedia() {
+  var constraints = {
+    video: {
+      width: { ideal: 1920 },
+      height: { ideal: 1080 },
+      deviceId: { exact: localStorage.deviceId }
+    }
+  };
+  document.querySelector('#controls').innerHTML = '';
+  document.querySelector('#shots').innerHTML = '';
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(mediaStream => {
+    video.srcObject = mediaStream;
+    video.onplay = function() {
+      imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
+      // Remove timeout when crbug.com/711524 is fixed.
+      setTimeout(initControls, 500);
+    }
+  })
+  .catch(error => {
+    let pre = document.createElement('pre');
+    pre.innerText = error.name;
+    document.querySelector('#controls').appendChild(pre);
+    console.log(error);
+  });
+}
+
+function initControls() {
+  let capabilities = imageCapture.track.getCapabilities();
+  let settings = imageCapture.track.getSettings();
+  let constraints = imageCapture.track.getConstraints();
+  for (let capabilityName in capabilities) {
+    let capability = capabilities[capabilityName];
+    if (capability.toString() === '[object MediaSettingsRange]') {
+      let value = settings[capabilityName];
+      addInputRange(capabilityName, value, capability);
+    } else if (typeof(capability) == 'boolean') {
+      let value = settings[capabilityName];
+      addInputCheckbox(capabilityName, value);
+    } else if (Array.isArray(capability)) {
+      let value = settings[capabilityName];
+      addSelect(capabilityName, value, capability);
+    }
+  }
+  delete(constraints['deviceId']);
+  imageCapture.getPhotoSettings()
+  .then(photoSettings => {
+    return Promise.resolve();
+    return imageCapture.getPhotoCapabilities()
+    .then(photoCapabilities => {
+      document.querySelector('#controls').appendChild(document.createElement('br'));
+      if (photoCapabilities['fillLightMode'].length) {
+        let select = document.createElement('select');
+        select.id = 'fillLightMode';
+        select.oninput = function(event) {
+          takePhotoSettings['fillLightMode'] = event.target.value;
+        }
+        for (capability of photoCapabilities['fillLightMode']) {
+          let option = document.createElement('option');
+          option.value = capability;
+          option.textContent = capability;
+          if (capability == photoSettings.fillLightMode) {
+            option.selected = true;
+          }
+          select.appendChild(option);
+        }
+        var label = document.createElement('label');
+        label.textContent = 'fillLightMode';
+        label.setAttribute('for', 'fillLightMode');
+        document.querySelector('#controls').appendChild(select);
+        document.querySelector('#controls').appendChild(label);
+      }
+      if (photoCapabilities['redEyeReduction'] === 'controllable') {
+        let input = document.createElement('input');
+        input.id = 'redEyeReduction';
+        input.type = 'checkbox';
+        input.checked = photoSettings.redEyeReduction;
+        input.onchange = function(event) {
+          takePhotoSettings['redEyeReduction'] = event.target.checked;
+        }
+        var label = document.createElement('label');
+        label.textContent = 'redEyeReduction';
+        label.setAttribute('for', 'redEyeReduction');
+        document.querySelector('#controls').appendChild(input);
+        document.querySelector('#controls').appendChild(label);
+      }
+      ['imageWidth', 'imageHeight'].forEach(rangeName => {
+        let range = photoCapabilities[rangeName];
+        if (range == null) {
+          return;
+        }
+        let input = document.createElement('input');
+        input.id = rangeName;
+        input.type = 'range';
+        input.classList.add('mdl-slider', 'mdl-js-slider');
+        input.min = range.min;
+        input.max = range.max;
+        input.step = range.step;
+        input.value = photoSettings[rangeName];
+        input.onchange = function(event) {
+          takePhotoSettings[rangeName] = event.target.value;
+          document.querySelector('label[for=' + rangeName +']').textContent = rangeName;
+        }
+        var label = document.createElement('label');
+        label.textContent = rangeName;
+        label.setAttribute('for', rangeName);
+        document.querySelector('#controls').appendChild(input);
+        document.querySelector('#controls').appendChild(label);
+        componentHandler.upgradeElement(input);
+      });
+    });
+  });
+}
+
+function addInputRange(capabilityName, value, range) {
+  let input = document.createElement('input');
+  input.id = capabilityName;
+  input.type = 'range';
+  input.classList.add('mdl-slider', 'mdl-js-slider');
+  input.min = range.min;
+  input.max = range.max;
+  input.step = Math.round(range.step * 100) / 100;
+  input.value = value;
+  input.oninput = function(event) {
+    let options = {};
+    options[capabilityName] = event.target.value;
+    applyConstraints(options);
+    document.querySelector('label[for=' + capabilityName +']').textContent = capabilityName;
+  }
+  var label = document.createElement('label');
+  if (value >= range.min && value <= range.max) {
+    label.textContent = capabilityName;
+  } else {
+    label.textContent = capabilityName;
+  }
+  label.setAttribute('for', capabilityName);
+  document.querySelector('#controls').appendChild(input);
+  document.querySelector('#controls').appendChild(label);
+  componentHandler.upgradeElement(input);
+}
+
+function addInputCheckbox(capabilityName, value) {
+  let input = document.createElement('input');
+  input.id = capabilityName;
+  input.type = 'checkbox';
+  input.classList.add('mdl-checkbox__input',);
+  input.value = value;
+  input.onchange = function(event) {
+    let options = {};
+    options[capabilityName] = event.target.checked;
+    applyConstraints(options);
+  }
+  var label = document.createElement('label');
+  label.setAttribute('for', capabilityName);
+  label.classList.add('mdl-checkbox', 'mdl-js-checkbox');
+  var span = document.createElement('span');
+  span.classList.add('mdl-checkbox__label',);
+  span.textContent = capabilityName;
+
+  label.appendChild(input);
+  label.appendChild(span);
+  document.querySelector('#controls').appendChild(label);
+  componentHandler.upgradeElement(label);
+}
+
+function addSelect(capabilityName, value, capabilities) {
+  if (capabilities.length <= 1) {
+    return;
+  }
+  let select = document.createElement('select');
+  select.id = capabilityName;
+  select.disabled = (capabilities.length <= 1);
+  select.oninput = function(event) {
+    let options = {};
+    options[capabilityName] = event.target.value;
+    applyConstraints(options);
+  }
+  for (capability of capabilities) {
+    let option = document.createElement('option');
+    option.value = capability;
+    option.textContent = capability;
+    option.selected = (capability == value);
+    select.appendChild(option);
+  }
+  var label = document.createElement('label');
+  label.textContent = capabilityName;
+  label.setAttribute('for', capabilityName);
+  document.querySelector('#controls').appendChild(select);
+  document.querySelector('#controls').appendChild(label);
+}
+
+function applyConstraints(options) {
+  imageCapture.track.applyConstraints({advanced: [ options ]})
+  .then(_ => {
+    let constraints = imageCapture.track.getConstraints();
+    delete(constraints['deviceId']);
+  });
+}
+
+
+
+function getSupportedConstraints() {
+  let supportedConstraints = navigator.mediaDevices.getSupportedConstraints();
+  let pre = document.createElement('pre');
+  pre.innerText = JSON.stringify(supportedConstraints, 0, 2);
+  document.querySelector('#shots').appendChild(pre);
+}
+
+function getCapabilities() {
+  let capabilities = imageCapture.track.getCapabilities();
+  let pre = document.createElement('pre');
+  for (let capabilityName in capabilities) {
+    pre.innerText += `${capabilityName}: `;
+    let capability = capabilities[capabilityName];
+    if (capability.toString() === '[object MediaSettingsRange]') {
+      pre.innerText += `{ min: ${capability.min}, max: ${capability.max}, step: ${capability.step} }\r\n`;
+    } else {
+      pre.innerText += JSON.stringify(capability) + '\r\n';
+    }
+  }
+  document.querySelector('#shots').appendChild(pre);
+}
+
+function getSettings() {
+  let settings = imageCapture.track.getSettings();
+  let pre = document.createElement('pre');
+  pre.innerText += JSON.stringify(settings, 0, 2);
+  document.querySelector('#shots').appendChild(pre);
+}
+
+function getPhotoCapabilities() {
+  imageCapture.getPhotoCapabilities()
+  .then(photoCapabilities => {
+    let pre = document.createElement('pre');
+    for (let capabilityName in photoCapabilities) {
+      pre.innerText += `${capabilityName}: `;
+      let capability = photoCapabilities[capabilityName];
+      if (capability && capability.toString() === '[object MediaSettingsRange]') {
+        pre.innerText += `{ min: ${capability.min}, max: ${capability.max}, step: ${capability.step} }\r\n`;
+      } else {
+        pre.innerText += JSON.stringify(capability) + '\r\n';
+      }
+    }
+    document.querySelector('#shots').appendChild(pre);
+  })
+  .catch(error => {
+    console.log(error);
+  });
+}
+
+function getPhotoSettings() {
+  imageCapture.getPhotoSettings()
+  .then(photoSettings => {
+    let pre = document.createElement('pre');
+    pre.innerText += JSON.stringify(photoSettings, 0, 2);
+    document.querySelector('#shots').appendChild(pre);
+  })
+  .catch(error => {
+    console.log(error);
+  });
+}
+
+function grabFrame() {
+  return imageCapture.grabFrame()
+  .then(imageBitmap => appendCanvas(imageBitmap))
+  .catch(error => {
+    console.log(error);
+  });
+}
+
+function takePhoto() {
+  const settings = takePhotoSettings;
+  return imageCapture.takePhoto(settings)
+  .then(blob => createImageBitmap(blob))
+  .then(imageBitmap => appendCanvas(imageBitmap, settings))
+  .catch(error => {
+    console.log(error);
+  });
+}
+
+function grabFrameAndTakePhoto() {
+  grabFrame()
+  takePhoto();
+}
+
+function appendCanvas(imageBitmap, options) {
+  let canvas = document.createElement('canvas');
+  canvas.width = imageBitmap.width;
+  canvas.height = imageBitmap.height;
+  canvas.style.height = '180';
+
+  let context = canvas.getContext('2d');
+  context.drawImage(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height);
+  context.font = canvas.height / 12 + 'px Cousine';
+  context.fillStyle = 'deeppink';
+  context.textBaseline = 'top';
+  context.fillText(`${canvas.width}x${canvas.height}`, 4, 0);
+  let offset = canvas.height / 12;
+  if (options) {
+    for (let option of Object.keys(options)) {
+      context.fillText(option + '=' + options[option], 4, offset);
+      offset += canvas.height / 12;
+    }
+  }
+  document.querySelector('#shots').appendChild(canvas);
+}
+
+video.addEventListener('click', function() {
+  video.classList.toggle('fg');
+});
+</script>
