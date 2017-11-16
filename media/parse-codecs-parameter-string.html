@@ -1,0 +1,227 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+function parseCodecsParameterString(string) {
+
+  let [codec, profile, level, bitDepth, chromaSubsampling, colourPrimaries, transferCharacteristics, matrixCoefficients, videoFullRangeFlag] = string.split('.');
+  
+  let result = {};
+
+  if (codec == '') {
+    return Promise.reject('Missing codec');
+  }
+  if (codec == 'vp08') {
+    result.codec = 'VP8';
+  } else if (codec == 'vp09') {
+    result.codec = 'VP9';
+  } else if (codec == 'vp10') {
+    result.codec += 'VP10';
+  } else {
+   return Promise.reject('Invalid codec');
+  }
+
+  if (profile == undefined) {
+    return Promise.reject('Missing profile');
+  }
+  if (profile == '00') {
+    result.profile = 'Profile 0';
+  } else if (profile == '01') {
+    result.profile = 'Profile 1';
+  } else if (profile == '02') {
+    result.profile = 'Profile 2';
+  } else {
+    return Promise.reject('Invalid profile');
+  }
+
+  if (level == undefined) {
+    return Promise.reject('Missing level');
+  }
+  if (level == '10') {
+    result.level = 'Level 1';
+  } else if (level == '11') {
+    result.level = 'Level 1.1';
+  } else if (level == '20') {
+    result.level = 'Level 2';
+  } else if (level == '21') {
+    result.level = 'Level 2.1';
+  } else if (level == '30') {
+    result.level = 'Level 3';
+  } else if (level == '31') {
+    result.level = 'Level 3.1';
+  } else if (level == '40') {
+    result.level = 'Level 4';
+  } else if (level == '41') {
+    result.level = 'Level 4.1';
+  } else if (level == '50') {
+    result.level = 'Level 5';
+  } else if (level == '51') {
+    result.level = 'Level 5.1';
+  } else if (level == '52') {
+    result.level = 'Level 5.2';
+  } else if (level == '60') {
+    result.level = 'Level 6';
+  } else if (level == '61') {
+    result.level = 'Level 6.1';
+  } else if (level == '62') {
+    result.level = 'Level 6.2';
+  } else {
+    return Promise.reject('Invalid level');
+  }
+
+  if (bitDepth == undefined) {
+    return Promise.reject('Missing bit depth');
+  }
+  if (bitDepth == '08') {
+    result.bitDepth = '8-bit';
+  } else if (bitDepth == '10') {
+    result.bitDepth = '10-bit';
+  } else if (bitDepth == '12') {
+    result.bitDepth = '12-bit';
+  } else {
+    return Promise.reject('Invalid bit depth');
+  }
+
+  if (chromaSubsampling == undefined) {
+    chromaSubsampling = '01';
+  }
+  if (chromaSubsampling == '00') {
+    result.chromaSubsampling = '4:2:0 vertical';
+  } else if (chromaSubsampling == '01') {
+    result.chromaSubsampling = '4:2:0 colocated with luma (0,0)';
+  } else if (chromaSubsampling == '02') {
+    result.chromaSubsampling = '4:2:2';
+  } else if (chromaSubsampling == '03') {
+    result.chromaSubsampling = '4:4:4';
+  } else {
+    return Promise.reject('Invalid chroma subsampling');
+  }
+
+  if (colourPrimaries == undefined) {
+    colourPrimaries = '01';
+  }
+  if (colourPrimaries == '01') {
+    result.colourPrimaries = 'Rec. ITU-R BT.709-5';
+  } else if (colourPrimaries == '04') {
+    result.colourPrimaries = 'Rec. ITU-R BT.470-6 System M (historical)';
+  } else if (colourPrimaries == '05') {
+    result.colourPrimaries = 'Rec. ITU-R BT.470-6 System B, G (historical)';
+  } else if (colourPrimaries == '06') {
+    result.colourPrimaries = 'Rec. ITU-R BT.601-6 525';
+  } else if (colourPrimaries == '07') {
+    result.colourPrimaries = 'SMPTE 240M-1999';
+  } else if (colourPrimaries == '08') {
+    result.colourPrimaries = 'Generic film (colour filters using Illuminant C)';
+  } else if (colourPrimaries == '09') {
+    result.colourPrimaries = 'Rec. ITU-R BT.2020';
+  } else if (colourPrimaries == '10') {
+    result.colourPrimaries = 'SMPTE ST 428-1';
+  } else if (colourPrimaries == '11') {
+    result.colourPrimaries = 'SMPTE RP 431-2:2011';
+  } else if (colourPrimaries == '12') {
+    result.colourPrimaries = 'SMPTE EG 432-1:2010';
+  } else if (colourPrimaries == '22') {
+    result.colourPrimaries = 'EBU Tech 3213-1975';
+  } else {
+    return Promise.reject('Invalid colour primaries');
+  }
+
+  if (transferCharacteristics == undefined) {
+    transferCharacteristics = '01';
+  }
+  if (transferCharacteristics == '01') {
+    result.transferCharacteristics = 'Rec. ITU-R BT.709-5';
+  } else if (transferCharacteristics == '04') {
+    result.transferCharacteristics = 'Rec. ITU-R BT.470-6 System M (historical)';
+  } else if (transferCharacteristics == '05') {
+    result.transferCharacteristics = 'Rec. ITU-R BT.470-6 System B, G (historical)';
+  } else if (transferCharacteristics == '06') {
+    result.transferCharacteristics = 'Rec. ITU-R BT.601-6 525 or 625';
+  } else if (transferCharacteristics == '07') {
+    result.transferCharacteristics = 'SMPTE 240M-1999';
+  } else if (transferCharacteristics == '08') {
+    result.transferCharacteristics = 'Linear transfer characteristics';
+  } else if (transferCharacteristics == '09') {
+    result.transferCharacteristics = 'Logarithmic transfer characteristic (100:1 range)';
+  } else if (transferCharacteristics == '10') {
+    result.transferCharacteristics = 'Logarithmic transfer characteristic (100 * Sqrt( 10 ) : 1 range)';
+  } else if (transferCharacteristics == '11') {
+    result.transferCharacteristics = 'IEC 61966-2-4';
+  } else if (transferCharacteristics == '12') {
+    result.transferCharacteristics = 'Rec. ITU-R BT.1361 extended colour gamut system (historical)';
+  } else if (transferCharacteristics == '13') {
+    result.transferCharacteristics = 'IEC 61966-2-1 sRGB or sYCC';
+  } else if (transferCharacteristics == '14') {
+    result.transferCharacteristics = 'Rec.ITU-RBT.2020 (10-bit system)';
+  } else if (transferCharacteristics == '15') {
+    result.transferCharacteristics = 'Rec.ITU-RBT.2020 (12-bit system)';
+  } else if (transferCharacteristics == '16') {
+    result.transferCharacteristics = 'SMPTE ST 2084 for 10, 12, 14, and 16-bit systems';
+  } else if (transferCharacteristics == '17') {
+    result.transferCharacteristics = 'SMPTE ST 428-1';
+  } else {
+    return Promise.reject('Invalid transfer characteristics');
+  }
+
+  if (matrixCoefficients == undefined) {
+    matrixCoefficients = '01';
+  }
+  if (matrixCoefficients == '00') {
+    result.matrixCoefficients = 'Identity';
+    if (result.chromaSubsampling !== 3) {
+      return Promise.reject('When matrixCoefficients is "00", chroma subsampling MUST be "03".');
+    }
+  } else if (matrixCoefficients == '01') {
+    result.matrixCoefficients = 'Rec. ITU-R BT.709-5';
+  } else if (matrixCoefficients == '04') {
+    result.matrixCoefficients = 'United States Federal Communications Commission Title 47 Code of Federal Regulations (2003) 73.682';
+  } else if (matrixCoefficients == '05') {
+    result.matrixCoefficients = 'Rec. ITU-R BT.470-6 System B, G (historical)';
+  } else if (matrixCoefficients == '06') {
+    result.matrixCoefficients = 'Rec. ITU-R BT.601-6 525';
+  } else if (matrixCoefficients == '07') {
+    result.matrixCoefficients = 'SMPTE 240M-1999';
+  } else if (matrixCoefficients == '08') {
+    result.matrixCoefficients = 'YCgCo';
+  } else if (matrixCoefficients == '09') {
+    result.matrixCoefficients = 'Rec. ITU-R BT.2020 (non-constant luminance)';
+  } else if (matrixCoefficients == '10') {
+    result.matrixCoefficients = 'Rec. ITU-R BT.2020 (constant luminance)';
+  } else if (matrixCoefficients == '11') {
+    result.matrixCoefficients = 'SMPTE ST 2085:2015';
+  } else {
+    return Promise.reject('Invalid matrix coefficients');
+  }
+
+  if (videoFullRangeFlag == undefined) {
+    videoFullRangeFlag = '00';
+  }
+  if (videoFullRangeFlag == '00') {
+    result.videoFullRangeFlag = 'legal range (e.g. 16-235 for 8 bit sample depth)';
+  } else if (videoFullRangeFlag == '01') {
+    result.videoFullRangeFlag = 'full range (e.g. 0-255 for 8-bit sample depth)';
+  } else {
+    return Promise.reject('Invalid range');
+  }
+
+  return Promise.resolve(result);
+}
+</script>
+<h2>VP Codecs Parameter String Parser</h2>
+<input id="input" autofocus placeholder="vp09.00.10.08" spellcheck="false"/>
+<a href="https://www.webmproject.org/vp9/mp4/">Help</a>
+<pre id="pre"></pre>
+<script>
+  input.value = 'vp09.00.10.08';
+  onInput(input.value);
+
+  input.addEventListener('input', event => {
+    onInput(event.target.value);
+  });
+
+  async function onInput(value) {
+    try {
+      pre.textContent = JSON.stringify(await parseCodecsParameterString(value), 0, 2);
+    } catch(error) {
+      pre.textContent = 'Error: ' + error;
+    }
+  }
+</script>
