@@ -1,0 +1,43 @@
+<video id="video" controls></video>
+<script>
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=787765
+
+  const worker = new Worker('worker.js');
+  const sharedBuffer = new SharedArrayBuffer(812);
+  const view = new Uint8Array(sharedBuffer);
+
+  worker.addEventListener('message', event => {
+    const sourceBuffer = mediaSource.sourceBuffers[0];
+    
+    try {
+      console.log('1. Append shared array buffer...');
+      sourceBuffer.appendBuffer(sharedBuffer);
+      return;
+    } catch(e) {}
+
+    try {
+      console.log('2. Append view on shared array buffer...');
+      sourceBuffer.appendBuffer(view);
+      return;
+    } catch(e) {}
+
+    try {
+      console.log('3. Append a clone of the view on shared array buffer...');
+      sourceBuffer.appendBuffer(view.slice(0));
+      return;
+    } catch(e) {}
+
+  });
+  
+  const mediaSource = new MediaSource();
+  video.src = URL.createObjectURL(mediaSource);
+
+  mediaSource.addEventListener('sourceopen', e => {
+    URL.revokeObjectURL(video.src);
+    mediaSource.addSourceBuffer('video/mp4; codecs="avc1.4d401f"');
+
+    worker.postMessage(sharedBuffer);
+  }, { once: true });
+
+</script>
+
