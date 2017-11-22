@@ -1,0 +1,13 @@
+<html>
+<body style="font-family: monospace; white-space: pre;">
+<script>
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 1;
+  canvas.height = 1;
+  document.body.textContent  = ' PNG Data URI: '  + canvas.toDataURL('image/png', 0)  + '\r\n';
+  document.body.textContent += 'JPEG Data URI: ' + canvas.toDataURL('image/jpeg', 0) + '\r\n';
+  document.body.textContent += 'WebP Data URI: ' + canvas.toDataURL('image/webp', 0) + '\r\n';
+</script>
+</body>
+</html>
