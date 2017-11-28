@@ -1,19 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>🎮 mediaCapabilities.decodingInfo()</title>
   <style>
-body {
-    margin: 0 auto;
-    max-width: 1200px;
-}
-
-@media (max-width: 1200px) {
-body {
-    margin: 0 12px;
-}
-}
+    body { margin: 0 auto; max-width: 1200px; }
+    select { height: 200px; margin-right: 2px; }
+    @media (max-width: 1200px) { 
+      body { margin: 0 12px; }
+    }
+    @media (max-width: 768px) { 
+      select { height: auto; margin-right: 2px; }
+    }
   </style>
 </head>
 <body>
@@ -25,30 +23,14 @@ body {
 
   if (!('mediaCapabilities' in navigator)) {
     let warningElement = document.createElement('div');
-    warningElement.classList.add('warning');
-    warningElement.innerHTML = 'Warning! The Media Capabilities API is not available: "Everything You See Is Fake".';
+    warningElement.style.color = 'red';
+    warningElement.innerHTML = 'Warning! The Media Capabilities API is not available.';
     $('body').appendChild(warningElement);
   }
-  navigator.mediaCapabilities = navigator.mediaCapabilities || {};
-  navigator.mediaCapabilities.decodingInfo = navigator.mediaCapabilities.decodingInfo || fakeDecodingInfo;
 
-  function fakeDecodingInfo() {
-    let mediaCapabilityInfo = {
-      supported: false,
-      smooth: false,
-      powerEfficient: false,
-    }
-    mediaCapabilityInfo.supported = (Math.floor(Math.random() * 100) >= 50);
-    if (mediaCapabilityInfo.supported) {
-      mediaCapabilityInfo.smooth = (Math.floor(Math.random() * 100) >= 50);
-      mediaCapabilityInfo.powerEfficient = (Math.floor(Math.random() * 100) >= 50);
-    }
-    return Promise.resolve(mediaCapabilityInfo);
-  }
+  const MEDIA_CONFIGURATION_TYPES = ['file', 'media-source'];
 
-  var mediaConfigurationTypes = ['file', 'media-source'];
-
-  var videoConfigurationContentTypes = [
+  const VIDEO_CONFIGURATION_CONTENT_TYPES = [
     'video/webm; codecs=vp8', // WebM video in Webm container
     'video/webm; codecs=vp9', // Some VP9 profile
     'video/webm; codecs=vp09.00.10.08', // VP9, Profile 0, level 1, bit depth 8 (later fields defaulted)
@@ -57,111 +39,170 @@ body {
     'video/webm; codecs=vp09.02.10.10.01.09.16.09.01', // VP9, Profile 2, level 1, 10-bit YUV content, 4:2:0 colocated with luma (0,0) chroma subsampling, ITU-R BT.2020 primaries, ST 2084 EOTF, ITU-R BT.2020 non-constant luminance color matrix, full-range chroma/luma encoding.
     'video/mp4; codecs=avc1.64001E', // H.264 'High' profile video
     'video/ogg; codecs=theora', // Theora video in Ogg container
-
   ];
 
-  var videoSizes = [
+  const VIDEO_SIZES = [
     { width: 7680, height: 4320, title: '8K' },
     { width: 3840, height: 2160, title: '4K' },
     { width: 2560, height: 1440, title: 'HD' },
     { width: 1920, height: 1080, title: 'HD' },
     { width: 1280, height: 720,  title: 'HD' },
-    { width: 640,  height: 480 },
+    { width: 858,  height: 480 },
     { width: 640,  height: 360 },
     { width: 320,  height: 240 },
   ];
 
-  var videoBitrates = [4000, 2500, 1500, 700];
+  const VIDEO_BITRATES = [4000, 2500, 1500, 700];
 
-  var videoFramerates = [60, 50, 30, 25, 24];
+  const VIDEO_FRAMERATES = [60, 50, 30, 25, 24];
 
-  var mediaCapabilitiesPromises = [];
-  var mediaCapabilitiesOptions = [];
+  let videoConfigurationContentTypesElement = document.createElement('select');
+  videoConfigurationContentTypesElement.multiple = true;
+  VIDEO_CONFIGURATION_CONTENT_TYPES.forEach((videoConfigurationContentType, index) => {
+    let option = document.createElement('option');
+    option.value = index;
+    option.selected = true;
+    option.textContent = videoConfigurationContentType;
+    videoConfigurationContentTypesElement.appendChild(option);
+  });
+  $('body').appendChild(videoConfigurationContentTypesElement);
 
-  let videoSizesElement = document.createElement('div');
-  videoSizesElement.textContent = 'Video sizes: ' + videoSizes.map(e => e.width + 'x' + e.height + (e.title ? ' (' + e.title + ')' : '')).join(', ');
+  let videoSizesElement = document.createElement('select');
+  videoSizesElement.multiple = true;
+  VIDEO_SIZES.forEach((videoSize, index) => {
+    let option = document.createElement('option');
+    option.value = index;
+    option.selected = true;
+    option.textContent = videoSize.width + 'x' + videoSize.height + (videoSize.title ? ' (' + videoSize.title + ')' : '');
+    videoSizesElement.appendChild(option);
+  });
   $('body').appendChild(videoSizesElement);
 
-  let videoBitratesElement = document.createElement('div');
-  videoBitratesElement.textContent = 'Bit rates: ' + videoBitrates.map(e => e + ' kbps').join(', ');
+  let videoBitratesElement = document.createElement('select');
+  videoBitratesElement.multiple = true;
+  VIDEO_BITRATES.forEach((videoBitrate, index) => {
+    let option = document.createElement('option');
+    option.value = index;
+    option.selected = true;
+    option.textContent = videoBitrate + ' kbps';
+    videoBitratesElement.appendChild(option);
+  });
   $('body').appendChild(videoBitratesElement);
 
-  let videoFrameratesElement = document.createElement('div');
-  videoFrameratesElement.textContent = 'Frame rates: ' + videoFramerates.map(e => e + ' fps').join(', ');
+  let videoFrameratesElement = document.createElement('select');
+  videoFrameratesElement.multiple = true;
+  VIDEO_FRAMERATES.forEach((videoFramerate, index) => {
+    let option = document.createElement('option');
+    option.value = index;
+    option.selected = true;
+    option.textContent = videoFramerate + ' fps';
+    videoFrameratesElement.appendChild(option);
+  });
   $('body').appendChild(videoFrameratesElement);
 
-  let videoConfigContentTypesElement = document.createElement('div');
-  videoConfigContentTypesElement.textContent = 'Types: ' + videoConfigurationContentTypes.map(e => '"' + e + '"').join(', ');
-  $('body').appendChild(videoConfigContentTypesElement);
+  let mediaConfigurationTypesElement = document.createElement('select');
+  mediaConfigurationTypesElement.multiple = true;
+  MEDIA_CONFIGURATION_TYPES.forEach((mediaConfigurationType, index) => {
+    let option = document.createElement('option');
+    option.value = index;
+    option.selected = true;
+    option.textContent = mediaConfigurationType;
+    mediaConfigurationTypesElement.appendChild(option);
+  });
+  $('body').appendChild(mediaConfigurationTypesElement);
 
-  for (const videoConfigurationContentType of videoConfigurationContentTypes) {
-    for (const videoSize of videoSizes) {
-      for (const videoBitrate of videoBitrates) {
-        for (const videoFramerate of videoFramerates) {
-          for (const mediaConfigurationType of mediaConfigurationTypes) {
+  Array.from(document.querySelectorAll('select')).map(select => select.addEventListener('change', showResults));
 
-            let options = {
-              type: mediaConfigurationType,
-              video: {
-                contentType: videoConfigurationContentType,
-                width: videoSize.width,
-                height: videoSize.height,
-                bitrate: videoBitrate,
-                framerate: videoFramerate,
+  const logElement = document.createElement('pre');
+  $('body').appendChild(logElement);
+
+  function showResults() {
+    $('pre').textContent = '';
+
+    const mediaConfigurationTypes = Array.from(mediaConfigurationTypesElement.selectedOptions)
+        .map(option => MEDIA_CONFIGURATION_TYPES[parseInt(option.value)])
+
+    const videoFramerates = Array.from(videoFrameratesElement.selectedOptions)
+        .map(option => VIDEO_FRAMERATES[parseInt(option.value)])
+
+    const videoBitrates = Array.from(videoBitratesElement.selectedOptions)
+        .map(option => VIDEO_BITRATES[parseInt(option.value)])
+
+    const videoSizes = Array.from(videoSizesElement.selectedOptions)
+        .map(option => VIDEO_SIZES[parseInt(option.value)])
+
+    const videoConfigurationContentTypes = Array.from(videoConfigurationContentTypesElement.selectedOptions)
+        .map(option => VIDEO_CONFIGURATION_CONTENT_TYPES[parseInt(option.value)])
+
+    let mediaCapabilitiesPromises = [];
+    let mediaCapabilitiesOptions = [];
+
+    for (const videoConfigurationContentType of videoConfigurationContentTypes) {
+      for (const videoSize of videoSizes) {
+        for (const videoBitrate of videoBitrates) {
+          for (const videoFramerate of videoFramerates) {
+            for (const mediaConfigurationType of mediaConfigurationTypes) {
+              let options = {
+                type: mediaConfigurationType,
+                video: {
+                  contentType: videoConfigurationContentType,
+                  width: videoSize.width,
+                  height: videoSize.height,
+                  bitrate: videoBitrate,
+                  framerate: videoFramerate,
+                }
               }
-            }
-            mediaCapabilitiesOptions.push(options);
+              mediaCapabilitiesOptions.push(options);
 
-            let promise = navigator.mediaCapabilities.decodingInfo(options);
-            mediaCapabilitiesPromises.push(promise);
+              let promise = navigator.mediaCapabilities.decodingInfo(options);
+              mediaCapabilitiesPromises.push(promise);
+            }
           }
         }
       }
     }
+
+    (async _ => {
+
+      let index = 0;
+      for await (const mediaCapabilityInfo of mediaCapabilitiesPromises) {
+        if (!mediaCapabilityInfo.supported) {
+          continue;
+        }
+
+        let options = mediaCapabilitiesOptions[index];
+        if (!mediaCapabilityInfo.smooth) {
+          logMediaCapabilityInfo('NOT SMOOTH', options);
+        }
+        if (!mediaCapabilityInfo.powerEfficient) {
+          logMediaCapabilityInfo('NOT POWER EFFICIENT', options);
+        }
+
+        index++;
+      }
+    })();
+
+    let lastVideoContentType = '';
+
+    function logMediaCapabilityInfo(text, options) {
+      if (options.video.contentType != lastVideoContentType) {
+        lastVideoContentType = options.video.contentType;
+        $('pre').textContent += '\n' + lastVideoContentType.toUpperCase() + '\n' + '-'.repeat(lastVideoContentType.length) + '\n\n';
+      }
+      let qualityText = `${options.video.width}x${options.video.height}`;
+      const videoSize = videoSizes.find(e => e.height === options.video.height);
+      if (videoSize) {
+        qualityText += ' (' + videoSize.title + ')';
+      }
+      $('pre').textContent += text.padEnd(24) + ' | ' +
+          qualityText.padEnd(9) + ' | ' +
+          options.video.bitrate.toString().padStart(4) + ' kbps | ' +
+          options.video.framerate + ' fps | ' +
+          options.type.padEnd(12) +
+          '\n';
+    }
   }
 
-  (async _ => {
-  
-    const logElement = document.createElement('pre');
-    $('body').appendChild(logElement);
-
-    let index = 0;
-    for await (const mediaCapabilityInfo of mediaCapabilitiesPromises) {
-      if (!mediaCapabilityInfo.supported) {
-        continue;
-      }
-
-      let options = mediaCapabilitiesOptions[index];
-      if (!mediaCapabilityInfo.smooth) {
-        logMediaCapabilityInfo('NOT SMOOTH', options);
-      }
-      if (!mediaCapabilityInfo.powerEfficient) {
-        logMediaCapabilityInfo('NOT POWER EFFICIENT', options);
-      }
-      
-      index++;
-    }
-  })();
-
-  let lastVideoContentType = '';
-
-  function logMediaCapabilityInfo(text, options) {
-    if (options.video.contentType != lastVideoContentType) {
-      lastVideoContentType = options.video.contentType;
-      $('pre').textContent += '\n' + lastVideoContentType.toUpperCase() + '\n' + '-'.repeat(lastVideoContentType.length) + '\n\n';
-    }
-    let qualityText = `${options.video.width}x${options.video.height}`;
-    const videoSize = videoSizes.find(e => e.height === options.video.height);
-    if (videoSize) {
-      qualityText += ' (' + videoSize.title + ')';
-    }
-    $('pre').textContent += text.padEnd(24) + ' | ' + 
-        qualityText.padEnd(9) + ' | ' +
-        options.video.bitrate.toString().padStart(4) + ' kbps | ' +
-        options.video.framerate + ' fps | ' +
-        options.type.padEnd(12) +
-        '\n';
-  }
-
+  showResults();
 </script>
 </html>
