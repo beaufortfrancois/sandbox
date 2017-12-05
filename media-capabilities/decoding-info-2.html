@@ -31,6 +31,8 @@
   const MEDIA_CONFIGURATION_TYPES = ['file', 'media-source'];
 
   const VIDEO_CONFIGURATION_CONTENT_TYPES = [
+    'video/mp4; codecs=av1', // AV1 video in MP4 container
+    'video/webm; codecs=av1', // AV1 video in Webm container
     'video/webm; codecs=vp8', // WebM video in Webm container
     'video/webm; codecs=vp9', // Some VP9 profile
     'video/webm; codecs=vp09.00.10.08', // VP9, Profile 0, level 1, bit depth 8 (later fields defaulted)
