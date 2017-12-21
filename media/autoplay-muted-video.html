@@ -4,19 +4,24 @@
   <title>Autoplay muted videos test page</title>
 </head>
 <body>
-  <textarea rows=100>I am spacing</textarea>
+  <textarea rows=100 style="width:100%">I am spacing</textarea>
   <section>
     <div>playsinline autoplay muted</div>
-    <video src='https://storage.googleapis.com/dalecurtis-shared/buck2.mp4' playsinline controls autoplay muted></video>
+    <video id="autoplayMutedVideo" src='https://storage.googleapis.com/dalecurtis-shared/buck2.mp4' playsinline controls autoplay muted></video>
+  </section>
+  <section>
+    <div>playsinline muted</div>
+    <video id="mutedVideo" src='https://storage.googleapis.com/dalecurtis-shared/buck2.mp4' playsinline controls muted></video>
   </section>
 </body>
 <script>
-  var video = document.querySelector("video");
-  var ta = document.querySelector("textarea");
+  const ta = document.querySelector("textarea");
   ta.value += "\r\n";
-  video.addEventListener("loadedmetadata", _ => { ta.value += "video loadedmetadata\r\n" });
-  video.addEventListener("play", _ => { ta.value += "video play\r\n" });
-  video.addEventListener("playing", _ => { ta.value += "video playing\r\n" });
-  video.addEventListener("pause", _ => { ta.value += "video paused\r\n" });
+  [autoplayMutedVideo, mutedVideo].forEach(video => {
+    video.addEventListener("loadedmetadata", _ => { ta.value += video.id + " loadedmetadata\r\n" });
+    video.addEventListener("play", _ => { ta.value += video.id + " play\r\n" });
+    video.addEventListener("playing", _ => { ta.value += video.id + " playing\r\n" });
+    video.addEventListener("pause", _ => { ta.value += video.id + " paused\r\n" });
+  });
 </script>
 </html>
