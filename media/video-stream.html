@@ -1,0 +1,31 @@
+<body>
+<style>
+  video { width: 1280; height: 720 }
+</style>
+<script>
+  function showVideo(url) {
+    const video = document.createElement('video');
+    video.autoplay = true;
+    document.body.appendChild(video);
+
+    const mediaSource = new MediaSource();
+    video.src = URL.createObjectURL(mediaSource);
+    mediaSource.addEventListener('sourceopen', async event => {
+      const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp9');
+
+      const response = await fetch(url);
+      const reader = response.body.getReader();
+
+      (async function stream() {
+        const {done, value} = await reader.read();
+        sourceBuffer.appendBuffer(value);
+        requestIdleCallback(stream);
+      })();
+
+    });
+  }
+
+  showVideo('https://storage.googleapis.com/fbeaufort-test/sample-video.webm');
+  showVideo('https://storage.googleapis.com/fbeaufort-test/sample-video-240p.webm');
+</script>
+</body>
