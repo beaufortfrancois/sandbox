@@ -1,0 +1,40 @@
+<video id="video" autoplay src="https://storage.googleapis.com/fbeaufort-test/sample-video.mp4" width="640"></video>
+
+<h3>cue.lineAlign</h3>
+<input type="radio" id="lineAlignStart" name="lineAlign" value="start">
+<label for="lineAlignStart">"start"</label>
+<input type="radio" id="lineAlignCenter" name="lineAlign" value="center">
+<label for="lineAlignCenter">"center"</label>
+<input type="radio" id="lineAlignEnd" name="lineAlign" value="end">
+<label for="lineAlignEnd">"end"</label>
+
+<h3>cue.positionAlign</h3>
+<input type="radio" id="positionAlignLineLeft" name="positionAlign" value="line-left">
+<label for="positionAlignLineLeft">"line-left"</label>
+<input type="radio" id="positionAlignCenter" name="positionAlign" value="center">
+<label for="positionAlignCenter">"center"</label>
+<input type="radio" id="positionAlignLineRight" name="positionAlign" value="line-right">
+<label for="positionAlignLineRight">"line-right"</label>
+<input type="radio" id="positionAlignAuto" name="positionAlign" value="auto">
+<label for="positionAlignAuto">"auto"</label>
+
+<script>
+  const track = video.addTextTrack('subtitles');
+  track.addCue(new VTTCue(0 /* start */, 120 /* end */, 'Lorem ipsum dolor sit amet'));
+  const cue = new VTTCue(0 /* start */, 120 /* end */, 'A simple cue');
+  track.addCue(cue);
+  track.mode = 'showing';
+
+  Array.from(document.querySelectorAll('[name=lineAlign]')).forEach(e => {
+    e.addEventListener('change', function(event) {
+      cue.lineAlign = event.target.value;
+      cue.text = `lineAlign = "${cue.lineAlign}" positionAlign = "${cue.positionAlign}"`;
+    })
+  });
+  Array.from(document.querySelectorAll('[name=positionAlign]')).forEach(e => {
+    e.addEventListener('change', function(event) {
+      cue.positionAlign = event.target.value;
+      cue.text = `lineAlign = "${cue.lineAlign}" positionAlign = "${cue.positionAlign}"`;
+    })
+  });
+</script>
