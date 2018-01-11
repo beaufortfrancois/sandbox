@@ -1,12 +1,13 @@
 <style>
 video::cue {
-  font-size: 24px;
-  color: green;
-  background-color: white;
+  font-size: 50%;
 }
 </style>
+<video id="video" src="https://storage.googleapis.com/fbeaufort-test/sample-video.mp4" width="640"></video>
 
-<video id="video" autoplay src="https://storage.googleapis.com/fbeaufort-test/sample-video.mp4" width="640"></video>
+<h3>cue.line</h3>
+<input type="range" min="0" max="10" value="0" id="line" name="lineRange">
+<label for="lineRange">0</label>
 
 <h3>cue.lineAlign</h3>
 <input type="radio" id="lineAlignStart" name="lineAlign" value="start" checked>
@@ -16,38 +17,60 @@ video::cue {
 <input type="radio" id="lineAlignEnd" name="lineAlign" value="end">
 <label for="lineAlignEnd">"end"</label>
 
+<h3>cue.position</h3>
+<input type="range" min="0" max="100" value="0" id="position" name="positionRange">
+<label for="positionRange">0</label>
+
 <h3>cue.positionAlign</h3>
-<input type="radio" id="positionAlignLineLeft" name="positionAlign" value="line-left">
+<input type="radio" id="positionAlignLineLeft" name="positionAlign" value="line-left" checked>
 <label for="positionAlignLineLeft">"line-left"</label>
 <input type="radio" id="positionAlignCenter" name="positionAlign" value="center">
 <label for="positionAlignCenter">"center"</label>
 <input type="radio" id="positionAlignLineRight" name="positionAlign" value="line-right">
 <label for="positionAlignLineRight">"line-right"</label>
-<input type="radio" id="positionAlignAuto" name="positionAlign" value="auto" checked>
+<input type="radio" id="positionAlignAuto" name="positionAlign" value="auto">
 <label for="positionAlignAuto">"auto"</label>
 
 <script>
   const track = video.addTextTrack('subtitles');
   track.mode = 'showing';
 
-  const staticCue = new VTTCue(0 /* start */, 120 /* end */, 'lineAlign = "start" positionAlign="auto"');
-  staticCue.lineAlign = 'start';
-  track.addCue(staticCue);
+  const cue = new VTTCue(0 /* start */, 120 /* end */, '');
+  cue.line = 0;
+  cue.lineAlign = 'start';
+  cue.position = 0;
+  cue.positionAlign = 'line-left';
 
-  const cue = new VTTCue(0 /* start */, 120 /* end */, 'lineAlign = "start" positionAlign="auto"');
+  updateCueText();
   track.addCue(cue);
 
 
   Array.from(document.querySelectorAll('[name=lineAlign]')).forEach(e => {
     e.addEventListener('change', function(event) {
       cue.lineAlign = event.target.value;
-      cue.text = `lineAlign = "${cue.lineAlign}" positionAlign = "${cue.positionAlign}"`;
+      updateCueText();
     })
   });
   Array.from(document.querySelectorAll('[name=positionAlign]')).forEach(e => {
     e.addEventListener('change', function(event) {
       cue.positionAlign = event.target.value;
-      cue.text = `lineAlign = "${cue.lineAlign}" positionAlign = "${cue.positionAlign}"`;
+      updateCueText();
     })
   });
+
+  line.addEventListener('input', function(event) {
+    cue.line = parseInt(event.target.value);
+    document.querySelector('label[for=' + event.target.name + ']').textContent = cue.line;
+    updateCueText();
+  });
+
+  position.addEventListener('input', function(event) {
+    cue.position = parseInt(event.target.value);
+    document.querySelector('label[for=' + event.target.name + ']').textContent = cue.position;
+    updateCueText();
+  });
+
+  function updateCueText() {
+    cue.text = `line = "${cue.line}" lineAlign = "${cue.lineAlign}" position = "${cue.position}" positionAlign = "${cue.positionAlign}"`;
+  }
 </script>
