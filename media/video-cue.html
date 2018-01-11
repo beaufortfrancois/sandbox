@@ -1,7 +1,15 @@
+<style>
+video::cue {
+  font-size: 24px;
+  color: green;
+  background-color: white;
+}
+</style>
+
 <video id="video" autoplay src="https://storage.googleapis.com/fbeaufort-test/sample-video.mp4" width="640"></video>
 
 <h3>cue.lineAlign</h3>
-<input type="radio" id="lineAlignStart" name="lineAlign" value="start">
+<input type="radio" id="lineAlignStart" name="lineAlign" value="start" checked>
 <label for="lineAlignStart">"start"</label>
 <input type="radio" id="lineAlignCenter" name="lineAlign" value="center">
 <label for="lineAlignCenter">"center"</label>
@@ -15,15 +23,20 @@
 <label for="positionAlignCenter">"center"</label>
 <input type="radio" id="positionAlignLineRight" name="positionAlign" value="line-right">
 <label for="positionAlignLineRight">"line-right"</label>
-<input type="radio" id="positionAlignAuto" name="positionAlign" value="auto">
+<input type="radio" id="positionAlignAuto" name="positionAlign" value="auto" checked>
 <label for="positionAlignAuto">"auto"</label>
 
 <script>
   const track = video.addTextTrack('subtitles');
-  track.addCue(new VTTCue(0 /* start */, 120 /* end */, 'Lorem ipsum dolor sit amet'));
-  const cue = new VTTCue(0 /* start */, 120 /* end */, 'A simple cue');
-  track.addCue(cue);
   track.mode = 'showing';
+
+  const staticCue = new VTTCue(0 /* start */, 120 /* end */, 'lineAlign = "start" positionAlign="auto"');
+  staticCue.lineAlign = 'start';
+  track.addCue(staticCue);
+
+  const cue = new VTTCue(0 /* start */, 120 /* end */, 'lineAlign = "start" positionAlign="auto"');
+  track.addCue(cue);
+
 
   Array.from(document.querySelectorAll('[name=lineAlign]')).forEach(e => {
     e.addEventListener('change', function(event) {
