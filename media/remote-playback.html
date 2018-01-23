@@ -64,6 +64,10 @@
           log('Disconnected from the remote device.');
           updateRemoteState();
         });
+      } else if (video.webkitShowPlaybackTargetPicker) {
+        updateRemoteStateWebKit();
+        video.addEventListener(‘webkitcurrentplaybacktargetiswirelesschanged',
+          function(e) { updateRemoteStateWebKit(); });
       } else {
         log.textContent += 'The Remote Playback API is not supported yet.';
         promptButton.disabled = true;
@@ -98,19 +102,47 @@
         }
       };
 
+      function onWebKitPlaybackTargetAvailabilityChanged(e) {
+        handleAvailabilityChange(e.availability);
+      };
+      
+      function updateRemoteStateWebKit() {
+        log('webkitCurrentPlaybackTargetIsWireless = ' + video.webkitCurrentPlaybackTargetIsWireless);
+        if (!video.webkitCurrentPlaybackTargetIsWireless) {
+          // Let's watch remote device availability when there's no connected
+          // remote device.
+          log('Starting watching remote device availability...');
+          video.addEventListener('webkitplaybacktargetavailabilitychanged',
+              onWebKitPlaybackTargetAvailabilityChanged);
+        } else {
+          // If remote device is connecting or connected, we should stop
+          // watching remote device availability to save power.
+          log('Stopping watching remote device availability...');
+          video.removeEventListener('webkitplaybacktargetavailabilitychanged',
+              onWebKitPlaybackTargetAvailabilityChanged);
+        }
+      };
+      
       function handleAvailabilityChange(availability) {
         log('Remote device ' + (availability ? 'available' : 'not available'));
       };
 
       promptButton.addEventListener('click', function() {
         log('Prompt button clicked');
-        video.remote.prompt()
-        .catch(error => {
-          log('Argh! ' + error)
-        });
+        if (video.remote) {
+          video.remote.prompt().catch(error => {
+             log('Argh! ' + error)
+          });
+        } else if (video.webkitShowPlaybackTargetPicker) {
+          video.webkitShowPlaybackTargetPicker();
+        }
       });
 
       toggleRemotePlayback.addEventListener('click', function() {
+        if (video['disableRemotePlayback'] === undefined) {
+          log('Toggling remote playback is not supported');
+          return;
+        }
         if (video.disableRemotePlayback) {
           video.disableRemotePlayback = null;
           log('Video remote playback is enabled');
