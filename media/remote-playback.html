@@ -28,7 +28,7 @@
     <input id="togglePreload" type="checkbox" checked/>
     <label for="togglePreload">Video Preload</label>
     <video id="video" controls playsinline
-           src="https://storage.googleapis.com/media-session/caminandes/short.mp4#t=113"
+           src="https://storage.googleapis.com/media-session/caminandes/short.mp4"
            poster="https://storage.googleapis.com/media-session/caminandes/artwork-512.png"
     ></video>
     <p>
@@ -107,7 +107,8 @@
       };
       
       function updateRemoteStateWebKit() {
-        log('webkitCurrentPlaybackTargetIsWireless = ' + video.webkitCurrentPlaybackTargetIsWireless);
+        log('webkitCurrentPlaybackTargetIsWireless = ' +
+           video.webkitCurrentPlaybackTargetIsWireless);
         if (!video.webkitCurrentPlaybackTargetIsWireless) {
           // Let's watch remote device availability when there's no connected
           // remote device.
