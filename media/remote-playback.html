@@ -66,8 +66,8 @@
         });
       } else if (video.webkitShowPlaybackTargetPicker) {
         updateRemoteStateWebKit();
-        video.addEventListener(‘webkitcurrentplaybacktargetiswirelesschanged',
-          function(e) { updateRemoteStateWebKit(); });
+        video.addEventListener('webkitcurrentplaybacktargetiswirelesschanged',
+            function(e) { updateRemoteStateWebKit(); });
       } else {
         log.textContent += 'The Remote Playback API is not supported yet.';
         promptButton.disabled = true;
