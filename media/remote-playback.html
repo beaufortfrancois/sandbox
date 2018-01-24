@@ -118,8 +118,8 @@
         }
       };
       
-      function onWebKitPlaybackTargetAvailabilityChanged(e) {
-        handleAvailabilityChange(e.availability);
+      function onWebKitPlaybackTargetAvailabilityChanged(event) {
+        log('Remote device ' + event.availability);
       };
 
       function handleAvailabilityChange(availability) {
