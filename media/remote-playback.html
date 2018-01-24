@@ -66,8 +66,9 @@
         });
       } else if (video.webkitShowPlaybackTargetPicker) {
         updateRemoteStateWebKit();
-        video.addEventListener('webkitcurrentplaybacktargetiswirelesschanged',
-            function(e) { updateRemoteStateWebKit(); });
+	video.addEventListener('webkitcurrentplaybacktargetiswirelesschanged', function(e) {
+          updateRemoteStateWebKit();
+        });
       } else {
         log.textContent += 'The Remote Playback API is not supported yet.';
         promptButton.disabled = true;
@@ -102,28 +103,25 @@
         }
       };
 
-      function onWebKitPlaybackTargetAvailabilityChanged(e) {
-        handleAvailabilityChange(e.availability);
-      };
-      
       function updateRemoteStateWebKit() {
-        log('webkitCurrentPlaybackTargetIsWireless = ' +
-           video.webkitCurrentPlaybackTargetIsWireless);
+        log('webkitCurrentPlaybackTargetIsWireless = ' + video.webkitCurrentPlaybackTargetIsWireless);
         if (!video.webkitCurrentPlaybackTargetIsWireless) {
           // Let's watch remote device availability when there's no connected
           // remote device.
           log('Starting watching remote device availability...');
-          video.addEventListener('webkitplaybacktargetavailabilitychanged',
-              onWebKitPlaybackTargetAvailabilityChanged);
+          video.addEventListener('webkitplaybacktargetavailabilitychanged', onWebKitPlaybackTargetAvailabilityChanged);
         } else {
           // If remote device is connecting or connected, we should stop
           // watching remote device availability to save power.
           log('Stopping watching remote device availability...');
-          video.removeEventListener('webkitplaybacktargetavailabilitychanged',
-              onWebKitPlaybackTargetAvailabilityChanged);
+          video.removeEventListener('webkitplaybacktargetavailabilitychanged', onWebKitPlaybackTargetAvailabilityChanged);
         }
       };
       
+      function onWebKitPlaybackTargetAvailabilityChanged(e) {
+        handleAvailabilityChange(e.availability);
+      };
+
       function handleAvailabilityChange(availability) {
         log('Remote device ' + (availability ? 'available' : 'not available'));
       };
