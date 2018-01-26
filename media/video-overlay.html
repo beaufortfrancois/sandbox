@@ -27,10 +27,10 @@ async function draw() {
   context.drawImage(camera, 0, 0, camera.videoWidth, camera.videoHeight);
 
   // Draw text on top of the video.
-  context.font = '48px Cousine';
+  context.font = '48px';
   context.fillStyle = 'deeppink';                                                                                                                                                          
   context.textBaseline = 'top';                                                                                                                                                            
-  context.fillText('Coucou les loulous', 4, 0);                                                                                                                         
+  context.fillText(new Date(), 4, 0);
 }
 
 
