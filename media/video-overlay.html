@@ -1,0 +1,48 @@
+<title>video overlay</title>
+<style>
+  h2 { margin-bottom: 0px; }
+  p { margin-top: 0px; }
+</style>
+<h2>Raw camera feed</h2>
+<p>It can be a regular video as well</p>
+<video id="camera" autoplay muted></video>
+<h2>Intermediate canvas</h2>
+<p>Capture camera stream and draw text on top of it.</p>
+<canvas id="canvas"></canvas>
+<h2>Final video to PiP</h2>
+<p>Video stream captured from canvas above</p>
+<video id="video" autoplay muted></video>
+<script>
+
+async function getUserMedia() {
+  // Grab camera stream.
+  camera.srcObject = await navigator.mediaDevices.getUserMedia({video: true});
+  await camera.play();
+
+  canvas.height = camera.videoHeight;
+  canvas.width = camera.videoWidth;
+
+  draw();
+
+  video.srcObject = canvas.captureStream();
+}
+
+async function draw() {
+  requestAnimationFrame(draw);
+
+  const context = canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw video frame.
+  context.drawImage(camera, 0, 0, camera.videoWidth, camera.videoHeight);
+
+  // Draw text on top of the video.
+  context.font = '48px Cousine';
+  context.fillStyle = 'deeppink';                                                                                                                                                          
+  context.textBaseline = 'top';                                                                                                                                                            
+  context.fillText('Coucou les loulous', 4, 0);                                                                                                                         
+}
+
+
+getUserMedia();
+</script>
