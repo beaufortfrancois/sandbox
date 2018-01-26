@@ -1,16 +1,6 @@
 <title>video overlay</title>
-<style>
-  h2 { margin-bottom: 0px; }
-  p { margin-top: 0px; }
-</style>
-<h2>Raw camera feed</h2>
-<p>It can be a regular video as well</p>
-<video id="camera" autoplay muted></video>
-<h2>Intermediate canvas</h2>
-<p>Capture camera stream and draw text on top of it.</p>
-<canvas id="canvas"></canvas>
-<h2>Final video to PiP</h2>
-<p>Video stream captured from canvas above</p>
+<video id="camera" autoplay muted hidden></video>
+<canvas id="canvas" hidden></canvas>
 <video id="video" autoplay muted></video>
 <script>
 
