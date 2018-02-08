@@ -1,0 +1,63 @@
+<title>Draw canvas to video with captureStream()</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  canvas { border: 1px solid blue }
+  video { border: 1px solid red }
+</style>
+<h1>Draw <span style="color:blue">canvas</span> to <span style="color:red">video</span> with <code>captureStream()</code></h1>
+<label>
+  Canvas width:
+  <input type="range" id="width" min="0" max="1000" step="1" value="300"> 
+</label>
+<label>
+  Canvas height:
+  <input type="range" id="height" min="0" max="1000" step="1" value="150"> 
+</label>
+Canvas size: <span id="size">300x150</span>
+<br/>
+<br/>
+<canvas id="canvas" width=300 height=150></canvas>
+<video id="video"></video>
+<script>
+video.srcObject = canvas.captureStream();
+
+var ballRadius = 10;
+var x = canvas.width/2;
+var y = canvas.height/2;
+var dx = 2;
+var dy = -2;
+
+(function draw() {
+  requestAnimationFrame(draw);
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.beginPath();
+  ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+  ctx.fillStyle = "#00ff00";
+  ctx.fill();
+  ctx.closePath();
+
+  if (x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
+      dx = -dx;
+  }
+  if (y + dy > canvas.height-ballRadius || y + dy < ballRadius) {
+      dy = -dy;
+  }
+  
+  x += dx;
+  y += dy;
+})();
+
+width.addEventListener('input', function(event) {
+  canvas.width = event.target.value;
+  size.textContent = `${canvas.width}x${canvas.height} (${canvas.width * canvas.height})`;
+});
+
+height.addEventListener('input', function(event) {
+  canvas.height = event.target.value;
+  size.textContent = `${canvas.width}x${canvas.height} (${canvas.width * canvas.height})`;
+});
+
+</script>
