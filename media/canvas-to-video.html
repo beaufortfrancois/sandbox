@@ -19,6 +19,9 @@ Canvas size: <span id="size">300x150</span>
 <canvas id="canvas" width=300 height=150></canvas>
 <video id="video"></video>
 <script>
+if (new URL(location).searchParams.has('autoplay'))
+  video.autoplay = true;
+
 video.srcObject = canvas.captureStream();
 
 var ballRadius = 10;
