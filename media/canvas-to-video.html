@@ -1,10 +1,16 @@
 <title>Draw canvas to video with captureStream()</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
+  div { margin-bottom: 12px }
   canvas { border: 1px solid blue }
   video { border: 1px solid red }
 </style>
 <h1>Draw <span style="color:blue">canvas</span> to <span style="color:red">video</span> with <code>captureStream()</code></h1>
+<div>
+  Canvas size: <span id="size">300x150</span> |
+  video.webkitDecodedFrameCount: <span id="webkitDecodedFrameCount"></span>
+</div>
+<div>
 <label>
   Canvas width:
   <input type="range" id="width" min="0" max="1000" step="1" value="300"> 
@@ -13,11 +19,11 @@
   Canvas height:
   <input type="range" id="height" min="0" max="1000" step="1" value="150"> 
 </label>
-Canvas size: <span id="size">300x150</span>
-<br/>
-<br/>
+</div>
+<div>
 <canvas id="canvas" width=300 height=150></canvas>
 <video id="video"></video>
+</div>
 <script>
 if (new URL(location).searchParams.has('autoplay'))
   video.autoplay = true;
@@ -51,6 +57,8 @@ var dy = -2;
   
   x += dx;
   y += dy;
+
+  webkitDecodedFrameCount.textContent = video.webkitDecodedFrameCount;
 })();
 
 width.addEventListener('input', function(event) {
