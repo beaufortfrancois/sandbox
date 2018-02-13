@@ -1,0 +1,14 @@
+<style>
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  video {
+    width: 100px;
+  }
+</style>
+<video id="video" controls src="https://storage.googleapis.com/fbeaufort-test/sample-video.webm"></video>
+<script>
+  video.addTextTrack('captions').mode = 'showing';
+</script>
