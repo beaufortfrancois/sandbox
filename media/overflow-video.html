@@ -2,13 +2,18 @@
   body {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-evenly;
   }
-  video {
+  #video1 {
     width: 100px;
   }
+  #video2 {
+    width: 200px;
+  }
 </style>
-<video id="video" controls src="https://storage.googleapis.com/fbeaufort-test/sample-video.webm"></video>
+<video id="video1" controls src="https://storage.googleapis.com/fbeaufort-test/sample-video.webm"></video>
+<video id="video2" controls src="https://storage.googleapis.com/fbeaufort-test/sample-video.webm"></video>
 <script>
-  video.addTextTrack('captions').mode = 'showing';
+  video1.addTextTrack('captions', 'Supercalafajalistickexpialadojus').mode = 'showing';
+  video2.addTextTrack('captions', 'Supercalafajalistickexpialadojus').mode = 'showing';
 </script>

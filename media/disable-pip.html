@@ -1,0 +1,15 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  video { max-width: 100% }
+</style>
+<label><input id="checkbox" type="checkbox">video.disablePictureInPicture</label>
+<video id="video" controls src="https://storage.googleapis.com/fbeaufort-test/sample-video.webm"></video>
+<script>
+  checkbox.addEventListener('change', _ => {
+    if (checkbox.checked) {
+      video.setAttribute('disablePictureInPicture', true);
+    } else {
+      video.removeAttribute('disablePictureInPicture');
+    }
+  });
+</script>
