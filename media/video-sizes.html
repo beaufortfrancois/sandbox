@@ -1,0 +1,25 @@
+<style>
+  body {
+    display: flex;
+    align-items: center;
+  }
+</style>
+<body></body>
+<script>
+  for (var i=0; i < 8; i++) {
+    const video = document.createElement('video');
+    video.style.width = 50 * (i+1);
+    video.controls = true;
+    video.addTextTrack('captions', 'Supercalafajalistickexpialadojus').mode = 'showing';
+
+    const source1 = document.createElement('source');
+    source1.src = 'https://storage.googleapis.com/fbeaufort-test/sample-video.webm';
+    video.appendChild(source1);
+
+    const source2 = document.createElement('source');
+    source2.src = 'https://storage.googleapis.com/fbeaufort-test/sample-video.mp4';
+    video.appendChild(source2);
+
+    document.body.appendChild(video);
+  }
+</script>
