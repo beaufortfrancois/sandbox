@@ -1,0 +1,17 @@
+<video src="https://storage.googleapis.com/media-session/caminandes/short.mp4" controls width=640 height=360></video>
+<pre id="pre"></pre>
+<script>
+setInterval(function() {
+  // Attempt playing video every second.
+  document.querySelector('video').play().catch(e => {});
+}, 1000);
+  
+document.addEventListener('keydown', keyHandler);
+document.addEventListener('keypress', keyHandler);
+document.addEventListener('keyup', keyHandler);
+document.addEventListener('click', keyHandler);
+
+function keyHandler(e) {
+  pre.textContent += `${new Date().toISOString()}  ${e.type.padEnd(9)} ${e.code || ''}\n`;
+};
+</script>
