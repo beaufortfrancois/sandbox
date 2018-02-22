@@ -1,0 +1,16 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  video { background-color: red; max-width: 100% }
+  @media (min-width: 480px) {
+    video { max-width: 480px }
+  }
+</style>
+<body>
+  <video id="video" controls preload="none" src="https://storage.googleapis.com/fbeaufort-test/sample-video.webm"></video>
+</body>
