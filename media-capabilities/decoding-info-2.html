@@ -170,6 +170,7 @@
       let index = 0;
       for await (const mediaCapabilityInfo of mediaCapabilitiesPromises) {
         if (!mediaCapabilityInfo.supported) {
+          index++;
           continue;
         }
 
