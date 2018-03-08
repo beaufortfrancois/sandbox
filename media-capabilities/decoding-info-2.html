@@ -174,10 +174,11 @@
         }
 
         let options = mediaCapabilitiesOptions[index];
-        if (!mediaCapabilityInfo.smooth) {
+        if (!mediaCapabilityInfo.smooth && !mediaCapabilityInfo.powerEfficient) {
+          logMediaCapabilityInfo('NOT SMOOTH & NOT POWER EFFICIENT', options);
+	} else if (!mediaCapabilityInfo.smooth) {
           logMediaCapabilityInfo('NOT SMOOTH', options);
-        }
-        if (!mediaCapabilityInfo.powerEfficient) {
+	} else if (!mediaCapabilityInfo.powerEfficient) {
           logMediaCapabilityInfo('NOT POWER EFFICIENT', options);
         }
 
@@ -197,11 +198,11 @@
       if (videoSize) {
         qualityText += ' (' + videoSize.title + ')';
       }
-      $('pre').textContent += text.padEnd(24) + ' | ' +
-          qualityText.padEnd(9) + ' | ' +
+      $('pre').textContent += qualityText.padEnd(9) + ' | ' +
           options.video.bitrate.toString().padStart(4) + ' kbps | ' +
           options.video.framerate + ' fps | ' +
-          options.type.padEnd(12) +
+          options.type.padEnd(12) + ' | ' +
+          text.padEnd(19) +
           '\n';
     }
   }
