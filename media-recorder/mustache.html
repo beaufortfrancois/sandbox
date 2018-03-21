@@ -180,6 +180,16 @@ async function draw() {
       (canvas.width - video.videoWidth * ratio) / 2, 0,
       video.videoWidth * ratio, video.videoHeight * ratio);  
 
+  if (!isDetectingFaces) {
+    // Detect faces.
+    console.count('Detecting faces');
+    isDetectingFaces = true;
+    faceDetector.detect(canvas).then(facesArray => {
+      faces = facesArray;
+      isDetectingFaces = false;    
+    });    
+  }
+  
   // Draw mustache and hat on previously detected face.
   if (faces.length) {
     const face = faces[0].boundingBox;
@@ -209,16 +219,6 @@ async function draw() {
           mustache.height * face.width / 2 / mustache.width);
     }
   }
-
-  if (isDetectingFaces) {
-    return;
-  }
-
-  // Detect faces.
-  console.count('Detecting faces');
-  isDetectingFaces = true;
-  faces = await faceDetector.detect(canvas);
-  isDetectingFaces = false;
 }
 
 function startRecording() {
