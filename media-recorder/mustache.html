@@ -209,7 +209,7 @@ async function draw() {
     } else {
       context.drawImage(hat,
           face.left,
-          face.bottom - face.height * 3 / 4 - hat.height * face.width / hat.width,
+          face.bottom - face.height - hat.height * face.width / hat.width,
           face.width,
           hat.height * face.width / hat.width);
       context.drawImage(mustache,
