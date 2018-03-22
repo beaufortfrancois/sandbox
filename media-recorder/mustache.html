@@ -178,7 +178,7 @@ async function draw() {
   const ratio  = Math.max(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
   context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight,
       (canvas.width - video.videoWidth * ratio) / 2, 0,
-      video.videoWidth * ratio, video.videoHeight * ratio);  
+      video.videoWidth * ratio, video.videoHeight * ratio);
 
   if (!isDetectingFaces) {
     // Detect faces.
@@ -186,10 +186,10 @@ async function draw() {
     isDetectingFaces = true;
     faceDetector.detect(canvas).then(facesArray => {
       faces = facesArray;
-      isDetectingFaces = false;    
-    });    
+      isDetectingFaces = false;
+    });
   }
-  
+
   // Draw mustache and hat on previously detected face.
   if (faces.length) {
     const face = faces[0].boundingBox;
@@ -275,7 +275,7 @@ async function uploadVideo(blob) {
 
   // Upload video to Google Cloud Storage.
   const response = await fetch(url, {
-    method: 'POST', 
+    method: 'POST',
     body: blob,
     headers: new Headers({
       'Content-Type': 'video/webm',
