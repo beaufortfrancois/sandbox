@@ -30,34 +30,48 @@
     $('body').appendChild(warningElement);
   }
 
-  const MEDIA_CONFIGURATION_TYPES = ['file', 'media-source'];
+  const MEDIA_CONFIGURATION_TYPES = ['media-source', 'file'];
 
   const VIDEO_CONFIGURATION_CONTENT_TYPES = [
-    'video/mp4; codecs=av1', // AV1 video in MP4 container
-    'video/webm; codecs=av1', // AV1 video in Webm container
-    'video/webm; codecs=vp8', // WebM video in Webm container
-    'video/webm; codecs=vp09.00.10.08', // VP9, Profile 0, level 1, bit depth 8 (later fields defaulted)
-    'video/webm; codecs=vp09.01.20.08.01', // VP9, Profile 1, level 2, bit depth 8, 4:2:0 chroma subsampling colocated with (0,0) luma, (later fields defaulted)
-    'video/webm; codecs=vp09.01.20.08.01.01.01.01.00', // VP9, Profile 1, level 2, bit depth 8, 4:2:0 chroma subsampling colocated with (0,0) luma, REC709 color/transfer/matrix, luma/chroma encoded in the "legal" range.
-    'video/webm; codecs=vp09.02.10.10.01.09.16.09.01', // VP9, Profile 2, level 1, 10-bit YUV content, 4:2:0 colocated with luma (0,0) chroma subsampling, ITU-R BT.2020 primaries, ST 2084 EOTF, ITU-R BT.2020 non-constant luminance color matrix, full-range chroma/luma encoding.
-    'video/mp4; codecs=avc1.64001E', // H.264 'High' profile video
-    'video/ogg; codecs=theora', // Theora video in Ogg container
+    { mime: 'video/mp4; codecs=av1', title : 'AV1 in MP4 container' },
+    { mime: 'video/mp4; codecs=avc1.42001E', title: 'H.264 Baseline Profile' },
+    { mime: 'video/mp4; codecs=avc1.4D001E', title: 'H.264 Main Profile' },
+    { mime: 'video/mp4; codecs=avc1.58001E', title: 'H.264 Extended Profile' },
+    { mime: 'video/mp4; codecs=avc1.64001E', title: 'H.264 High Profile' },
+    { mime: 'video/mp4; codecs=avc1.6E001E', title: 'H.264 High 10 Profile' },
+    { mime: 'video/mp4; codecs=avc1.7A001E', title: 'H.264 High 4:2:2 Intra Profile' },
+    { mime: 'video/mp4; codecs=avc1.80001E', title: 'H.264 Stereo High Profile' },
+    { mime: 'video/mp4; codecs=avc1.F4001E', title: 'H.264 High 4:4:4 Predictive Profile' },
+    { mime: 'video/ogg; codecs=theora', title: 'Theora video in Ogg container' },
+    { mime: 'video/webm; codecs=av1', title: 'AV1 video in Webm container' },
+    { mime: 'video/webm; codecs=vp8', title: 'WebM video in Webm container' },
+    { mime: 'video/webm; codecs=vp09.00.10.08', title: 'VP9, Profile 0, level 1, bit depth 8 (later fields defaulted)' },
+    { mime: 'video/webm; codecs=vp09.01.20.08.01', title: 'VP9, Profile 1, level 2, bit depth 8, 4:2:0 chroma subsampling colocated with (0,0) luma, (later fields defaulted)' },
+    { mime: 'video/webm; codecs=vp09.01.20.08.01.01.01.01.00', title: 'VP9, Profile 1, level 2, bit depth 8, 4:2:0 chroma subsampling colocated with (0,0) luma, REC709 color/transfer/matrix, luma/chroma encoded in the "legal" range.' },
+    { mime: 'video/webm; codecs=vp09.02.10.10.01.09.16.09.01', title: 'VP9, Profile 2, level 1, 10-bit YUV content, 4:2:0 colocated with luma (0,0) chroma subsampling, ITU-R BT.2020 primaries, ST 2084 EOTF, ITU-R BT.2020 non-constant luminance color matrix, full-range chroma/luma encoding.' },
   ];
 
   const VIDEO_SIZES = [
-    { width: 7680, height: 4320, title: '8K' },
-    { width: 3840, height: 2160, title: '4K' },
-    { width: 2560, height: 1440, title: 'HD' },
-    { width: 1920, height: 1080, title: 'HD' },
-    { width: 1280, height: 720,  title: 'HD' },
-    { width: 858,  height: 480 },
-    { width: 640,  height: 360 },
-    { width: 320,  height: 240 },
+    { width: 7680, height: 4320, title: '8K', ratio: '16:9' },
+    { width: 3840, height: 2160, title: '4K', ratio: '16:9' },
+    { width: 2560, height: 1440, title: 'HD', ratio: '16:9' },
+    { width: 1920, height: 1440, title: 'HD', ratio: '4:3' },
+    { width: 1920, height: 1280, title: 'HD', ratio: '3:2' },
+    { width: 1920, height: 1080, title: 'HD', ratio: '16:9' },
+    { width: 1920, height: 960,  title: 'HD', ratio: '2:1' },
+    { width: 1920, height: 854,  title: 'HD', ratio: '2.25:1' },
+    { width: 1280, height: 960,  title: 'HD', ratio: '4:3' },
+    { width: 1280, height: 854,  title: 'HD', ratio: '3:2' },
+    { width: 1280, height: 720,  title: 'HD', ratio: '16:9' },
+    { width: 1280, height: 640,  title: 'HD', ratio: '2:1' },
+    { width: 858,  height: 480,               ratio: '16:9' },
+    { width: 640,  height: 360,               ratio: '16:9' },
+    { width: 320,  height: 240,               ratio: '4:3' },
   ];
 
   const VIDEO_BITRATES = [4000, 2500, 1500, 700];
 
-  const VIDEO_FRAMERATES = [60, 50, 30, 25, 24];
+  const VIDEO_FRAMERATES = [60, 50, 30, 25, 24, 20];
 
   let videoConfigurationContentTypesElement = document.createElement('select');
   videoConfigurationContentTypesElement.multiple = true;
@@ -65,7 +79,8 @@
     let option = document.createElement('option');
     option.value = index;
     option.selected = true;
-    option.textContent = videoConfigurationContentType;
+    option.textContent = videoConfigurationContentType.mime;
+    option.title = videoConfigurationContentType.title;
     videoConfigurationContentTypesElement.appendChild(option);
   });
   $('body').appendChild(videoConfigurationContentTypesElement);
@@ -76,7 +91,7 @@
     let option = document.createElement('option');
     option.value = index;
     option.selected = true;
-    option.textContent = videoSize.width + 'x' + videoSize.height + (videoSize.title ? ' (' + videoSize.title + ')' : '');
+    option.textContent = videoSize.width + 'x' + videoSize.height + ' ' + videoSize.ratio + (videoSize.title ? ' (' + videoSize.title + ')' : '');
     videoSizesElement.appendChild(option);
   });
   $('body').appendChild(videoSizesElement);
@@ -86,10 +101,11 @@
   VIDEO_BITRATES.forEach((videoBitrate, index) => {
     let option = document.createElement('option');
     option.value = index;
-    option.selected = true;
     option.textContent = videoBitrate + ' kbps';
     videoBitratesElement.appendChild(option);
   });
+  // Select one element as video bitrates is not used by Chrome yet.
+  videoBitratesElement.selectedIndex = 0;
   $('body').appendChild(videoBitratesElement);
 
   let videoFrameratesElement = document.createElement('select');
@@ -112,6 +128,8 @@
     option.textContent = mediaConfigurationType;
     mediaConfigurationTypesElement.appendChild(option);
   });
+  // Select one element as configuration type is not used by Chrome yet.
+  mediaConfigurationTypesElement.selectedIndex = 0;
   $('body').appendChild(mediaConfigurationTypesElement);
 
   Array.from(document.querySelectorAll('select')).map(select => select.addEventListener('change', showResults));
@@ -148,7 +166,7 @@
               let options = {
                 type: mediaConfigurationType,
                 video: {
-                  contentType: videoConfigurationContentType,
+                  contentType: videoConfigurationContentType.mime,
                   width: videoSize.width,
                   height: videoSize.height,
                   bitrate: videoBitrate,
@@ -169,12 +187,12 @@
 
       let index = 0;
       for await (const mediaCapabilityInfo of mediaCapabilitiesPromises) {
+        let options = mediaCapabilitiesOptions[index++];
+
         if (!mediaCapabilityInfo.supported) {
-          index++;
           continue;
         }
 
-        let options = mediaCapabilitiesOptions[index];
         if (!mediaCapabilityInfo.smooth && !mediaCapabilityInfo.powerEfficient) {
           logMediaCapabilityInfo('NOT SMOOTH & NOT POWER EFFICIENT', options);
 	} else if (!mediaCapabilityInfo.smooth) {
@@ -182,8 +200,6 @@
 	} else if (!mediaCapabilityInfo.powerEfficient) {
           logMediaCapabilityInfo('NOT POWER EFFICIENT', options);
         }
-
-        index++;
       }
     })();
 
@@ -192,14 +208,15 @@
     function logMediaCapabilityInfo(text, options) {
       if (options.video.contentType != lastVideoContentType) {
         lastVideoContentType = options.video.contentType;
-        $('pre').textContent += '\n' + lastVideoContentType.toUpperCase() + '\n' + '-'.repeat(lastVideoContentType.length) + '\n\n';
+        $('pre').textContent += '\n' + lastVideoContentType.toUpperCase() + '\n'
+            + '-'.repeat(lastVideoContentType.length) + '\n\n';
       }
-      let qualityText = `${options.video.width}x${options.video.height}`;
+      let qualityText = `${options.video.width}x${options.video.height}`.padEnd(9);
       const videoSize = videoSizes.find(e => e.height === options.video.height);
-      if (videoSize) {
+      if ('title' in videoSize) {
         qualityText += ' (' + videoSize.title + ')';
       }
-      $('pre').textContent += qualityText.padEnd(9) + ' | ' +
+      $('pre').textContent += qualityText.padEnd(14) + ' | ' +
           options.video.bitrate.toString().padStart(4) + ' kbps | ' +
           options.video.framerate + ' fps | ' +
           options.type.padEnd(12) + ' | ' +
