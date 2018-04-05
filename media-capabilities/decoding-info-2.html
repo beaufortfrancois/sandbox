@@ -128,8 +128,6 @@
     option.textContent = mediaConfigurationType;
     mediaConfigurationTypesElement.appendChild(option);
   });
-  // Select one element as configuration type is not used by Chrome yet.
-  mediaConfigurationTypesElement.selectedIndex = 0;
   $('body').appendChild(mediaConfigurationTypesElement);
 
   Array.from(document.querySelectorAll('select')).map(select => select.addEventListener('change', showResults));
