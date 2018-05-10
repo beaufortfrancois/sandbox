@@ -1,0 +1,21 @@
+<script>
+const config = [{
+  videoCapabilities: [{
+    contentType: 'video/webm; codecs="vp09.00.10.08"',
+    robustness: 'HW_SECURE_ALL' // Widevine L1
+  }]
+}];
+
+// Chrome will prompt user if website is allowed to uniquely identify
+// user's device to play protected content.
+navigator.requestMediaKeySystemAccess('com.widevine.alpha', config)
+.then(access => {
+  pre.textContent = 'User will be able to watch encrypted content in the most secure way.';
+})
+.catch(e => {
+  pre.textContent = 'Widevine L1 is not supported on this platform yet.\n';
+  pre.textContent += `${e.name}: ${e.message}`;
+});
+</script>
+<pre id="pre"></pre>
+
