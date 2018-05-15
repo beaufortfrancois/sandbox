@@ -1,0 +1,18 @@
+<body>
+<script>
+const context = new AudioContext();
+const source = context.createOscillator();
+source.frequency.value = 200;
+source.connect(context.destination);
+source.loop = true;
+source.start(0);
+
+document.body.addEventListener('click', function() {
+  document.body.style.backgroundColor = 'orange';
+setInterval(function() {
+  context.resume();
+}, 5000);
+
+});
+</script>
+</body>

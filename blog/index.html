@@ -32,7 +32,7 @@ canvas.hidden = true;
 canvas.getContext('2d').fillStyle = '#eee';
 for (var i = 0; i < canvas.height - 20; i += 20) {
   if (i % 60 == 0) {
-    console.log(i);
+    //console.log(i);
     continue;
   }
   canvas.getContext('2d').fillRect(0, i, canvas.width * Math.random(50) + canvas.width / 2, 12);
@@ -46,11 +46,27 @@ canvas.animate([
   iterations: Infinity,
 });
 
+function setTimeoutAsync(time) {
+  return new Promise(r => setTimeout(r, time));
+}
+
 async function readArticle(url) {
   const id = setTimeout(function() {
     canvas.hidden = false;
   }, 200);
   const response = await fetch(url);
+  const textDecoder = new TextDecoder();
+  for await (const chunk of streamAsyncIterator(response.body)) {
+    await setTimeoutAsync(500);
+    console.log(chunk.length);
+    if (article.innerHTML === '') {
+      clearInterval(id);
+      canvas.hidden = true;
+      highlightCode();
+    }
+    article.innerHTML += textDecoder.decode(chunk, { stream : true });
+  }
+/*
   const text = await response.text();
   clearInterval(id);
   article.animate([
@@ -63,7 +79,28 @@ async function readArticle(url) {
   article.innerHTML = text;
   canvas.hidden = true;
   highlightCode();
+*/
 }
+
+async function* streamAsyncIterator(stream) {
+  // Get a lock on the stream
+  const reader = stream.getReader();
+
+  try {
+    while (true) {
+      // Read from the stream
+      const {done, value} = await reader.read();
+      // Exit if we're done
+      if (done) return;
+      // Else yield the chunk
+      yield value;
+    }
+  }
+  finally {
+    reader.releaseLock();
+  }
+}
+
 readArticle('sample.html');
 
 function highlightCode() {
