@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>video { max-width: 360px; }</style>
+<video id="video" autoplay muted controls></video>
+<script>
+const mediaSource = new MediaSource();
+video.src = URL.createObjectURL(mediaSource);
+mediaSource.addEventListener('sourceopen', async function() {
+  URL.revokeObjectURL(video.src);
+  mediaSource.duration = Infinity;
+
+  const sourceBuffer = mediaSource.addSourceBuffer('video/webm;codecs="vp09.00.10.08"');
+  sourceBuffer.mode = 'sequence';
+  
+  const videoUrl1 = 'https://storage.googleapis.com/fbeaufort-test/sample-video.webm';
+  await fetchVideo(videoUrl1, sourceBuffer, 'bytes=0-1196488');
+
+  const videoUrl2 = 'https://storage.googleapis.com/fbeaufort-test/sample-video-square.webm';
+  await fetchVideo(videoUrl2, sourceBuffer, 'bytes=0-1196488');
+});
+
+async function fetchVideo(videoUrl, sourceBuffer, range) {
+  const response = await fetch(videoUrl, { headers: { range } });
+  const buffer = await response.arrayBuffer();
+  await appendBuffer(sourceBuffer, buffer);
+}
+
+function appendBuffer(sourceBuffer, buffer) {
+  return new Promise(resolve => {
+    sourceBuffer.appendBuffer(buffer);
+    sourceBuffer.addEventListener('updateend', resolve, { once: true });
+  });
+}
+</script>
+
