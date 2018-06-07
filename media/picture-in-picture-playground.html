@@ -22,9 +22,11 @@
   <video id="video" muted autoplay controls src="https://storage.googleapis.com/fbeaufort-test/sample-video.webm"></video>
   <button id="pipButton">Toggle Picture-in-Picture</button>
   <button id="srcButton">Toggle Video Src</button>
+  <button id="mediaStreamButton">Toggle MediaStream</button>
   <pre id="log"></pre>
 </body>
 <script>
+  const canvas = document.createElement('canvas');
 
   (function update() {
     requestAnimationFrame(_ => {
@@ -48,6 +50,10 @@
   });
 
   srcButton.addEventListener('click', function(e) {
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop());
+      video.srcObject = null;
+    }
     if (video.src == 'https://storage.googleapis.com/fbeaufort-test/sample-video.webm') {
       video.removeAttribute('src');
       video.load();
@@ -56,10 +62,52 @@
     video.src = 'https://storage.googleapis.com/fbeaufort-test/sample-video.webm';
   });
 
+  mediaStreamButton.addEventListener('click', function(e) {
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop());
+      video.srcObject = null;
+      video.src = 'https://storage.googleapis.com/fbeaufort-test/sample-video.webm';
+      return;
+    }
+    video.srcObject = canvas.captureStream();
+  });
+
   video.addEventListener('enterpictureinpicture', logEvent);
   video.addEventListener('leavepictureinpicture', logEvent);
   function logEvent(event) {
     log.textContent += 'event: ' + event.type + '\n';
     log.textContent += 'pictureInPictureElement: ' + document.pictureInPictureElement + '\n';
   }
+
+/* Canvas stuff */
+
+var ballRadius = 10;
+var x = canvas.width/2;
+var y = canvas.height/2;
+var dx = 2;
+var dy = -2;
+
+(function draw() {
+  requestAnimationFrame(draw);
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.beginPath();
+  ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+  ctx.fillStyle = "#00ff00";
+  ctx.fill();
+  ctx.closePath();
+
+  if (x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
+      dx = -dx;
+  }
+  if (y + dy > canvas.height-ballRadius || y + dy < ballRadius) {
+      dy = -dy;
+  }
+  
+  x += dx;
+  y += dy;
+})();
+
 </script>
