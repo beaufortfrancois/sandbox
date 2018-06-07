@@ -11,6 +11,7 @@
   button, video {
     width: 100%;
     padding: 4px 0;
+    margin-bottom: 4px;
   }
 </style>
 <body>
@@ -20,6 +21,7 @@
   <pre id="pre"></pre>
   <video id="video" muted autoplay controls src="https://storage.googleapis.com/fbeaufort-test/sample-video.webm"></video>
   <button id="pipButton">Toggle Picture-in-Picture</button>
+  <button id="srcButton">Toggle Video Src</button>
   <pre id="log"></pre>
 </body>
 <script>
@@ -40,6 +42,15 @@
     } else {
       document.exitPictureInPicture();
     }
+  });
+
+  srcButton.addEventListener('click', function(e) {
+    if (video.src == 'https://storage.googleapis.com/fbeaufort-test/sample-video.webm') {
+      video.removeAttribute('src');
+      video.load();
+      return;
+    }
+    video.src = 'https://storage.googleapis.com/fbeaufort-test/sample-video.webm';
   });
 
   video.addEventListener('enterpictureinpicture', logEvent);
