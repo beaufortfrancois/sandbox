@@ -38,7 +38,10 @@
     // If there is no element in Picture-in-Picture yet, let's request
     // Picture-in-Picture for the video, otherwise leave it.
     if (!document.pictureInPictureElement) {
-      video.requestPictureInPicture();
+      video.requestPictureInPicture()
+      .catch(e => {
+        log.textContent += e + '\n';
+      });
     } else {
       document.exitPictureInPicture();
     }
