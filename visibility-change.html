@@ -1,0 +1,15 @@
+<html><body>
+<script>
+document.addEventListener('visibilitychange', onVisibilityChange);
+
+function onVisibilityChange() {
+  if (document.hidden) {
+    document.body.style.backgroundColor = 'red';
+  } else {
+    document.body.style.backgroundColor = 'green';
+  }
+}
+
+onVisibilityChange();
+</script>
+</html></body>
