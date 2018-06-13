@@ -1,0 +1,28 @@
+<video id="video" width="480" src="https://storage.googleapis.com/fbeaufort-test/sample-video.webm"></video>
+<button id="button1">button1</button>
+<button id="button2">button2</button>
+<script>window.onload = function() {
+
+button1.onclick = async function() {
+  const p1 = video.requestPictureInPicture();
+  const p2 = video.requestPictureInPicture();
+  const p3 = video.requestPictureInPicture();
+  const p4 = video.requestPictureInPicture();
+  console.log((await p1).width);
+  console.log((await p2).width);
+  console.log((await p3).width);
+  console.log((await p4).width);
+}
+
+button2.onclick = async function() {
+  const p1 = video.requestPictureInPicture();
+  const p2 = video.requestPictureInPicture();
+  const p3 = video.requestPictureInPicture();
+  const p4 = video.requestPictureInPicture();
+  const values = await Promise.all([p1, p2, p3, p4]);
+  for (const value of values) {
+    console.log(value.width);
+  }
+}
+
+}</script>
