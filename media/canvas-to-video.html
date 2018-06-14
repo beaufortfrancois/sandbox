@@ -12,6 +12,10 @@
 </div>
 <div>
 <label>
+  Canvas background:
+  <input type="color" id="color" value="#ff00ff"> 
+</label>
+<label>
   Canvas width:
   <input type="range" id="width" min="0" max="1000" step="1" value="300"> 
 </label>
@@ -36,11 +40,20 @@ var y = canvas.height/2;
 var dx = 2;
 var dy = -2;
 
+var colorChanged = false;
+
 (function draw() {
   requestAnimationFrame(draw);
 
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (colorChanged) {
+    ctx.beginPath();
+    ctx.fillStyle = color.value;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.closePath();
+  }
 
   ctx.beginPath();
   ctx.arc(x, y, ballRadius, 0, Math.PI*2);
@@ -69,6 +82,10 @@ width.addEventListener('input', function(event) {
 height.addEventListener('input', function(event) {
   canvas.height = event.target.value;
   size.textContent = `${canvas.width}x${canvas.height} (${canvas.width * canvas.height})`;
+});
+
+color.addEventListener('input', function(event) {
+  colorChanged = true;
 });
 
 </script>
