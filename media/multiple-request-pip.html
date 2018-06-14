@@ -4,6 +4,7 @@
 <button id="button2">button2</button>
 <button id="button3">button3</button>
 <button id="button4">button4</button>
+<button id="button5">button5</button>
 <script>window.onload = function() {
 
 button1.onclick = async function() {
@@ -52,6 +53,19 @@ button4.onclick = async function() {
   for (const value of values) {
     console.log(value.width);
   }
+}
+
+button5.onclick = async function() {
+  const p1 = video.requestPictureInPicture();
+  const p2 = video.requestPictureInPicture();
+  const p3 = video.requestPictureInPicture();
+  const p4 = video.requestPictureInPicture();
+  // Wait 1s before explicitely asking for width
+  await new Promise(r => setTimeout(r, 1000));
+  console.log((await p1).width);
+  console.log((await p2).width);
+  console.log((await p3).width);
+  console.log((await p4).width);
 }
 
 }</script>
