@@ -5,6 +5,7 @@
 <button id="button3">button3</button>
 <button id="button4">button4</button>
 <button id="button5">button5</button>
+<button id="button6">button6</button>
 <script>window.onload = function() {
 
 button1.onclick = async function() {
@@ -66,6 +67,21 @@ button5.onclick = async function() {
   console.log((await p2).width);
   console.log((await p3).width);
   console.log((await p4).width);
+}
+
+button6.onclick = async function() {
+  const p1 = video.requestPictureInPicture();
+  const p2 = video.requestPictureInPicture();
+  const p3 = video.requestPictureInPicture();
+  const p4 = video.requestPictureInPicture();
+  const v1 = await p1;
+  const v2 = await p2;
+  const v3 = await p3;
+  const v4 = await p4;
+  console.log(v1.width);
+  console.log(v2.width);
+  console.log(v3.width);
+  console.log(v4.width);
 }
 
 video.addEventListener('enterpictureinpicture', e => { console.log('enterpictureinpicture'); });
