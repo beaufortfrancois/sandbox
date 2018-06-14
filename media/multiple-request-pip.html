@@ -68,4 +68,7 @@ button5.onclick = async function() {
   console.log((await p4).width);
 }
 
+video.addEventListener('enterpictureinpicture', e => { console.log('enterpictureinpicture'); });
+video.addEventListener('leavepictureinpicture', e => { console.log('leavepictureinpicture'); });
+
 }</script>
