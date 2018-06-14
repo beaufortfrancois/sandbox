@@ -1,6 +1,9 @@
 <video id="video" width="480" src="https://storage.googleapis.com/fbeaufort-test/sample-video.webm"></video>
+<br/>
 <button id="button1">button1</button>
 <button id="button2">button2</button>
+<button id="button3">button3</button>
+<button id="button4">button4</button>
 <script>window.onload = function() {
 
 button1.onclick = async function() {
@@ -20,6 +23,32 @@ button2.onclick = async function() {
   const p3 = video.requestPictureInPicture();
   const p4 = video.requestPictureInPicture();
   const values = await Promise.all([p1, p2, p3, p4]);
+  for (const value of values) {
+    console.log(value.width);
+  }
+}
+
+button3.onclick = async function() {
+  const p1 = video.requestPictureInPicture();
+  const p2 = video.requestPictureInPicture();
+  const p3 = video.requestPictureInPicture();
+  const p4 = video.requestPictureInPicture();
+  // Wait 1s before calling Promise.all
+  await new Promise(r => setTimeout(r, 1000));
+  const values = await Promise.all([p1, p2, p3, p4]);
+  for (const value of values) {
+    console.log(value.width);
+  }
+}
+
+button4.onclick = async function() {
+  const p1 = video.requestPictureInPicture();
+  const p2 = video.requestPictureInPicture();
+  const p3 = video.requestPictureInPicture();
+  const p4 = video.requestPictureInPicture();
+  const values = await Promise.all([p1, p2, p3, p4]);
+  // Wait 1s before explicitely asking for width
+  await new Promise(r => setTimeout(r, 1000));
   for (const value of values) {
     console.log(value.width);
   }
