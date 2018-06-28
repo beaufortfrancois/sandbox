@@ -23,6 +23,7 @@
   <button id="pipButton">Toggle Picture-in-Picture</button>
   <button id="srcButton">Toggle Video Src</button>
   <button id="mediaStreamButton">Toggle MediaStream</button>
+  <button id="addVideoButton">Add Video</button>
   <pre id="log"></pre>
 </body>
 <script>
@@ -72,10 +73,24 @@
     video.srcObject = canvas.captureStream();
   });
 
+  addVideoButton.addEventListener('click', function(e) {
+    const anotherVideo = document.createElement('video');
+    anotherVideo.id = 'anotherVideo';
+    anotherVideo.muted = true;
+    anotherVideo.controls = true;
+    anotherVideo.autoplay = true;
+    //anotherVideo.src = 'https://storage.googleapis.com/fbeaufort-test/sample-video.webm';
+    anotherVideo.src = 'https://upload.wikimedia.org/wikipedia/commons/transcoded/2/22/Volcano_Lava_Sample.webm/Volcano_Lava_Sample.webm.480p.webm';
+    anotherVideo.addEventListener('enterpictureinpicture', logEvent);
+    anotherVideo.addEventListener('leavepictureinpicture', logEvent);
+    document.body.appendChild(anotherVideo);
+    addVideoButton.disabled = true;
+  });
+
   video.addEventListener('enterpictureinpicture', logEvent);
   video.addEventListener('leavepictureinpicture', logEvent);
   function logEvent(event) {
-    log.textContent += 'event: ' + event.type + '\n';
+    log.textContent += 'event: ' + event.type + ' on ' + event.target.id + '\n';
     log.textContent += 'pictureInPictureElement: ' + document.pictureInPictureElement + '\n';
   }
 
