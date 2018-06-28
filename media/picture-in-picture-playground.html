@@ -91,7 +91,7 @@
   video.addEventListener('leavepictureinpicture', logEvent);
   function logEvent(event) {
     log.textContent += 'event: ' + event.type + ' on ' + event.target.id + '\n';
-    log.textContent += 'pictureInPictureElement: ' + document.pictureInPictureElement + '\n';
+    log.textContent += 'pictureInPictureElement: ' + (document.pictureInPictureElement ? document.pictureInPictureElement.id : 'null') + '\n';
   }
 
 /* Canvas stuff */
