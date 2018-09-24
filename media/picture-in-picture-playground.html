@@ -123,6 +123,10 @@
     log.textContent += 'pictureInPictureElement: ' + (document.pictureInPictureElement ? document.pictureInPictureElement.id : 'null') + '\n';
   }
 
+  document.addEventListener('visibilitychange', function(e) {
+    log.textContent += 'document.visibilityState: ' + document.visibilityState + '\n';
+  });
+
 /* Canvas stuff */
 
 var ballRadius = 10;
