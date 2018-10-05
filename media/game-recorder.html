@@ -1,0 +1,56 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+</style>
+
+<body>
+  <pre>
+  Chrome Canary flags:
+  chrome://flags/#enable-experimental-web-platform-features
+  chrome://flags/#enable-surfaces-for-videos
+  chrome://flags/#enable-surfaces-for-videos-ms
+  </pre>
+  <button id="button">record yourself playing</button>
+  <video id="screenVideo" autoplay muted width=480></video>
+  <a id="a" download="recording.webm" style="display: none">recording.webm</a>
+</body>
+
+<script>
+  const pipVideo = document.createElement('video');
+  pipVideo.autoplay = true;
+  pipVideo.muted = true;
+  /* BUG */ pipVideo.style.width = 1; document.body.appendChild(pipVideo);
+
+  navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    .then(stream => { pipVideo.srcObject = stream; });
+
+  let recorder;
+
+  button.addEventListener('click', async function () {
+    await pipVideo.requestPictureInPicture();
+    button.style.display = 'none';
+  });
+
+  pipVideo.addEventListener('enterpictureinpicture', async function () {
+    screenVideo.srcObject = await navigator.getDisplayMedia({ video: true });
+
+    let blobs = [];
+    recorder = new MediaRecorder(screenVideo.srcObject, { mimeType: 'video/webm; codecs=vp9' });
+    recorder.ondataavailable = (event) => blobs.push(event.data);
+    recorder.onstop = () => {
+      a.href = URL.createObjectURL(new Blob(blobs, { type: 'video/webm' }));
+      a.style.display = 'block';
+    };
+    recorder.start();
+  });
+
+  pipVideo.addEventListener('leavepictureinpicture', function () {
+    recorder.stop();
+    screenVideo.style.display = 'none';
+  });
+</script>
