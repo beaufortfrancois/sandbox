@@ -16,7 +16,7 @@
   chrome://flags/#enable-surfaces-for-videos-ms
   </pre>
   <button id="button">record yourself playing</button>
-  <video id="screenVideo" autoplay muted width=480></video>
+  <video id="screenVideo" autoplay width=480></video>
   <a id="a" download="recording.webm" style="display: none">recording.webm</a>
 </body>
 
@@ -26,8 +26,8 @@
   pipVideo.muted = true;
   /* BUG */ pipVideo.style.width = 1; document.body.appendChild(pipVideo);
 
-  navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-    .then(stream => { pipVideo.srcObject = stream; });
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(cameraVideoStream => { pipVideo.srcObject = cameraVideoStream; });
 
   let recorder;
 
@@ -37,10 +37,17 @@
   });
 
   pipVideo.addEventListener('enterpictureinpicture', async function () {
-    screenVideo.srcObject = await navigator.getDisplayMedia({ video: true });
+    const screenVideoStream = await navigator.getDisplayMedia({ video: true });
+    const voiceAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    const stream = new MediaStream();
+    stream.addTrack(screenVideoStream.getVideoTracks()[0]);
+    stream.addTrack(voiceAudioStream.getAudioTracks()[0]);
+
+    screenVideo.srcObject = screenVideoStream;
 
     let blobs = [];
-    recorder = new MediaRecorder(screenVideo.srcObject, { mimeType: 'video/webm; codecs=vp9' });
+    recorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
     recorder.ondataavailable = (event) => blobs.push(event.data);
     recorder.onstop = () => {
       a.href = URL.createObjectURL(new Blob(blobs, { type: 'video/webm' }));
