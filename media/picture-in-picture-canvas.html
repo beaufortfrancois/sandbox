@@ -1,0 +1,60 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  canvas {
+    width: 400px;
+    height: 400px;
+  }
+</style>
+
+<body>
+  <button id="button">requestPictureInPicture()</button>
+  <br/>
+  <canvas id="canvas" width="400" height="400"></canvas>
+  <br/>
+  <div>
+    <input id="width" placeholder="width (400 by default)" />
+    <input id="height" placeholder="height (400 by default)" />
+  </div>
+</body>
+
+<script>
+  let i = 255;
+  (function drawCanvas() {
+    canvas.width++;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = `rgb(${i % 255}, ${
+      i % 155}, ${
+      i % 55})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'white';
+    ctx.font = '20px monospace';
+    ctx.fillText(`${canvas.width}x${canvas.height}`, 20, 30);
+    requestAnimationFrame(drawCanvas);
+    i++;
+  })();
+
+  const video = document.createElement('video');
+  video.autoplay = true;
+  video.muted = true;
+  /* BUG */ video.style.width = 1; document.body.appendChild(video);
+  video.srcObject = canvas.captureStream();
+
+  width.addEventListener('change', e => {
+    canvas.width = parseInt(width.value) || 400;
+  })
+
+  height.addEventListener('change', e => {
+    canvas.height = parseInt(height.value) || 400;
+  })
+
+  button.addEventListener('click', async function () {
+    video.requestPictureInPicture();
+  });
+</script>
