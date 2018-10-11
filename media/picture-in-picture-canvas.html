@@ -7,27 +7,37 @@
     flex-direction: column;
   }
 
-  canvas {
+  #container {
     width: 400px;
     height: 400px;
+    border: 2px solid;
   }
 </style>
 
 <body>
   <button id="button">requestPictureInPicture()</button>
   <br/>
-  <canvas id="canvas" width="400" height="400"></canvas>
+  <div id="container">
+    <canvas id="canvas" width="100" height="100"></canvas>
+  </div>
   <br/>
   <div>
-    <input id="width" placeholder="width (400 by default)" />
-    <input id="height" placeholder="height (400 by default)" />
+    <input id="width" placeholder="width (100 by default)" />
+    <input id="height" placeholder="height (100 by default)" />
+  </div>
+  <div>
+    <label for="increaseWidth">
+      Increase width continuously
+      <input id="increaseWidth" type="checkbox" />
+    </label>
   </div>
 </body>
-
 <script>
   let i = 255;
   (function drawCanvas() {
-    canvas.width++;
+    if (increaseWidth.checked) {
+      canvas.width += 5;
+    }
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = `rgb(${i % 255}, ${
       i % 155}, ${
@@ -35,7 +45,7 @@
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = 'white';
     ctx.font = '20px monospace';
-    ctx.fillText(`${canvas.width}x${canvas.height}`, 20, 30);
+    ctx.fillText(`${canvas.width}x${canvas.height}`, 5, 20);
     requestAnimationFrame(drawCanvas);
     i++;
   })();
