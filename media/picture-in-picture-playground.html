@@ -28,6 +28,9 @@
   pre {
     padding: 12px;
   }
+  .visible {
+    visibility: hidden;
+  }
 </style>
 <body>
   <div id="firstBlock">
@@ -40,6 +43,7 @@
   <button id="srcButton">Reload Video</button>
   <button id="resetButton">Reset Video</button>
   <button id="mediaStreamButton">Toggle MediaStream</button>
+  <button id="toggleVisibilityButton">Toggle video visibility</button>
   <button id="addVideoButton">Add Video</button>
   <div id="anotherVideoBlock"></div>
   </div>
@@ -102,6 +106,10 @@
       return;
     }
     video.srcObject = canvas.captureStream();
+  });
+
+  toggleVisibilityButton.addEventListener('click', function(e) {
+    video.classList.toggle("visible");
   });
 
   addVideoButton.addEventListener('click', function(e) {
