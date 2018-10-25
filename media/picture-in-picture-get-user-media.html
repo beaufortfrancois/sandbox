@@ -28,6 +28,9 @@
   pre {
     padding: 12px;
   }
+  .visible {
+    visibility: hidden;
+  }
 </style>
 <body>
   <div id="firstBlock">
@@ -37,6 +40,7 @@
     <pre id="pre"></pre>
     <video id="video" autoplay></video>
     <button id="pipButton">Toggle Picture-in-Picture</button>
+    <button id="toggleVisibilityButton">Toggle video visibility</button>
   </div>
   <div id="secondBlock">
     <pre id="log"></pre>
@@ -67,6 +71,10 @@
     } else {
       document.exitPictureInPicture();
     }
+  });
+
+  toggleVisibilityButton.addEventListener('click', function(e) {
+    video.classList.toggle("visible");
   });
 
   video.addEventListener('enterpictureinpicture', logEvent);
