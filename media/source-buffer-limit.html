@@ -46,7 +46,7 @@ mediaSource.addEventListener('sourceopen', function() {
        sourceBuffer.addEventListener('updateend', function() {
          size += data.byteLength;
          resolve();
-       });
+       }, { once: true });
      });
   })
   .then(_ => fetch('https://storage.googleapis.com/fbeaufort-test/sample-video.mp4', { headers: { range: 'bytes=2344-939299' }}))
@@ -75,6 +75,9 @@ mediaSource.addEventListener('sourceopen', function() {
         if (percent <= 5) {
           log(error);
           return;
+        }
+        if (percent < 100 && url.searchParams.has('abort')) {
+          sourceBuffer.abort();
         }
         appendSomeData(percent - 5);
       }
