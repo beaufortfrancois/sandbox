@@ -41,6 +41,7 @@
     <video id="video" autoplay></video>
     <button id="pipButton">Toggle Picture-in-Picture</button>
     <button id="toggleVisibilityButton">Toggle video visibility</button>
+    <button id="toggleStichButton">Toggle video stitching</button>
   </div>
   <div id="secondBlock">
     <pre id="log"></pre>
@@ -51,13 +52,18 @@
   (function update() {
     requestAnimationFrame(_ => {
       pre.textContent = 'document.pictureInPictureEnabled = ' + document.pictureInPictureEnabled;
-      path.style.fill = document.pictureInPictureEnabled ? '#000' : '#ddd'; 
+      path.style.fill = document.pictureInPictureEnabled ? '#000' : '#ddd';
       update();
     });
   })();
 
+  let cameraStream;
+
+  const canvas = document.createElement('canvas');
+
   (async _ => {
-    video.srcObject = await navigator.mediaDevices.getUserMedia({video: true });
+    cameraStream = await navigator.mediaDevices.getUserMedia({video: true });
+    video.srcObject = cameraStream;
   })();
 
   pipButton.addEventListener('click', function(e) {
@@ -77,11 +83,80 @@
     video.classList.toggle("visible");
   });
 
+  toggleStichButton.addEventListener('click', function(e) {
+    if (video.srcObject === cameraStream) {
+      offscreenVideo.srcObject = cameraStream;
+      video.srcObject = canvas.captureStream();
+    } else {
+      video.srcObject = cameraStream;
+    }
+  });
+
   video.addEventListener('enterpictureinpicture', logEvent);
   video.addEventListener('leavepictureinpicture', logEvent);
   function logEvent(event) {
     log.textContent += 'event: ' + event.type + ' on ' + event.target.id + '\n';
     log.textContent += 'pictureInPictureElement: ' + (document.pictureInPictureElement ? document.pictureInPictureElement.id : 'null') + '\n';
   }
+
+  /* Canvas stuff */
+
+  const offscreenVideo = document.createElement('video');
+  offscreenVideo.autoplay = true;
+  offscreenVideo.addEventListener('playing', function() {
+    canvas.width = offscreenVideo.videoWidth * 2;
+    canvas.height = offscreenVideo.videoHeight * 2;
+  });
+
+  (function draw() {
+    requestAnimationFrame(draw);
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.shadowOffsetX = ctx.shadowOffsetY = 0;
+    ctx.font = canvas.height / 12 + 'px Google Sans, Arial';
+    ctx.textBaseline = 'top';
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const offset = 2;
+
+    let crop = 100;
+    ctx.drawImage(offscreenVideo, crop, crop, centerX - crop, centerY - crop,
+                  0, 0, centerX, centerY);
+    crop *= 1.5;
+    ctx.drawImage(offscreenVideo, crop, crop, centerX - crop, centerY - crop,
+                  centerX, 0, centerX, centerY);
+    crop *= 1.5;
+    ctx.drawImage(offscreenVideo, crop, crop, centerX - crop, centerY - crop,
+                  0, centerY, centerX, centerY);
+    ctx.drawImage(offscreenVideo, centerX, centerY);
+
+    ctx.beginPath();
+    ctx.moveTo(centerX, 0);
+    ctx.lineTo(centerX, canvas.height);
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = offset;
+    ctx.stroke();
+    ctx.beginPath();
+
+    ctx.beginPath();
+    ctx.moveTo(0, centerY);
+    ctx.lineTo(canvas.width, centerY);
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = offset;
+    ctx.stroke();
+    ctx.closePath();
+
+    ctx.beginPath();
+    ctx.shadowColor = 'black';
+    ctx.shadowOffsetX = ctx.shadowOffsetY = 4;
+    ctx.fillStyle = 'white';
+    ctx.fillText(`Alice`, offset, 0);
+    ctx.fillText(`Bob`, centerX + offset, offset);
+    ctx.fillText(`Charlie`, offset, centerY + offset);
+    ctx.fillText(`Dave`, centerX + offset, centerY + offset);
+    ctx.closePath();
+  })();
 
 </script>
