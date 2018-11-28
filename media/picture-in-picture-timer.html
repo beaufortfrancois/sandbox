@@ -28,11 +28,21 @@
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const video = document.createElement('video');
+
   // BUG: autoplay doesn't seem to always be trigger with srcObject mediastream, we have to call play and set muted.
-  // video.autoplay = true;
-  video.muted = true;
-  video.srcObject = canvas.captureStream();
-  video.play();
+  const params = new URLSearchParams(location.search);
+  if (params.has('autoplay')) {
+    video.autoplay = true;
+    video.srcObject = canvas.captureStream();
+  } else if (params.has('autoplay-muted')) {
+    video.autoplay = true;
+    video.muted = true;
+    video.srcObject = canvas.captureStream();
+  } else {
+    video.muted = true;
+    video.srcObject = canvas.captureStream();
+    video.play();
+  }
 
   button.addEventListener('click', function () {
     video.requestPictureInPicture();
