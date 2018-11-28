@@ -1,0 +1,72 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  input {
+    width: calc(32px*3);
+    margin: 0 8px 0 24px;
+    font-size: 300%;
+    text-align: right;
+  }
+  button {
+    margin-left: 24px;
+  }
+</style>
+
+<body>
+  <input id="minutes" min=0 type="number" value=0>m
+  <input id="seconds" min=0 type="number" value=15>s
+  <button id="button">start</button>
+</body>
+<script>
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 200;
+  const ctx = canvas.getContext('2d', { alpha: false });
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const video = document.createElement('video');
+  // BUG: autoplay doesn't seem to always be trigger with srcObject mediastream, we have to call play and set muted.
+  // video.autoplay = true;
+  video.muted = true;
+  video.srcObject = canvas.captureStream();
+  video.play();
+
+  button.addEventListener('click', function () {
+    video.requestPictureInPicture();
+  });
+
+  video.addEventListener('enterpictureinpicture', event => {
+    updateCanvasSize(event.pictureInPictureWindow);
+    event.pictureInPictureWindow.onresize = event => updateCanvasSize(event.target);
+
+    const endTime = new Date();
+    endTime.setSeconds(endTime.getSeconds() + (minutes.valueAsNumber * 60) + seconds.valueAsNumber);
+    drawCanvasRemainingTime(endTime);
+  })
+
+  function drawCanvasRemainingTime(endTime) {
+    ctx.fillStyle = '#9fa8a3';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = canvas.height / 3 + 'px Google Sans';
+
+    const remainingTime = Math.ceil((endTime - new Date()) / 1000);
+    ctx.fillText(remainingTime, canvas.width / 2, canvas.height / 2);
+
+    if (remainingTime > 0) {
+      requestAnimationFrame(_ => { drawCanvasRemainingTime(endTime); });
+    }
+  }
+
+  function updateCanvasSize(pictureInPictureWindow) {
+    // Update canvas based on Picture-in-Picture window size.
+    canvas.width = pictureInPictureWindow.width * devicePixelRatio;
+    canvas.height = pictureInPictureWindow.height * devicePixelRatio;
+  }
+</script>
