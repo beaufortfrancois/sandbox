@@ -40,11 +40,20 @@
     video.srcObject = canvas.captureStream();
   } else {
     video.srcObject = canvas.captureStream();
+    video.muted = true;
     video.play();
   }
 
-  button.addEventListener('click', function () {
-    video.requestPictureInPicture();
+  button.addEventListener('click', async function () {
+    if (document.pictureInPictureEnabled) {
+      video.requestPictureInPicture();
+    } else {
+      video.play();
+      const endTime = new Date();
+      endTime.setSeconds(endTime.getSeconds() + (minutes.valueAsNumber * 60) + seconds.valueAsNumber);
+      drawCanvasRemainingTime(endTime);
+      video.webkitSetPresentationMode('picture-in-picture');
+    }
   });
 
   video.addEventListener('enterpictureinpicture', event => {
@@ -78,8 +87,4 @@
     canvas.width = pictureInPictureWindow.width * devicePixelRatio;
     canvas.height = pictureInPictureWindow.height * devicePixelRatio;
   }
-
-  video.addEventListener('play', event => {
-    console.log(event);
-  });
 </script>
