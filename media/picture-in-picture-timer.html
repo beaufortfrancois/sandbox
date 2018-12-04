@@ -79,4 +79,8 @@
     canvas.width = pictureInPictureWindow.width * devicePixelRatio;
     canvas.height = pictureInPictureWindow.height * devicePixelRatio;
   }
+
+  video.addEventListener('play', event => {
+    console.log(event);
+  });
 </script>
