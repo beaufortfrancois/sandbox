@@ -12,7 +12,7 @@
     text-align: right;
   }
   button {
-    margin-left: 24px;
+    margin: 24px;
   }
 </style>
 
@@ -26,6 +26,7 @@
   canvas.width = canvas.height = 200;
   const ctx = canvas.getContext('2d', { alpha: false });
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
 
   const video = document.createElement('video');
 
@@ -43,6 +44,11 @@
     video.muted = true;
     video.play();
   }
+
+  if (params.has('canvas-visible')) {
+    document.body.appendChild(canvas);
+  }
+
 
   button.addEventListener('click', async function () {
     if (document.pictureInPictureEnabled) {
