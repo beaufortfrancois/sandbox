@@ -34,6 +34,8 @@
   </div>
 </body>
 <script>
+  let pictureInPictureWindow;
+
   let i = 255;
   (function drawCanvas() {
     if (increaseWidth.checked) {
@@ -45,8 +47,12 @@
       i % 55})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = 'white';
-    ctx.font = '20px monospace';
-    ctx.fillText(`${canvas.width}x${canvas.height}`, 5, 20);
+    ctx.font = '10px monospace';
+    ctx.fillText(`c: ${canvas.width}x${canvas.height}`, 5, 20);
+    if (pictureInPictureWindow) {
+      ctx.fillText(`w: ${pictureInPictureWindow.width}x${pictureInPictureWindow.height}`, 5, 40);
+
+    }
     requestAnimationFrame(drawCanvas);
     i++;
   })();
@@ -67,4 +73,8 @@
   button.addEventListener('click', async function () {
     video.requestPictureInPicture();
   });
+
+  video.addEventListener('enterpictureinpicture', function(event) {
+    pictureInPictureWindow = event.pictureInPictureWindow;
+  })
 </script>
