@@ -14,6 +14,12 @@
   button {
     margin: 24px;
   }
+  canvas {
+    margin-right: 24px;
+  }
+  video {
+    background: black;
+  }
 </style>
 
 <body>
@@ -48,7 +54,15 @@
   if (params.has('canvas-visible')) {
     document.body.appendChild(canvas);
   }
-
+  if (params.has('canvas-and-video-visible')) {
+    document.body.appendChild(canvas);
+    const video2 = document.createElement('video');
+    video2.muted = true;
+    video2.controls = true;
+    video2.srcObject = canvas.captureStream();
+    video2.play();
+    document.body.appendChild(video2);
+  }
 
   button.addEventListener('click', async function () {
     if (document.pictureInPictureEnabled) {
