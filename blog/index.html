@@ -1,8 +1,24 @@
 <meta name="viewport" content="width=device-width">
 <style>
   html {
-    max-width: 800px;
+    max-width: 640px;
     margin: 0 auto;
+  }
+  body {
+    margin: 0 12px;
+  }
+  header {
+    position: fixed;
+    height: 1px;
+    background-color: #8ac3f1;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 800px;
+    margin: 0 auto;
+  }
+  article {
+    margin-top: 42px;
   }
   code {
     background: #F0F0F0;
@@ -16,9 +32,9 @@
 </style>
 <!--<a id="anchor" href="sample2.html">Another article</a>-->
 <body>
-<header>Francois Beaufort wrote</header>
+<header></header>
 <article>
-  <h1 id="title">Machine Learning Explained in Three Easy Steps</h1>
+  <h1 id="title">&lt;canvas> and &lt;video></h1>
   <canvas id="canvas"></canvas>
   <section id="article"></section>
 </article>
@@ -55,6 +71,7 @@ async function readArticle(url) {
     canvas.hidden = false;
   }, 200);
   const response = await fetch(url);
+/*
   const textDecoder = new TextDecoder();
   for await (const chunk of streamAsyncIterator(response.body)) {
     await setTimeoutAsync(500);
@@ -66,7 +83,7 @@ async function readArticle(url) {
     }
     article.innerHTML += textDecoder.decode(chunk, { stream : true });
   }
-/*
+*/
   const text = await response.text();
   clearInterval(id);
   article.animate([
@@ -79,7 +96,6 @@ async function readArticle(url) {
   article.innerHTML = text;
   canvas.hidden = true;
   highlightCode();
-*/
 }
 
 async function* streamAsyncIterator(stream) {
