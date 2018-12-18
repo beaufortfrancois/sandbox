@@ -45,6 +45,10 @@
   <button id="mediaStreamButton">Toggle MediaStream</button>
   <button id="toggleVisibilityButton">Toggle video visibility</button>
   <button id="addVideoButton">Add Video</button>
+  <label>
+    <input id="rafCheckbox" type="checkbox">
+    Use <code>requestAnimationFrame()</code>
+  </label>
   <div id="anotherVideoBlock"></div>
   </div>
   <div id="secondBlock">
@@ -143,7 +147,11 @@ var x = y = ballRadius = 20;
 var dx = dy = 8;
 
 (function draw() {
-  requestAnimationFrame(draw);
+  if (rafCheckbox.checked) {
+    requestAnimationFrame(draw);
+  } else {
+    setTimeout(draw, 1000 / 60);
+  }
 
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
