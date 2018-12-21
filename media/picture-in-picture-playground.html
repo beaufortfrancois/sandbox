@@ -1,4 +1,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name=theme-color content=#2196F3>
+<link rel="manifest" href="picture-in-picture-playground-manifest.json">
+<script>
+  navigator.serviceWorker.register('picture-in-picture-playground-serviceworker.js');
+</script>
 <style>
   @media screen and (max-width:480px) {
     body { max-width: 480px; flex-direction: column; }
