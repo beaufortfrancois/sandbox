@@ -25,7 +25,7 @@
   #secondBlock {
     width: 100%;
   }
-  button, video {
+  button, video, label {
     width: 100%;
     padding: 4px 0;
     margin-bottom: 4px;
@@ -53,6 +53,10 @@
   <label>
     <input id="rafCheckbox" type="checkbox">
     Use <code>requestAnimationFrame()</code>
+  </label>
+  <label>
+    <input id="autoPipCheckbox" type="checkbox">
+    Set <code>autoPictureInPicture</code>
   </label>
   <div id="anotherVideoBlock"></div>
   </div>
@@ -133,6 +137,12 @@
     anotherVideo.addEventListener('leavepictureinpicture', logEvent);
     anotherVideoBlock.appendChild(anotherVideo);
     addVideoButton.disabled = true;
+  });
+
+  // WIP at https://github.com/WICG/picture-in-picture/pull/112
+  autoPipCheckbox.disabled = !('autoPictureInPicture' in HTMLVideoElement.prototype);
+  autoPipCheckbox.addEventListener('click', function(e) {
+    video.autoPictureInPicture = autoPipCheckbox.checked;
   });
 
   video.addEventListener('enterpictureinpicture', logEvent);
