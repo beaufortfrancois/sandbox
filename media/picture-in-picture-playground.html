@@ -58,6 +58,10 @@
     <input id="autoPipCheckbox" type="checkbox">
     Set <code>autoPictureInPicture</code>
   </label>
+  <label>
+    <input id="skipAdCheckbox" type="checkbox">
+    Set <code>skipad</code> Media Session Action Handler
+  </label>
   <div id="anotherVideoBlock"></div>
   </div>
   <div id="secondBlock">
@@ -143,6 +147,17 @@
   autoPipCheckbox.disabled = !('autoPictureInPicture' in HTMLVideoElement.prototype);
   autoPipCheckbox.addEventListener('click', function(e) {
     video.autoPictureInPicture = autoPipCheckbox.checked;
+  });
+
+  skipAdCheckbox.disabled = !('mediaSession' in navigator);
+  skipAdCheckbox.addEventListener('click', function(e) {
+    if (skipAdCheckbox.checked) {
+      navigator.mediaSession.setActionHandler('skipad', function() {
+        log.textContent += 'skip ad action handler triggered\n';
+      })
+    } else {
+      navigator.mediaSession.setActionHandler('skipad', null);
+    }
   });
 
   video.addEventListener('enterpictureinpicture', logEvent);
