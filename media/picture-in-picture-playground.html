@@ -48,8 +48,9 @@
   <button id="srcButton">Reload Video</button>
   <button id="resetButton">Reset Video</button>
   <button id="mediaStreamButton">Toggle MediaStream</button>
-  <button id="toggleVisibilityButton">Toggle video visibility</button>
+  <button id="toggleVisibilityButton">Toggle Video Visibility</button>
   <button id="addVideoButton">Add Video</button>
+  <button id="addVideoInIframeButton">Add Video in Iframe</button>
   <label>
     <input id="rafCheckbox" type="checkbox">
     Use <code>requestAnimationFrame()</code>
@@ -135,13 +136,23 @@
     anotherVideo.muted = true;
     anotherVideo.controls = true;
     anotherVideo.autoplay = true;
-    //anotherVideo.src = 'https://storage.googleapis.com/fbeaufort-test/sample-video.webm';
     anotherVideo.src = 'https://upload.wikimedia.org/wikipedia/commons/transcoded/2/22/Volcano_Lava_Sample.webm/Volcano_Lava_Sample.webm.480p.webm';
     anotherVideo.addEventListener('enterpictureinpicture', logEvent);
     anotherVideo.addEventListener('leavepictureinpicture', logEvent);
     anotherVideoBlock.appendChild(anotherVideo);
     addVideoButton.disabled = true;
   });
+
+  addVideoInIframeButton.addEventListener('click', function(e) {
+    const iframe = document.createElement('iframe');
+    iframe.src = 'picture-in-picture-playground-iframe.html';
+    anotherVideoBlock.appendChild(iframe);
+    addVideoInIframeButton.disabled = true;
+  });
+
+  window.addEventListener('message', function(e) {
+    logEvent(e.data);
+  })
 
   // WIP at https://github.com/WICG/picture-in-picture/pull/112
   autoPipCheckbox.disabled = !('autoPictureInPicture' in HTMLVideoElement.prototype);
@@ -164,7 +175,7 @@
   video.addEventListener('leavepictureinpicture', logEvent);
   function logEvent(event) {
     log.textContent += 'event: ' + event.type + ' on ' + event.target.id + '\n';
-    log.textContent += 'pictureInPictureElement: ' + (document.pictureInPictureElement ? document.pictureInPictureElement.id : 'null') + '\n';
+    log.textContent += 'document.pictureInPictureElement: ' + (document.pictureInPictureElement ? document.pictureInPictureElement.id : 'null') + '\n';
   }
 
   document.addEventListener('visibilitychange', function(e) {
