@@ -1,6 +1,11 @@
 <style>
   video { width: 100%; height: 100% }
+  label { display: block; margin-bottom: 12px; }
 </style>
+<label>
+  <input id="skipAdCheckbox" type="checkbox">
+  Set <code>skipad</code> Media Session Action Handler in iframe
+</label>
 <video id="anotherVideoInIframe" muted controls autoplay src="https://upload.wikimedia.org/wikipedia/commons/transcoded/2/22/Volcano_Lava_Sample.webm/Volcano_Lava_Sample.webm.480p.webm"/>
 <script>
   anotherVideoInIframe.addEventListener('enterpictureinpicture', postEvent);
@@ -13,5 +18,17 @@
       }
     }
     parent.postMessage(event);
-  }   
+  } 
+
+  skipAdCheckbox.disabled = !('mediaSession' in navigator);
+  skipAdCheckbox.addEventListener('click', function(e) {
+    if (skipAdCheckbox.checked) {
+      navigator.mediaSession.setActionHandler('skipad', function() {
+        parent.postMessage({text: 'skip ad action handler triggered from iframe'});
+      })
+    } else {
+      navigator.mediaSession.setActionHandler('skipad', null);
+    }
+  });
+
 </script>
