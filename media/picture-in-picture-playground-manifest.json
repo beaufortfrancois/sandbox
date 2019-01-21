@@ -33,7 +33,7 @@
         "sizes": "512x512"
       } 
       ],
-  "start_url": "?homescreen=1",
+  "start_url": "picture-in-picture-playground?homescreen=1",
   "scope": "/",
   "display": "standalone",
   "background_color": "#2196F3",
