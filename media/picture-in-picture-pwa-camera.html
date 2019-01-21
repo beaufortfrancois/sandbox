@@ -1,0 +1,36 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name=theme-color content=#2196F3>
+<link rel="manifest" href="picture-in-picture-pwa-camera-manifest.json">
+<script>
+  navigator.serviceWorker.register('picture-in-picture-playground-serviceworker.js');
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    background: #2196F3;
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  pre {
+    padding: 12px;
+  }
+</style>
+<body>
+  <video id="video" autoplay autopictureinpicture></video>
+  <pre id="log"></pre>
+</body>
+<script>
+  if (!('autoPictureInPicture' in HTMLVideoElement.prototype)) {
+    log.textContent += 'Enable "Experimental Web Platform features" flag first.' + '\n';
+  }
+  // BUG! 
+  video.autoPictureInPicture = true;
+
+  navigator.mediaDevices.getUserMedia({ video: true })
+  .then(stream => { video.srcObject = stream })
+  .catch(error => { log.textContent += error + '\n'; });
+</script>
