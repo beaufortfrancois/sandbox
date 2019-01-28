@@ -27,8 +27,6 @@
   if (!('autoPictureInPicture' in HTMLVideoElement.prototype)) {
     log.textContent += 'Enable "Experimental Web Platform features" flag first.' + '\n';
   }
-  // BUG! 
-  video.autoPictureInPicture = true;
 
   navigator.mediaDevices.getUserMedia({ video: true })
   .then(stream => { video.srcObject = stream })
