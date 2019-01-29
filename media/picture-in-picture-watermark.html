@@ -63,4 +63,14 @@
         canvas.height - (image.height * ratio) - offset, 
         image.width * ratio, image.height * ratio);
   }
+
+  navigator.mediaSession.setActionHandler('play', function() {
+    console.log('> User clicked "Play" icon.');
+    document.pictureInPictureElement.play();
+  });
+
+  navigator.mediaSession.setActionHandler('pause', function() {
+    console.log('> User clicked "Pause" icon.');
+    document.pictureInPictureElement.pause();
+  });
 </script>
