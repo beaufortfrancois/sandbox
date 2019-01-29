@@ -30,6 +30,10 @@
       return;
     }
 
+    // BUG: Media Session does not work for muted content yet.
+    video.muted = false;
+    await video.play();
+
     // Create canvas on the fly.
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth;
