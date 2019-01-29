@@ -70,11 +70,13 @@
 
   navigator.mediaSession.setActionHandler('play', function() {
     console.log('> User clicked "Play" icon.');
+    video.play();
     document.pictureInPictureElement.play();
   });
 
   navigator.mediaSession.setActionHandler('pause', function() {
     console.log('> User clicked "Pause" icon.');
+    video.pause();
     document.pictureInPictureElement.pause();
   });
 </script>
