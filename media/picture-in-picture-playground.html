@@ -51,6 +51,7 @@
   <button id="mediaStreamButton">Toggle MediaStream</button>
   <button id="toggleVisibilityButton">Toggle Video Visibility</button>
   <button id="addVideoButton">Add Video</button>
+  <button id="delayButton" disabled>Enter Picture-in-Picture twice</button>
   <button id="addVideoInIframeButton">Add Video in Iframe</button>
   <label>
     <input id="rafCheckbox" type="checkbox">
@@ -152,6 +153,17 @@
     anotherVideo.addEventListener('leavepictureinpicture', logEvent);
     anotherVideoBlock.appendChild(anotherVideo);
     addVideoButton.disabled = true;
+    delayButton.disabled = false;
+  });
+
+  delayButton.addEventListener('click', async function(e) {
+    await video.requestPictureInPicture()
+    setTimeout(function() {
+      anotherVideo.requestPictureInPicture()
+      .catch(e => {
+        log.textContent += e + '\n';
+      });
+    }, 1000);
   });
 
   addVideoInIframeButton.addEventListener('click', function(e) {
