@@ -16,17 +16,15 @@
     align-items: center;
     justify-content: center;
   }
-  #firstBlock {
+  div {
     width: 100%;
+    margin-bottom: 4px;
+    padding: 4px 0;
+  }
+  #firstBlock {
     display: flex;
     flex-direction: column;
     align-items: center;
-  }
-  #secondBlock {
-    width: 100%;
-  }
-  #anotherVideoBlock {
-    width: 100%;
   }
   button, video, label, iframe {
     width: 100%;
@@ -56,16 +54,26 @@
   <button id="addVideoInIframeButton">Add Video in Iframe</button>
   <label>
     <input id="rafCheckbox" type="checkbox">
-    Use <code>requestAnimationFrame()</code>
+    <code>requestAnimationFrame()</code>
   </label>
   <label>
     <input id="autoPipCheckbox" type="checkbox">
-    Set <code>autoPictureInPicture</code>
+    <code>autoPictureInPicture</code>
+  </label>
+  <div>
+  <label>
+    <input id="nextTrackCheckbox" type="checkbox">
+    <code>nexttrack</code>
+  </label>
+  <label>
+    <input id="previousTrackCheckbox" type="checkbox">
+    <code>previoustrack</code>
   </label>
   <label>
     <input id="skipAdCheckbox" type="checkbox">
-    Set <code>skipad</code> Media Session Action Handler
+    <code>skipad</code>
   </label>
+  </div>
   <div id="anotherVideoBlock"></div>
   </div>
   <div id="secondBlock">
@@ -80,7 +88,7 @@
   (function update() {
     requestAnimationFrame(_ => {
       pre.textContent = 'document.pictureInPictureEnabled = ' + document.pictureInPictureEnabled;
-      path.style.fill = document.pictureInPictureEnabled ? '#000' : '#ddd'; 
+      path.style.fill = document.pictureInPictureEnabled ? '#000' : '#ddd';
       update();
     });
   })();
@@ -178,6 +186,28 @@
     }
   });
 
+  nextTrackCheckbox.disabled = !('mediaSession' in navigator);
+  nextTrackCheckbox.addEventListener('click', function(e) {
+    if (nextTrackCheckbox.checked) {
+      navigator.mediaSession.setActionHandler('nexttrack', function() {
+        log.textContent += 'next track action handler triggered\n';
+      })
+    } else {
+      navigator.mediaSession.setActionHandler('nexttrack', null);
+    }
+  });
+
+  previousTrackCheckbox.disabled = !('mediaSession' in navigator);
+  previousTrackCheckbox.addEventListener('click', function(e) {
+    if (previousTrackCheckbox.checked) {
+      navigator.mediaSession.setActionHandler('previoustrack', function() {
+        log.textContent += 'previous track action handler triggered\n';
+      })
+    } else {
+      navigator.mediaSession.setActionHandler('previoustrack', null);
+    }
+  });
+
   video.addEventListener('enterpictureinpicture', logEvent);
   video.addEventListener('leavepictureinpicture', logEvent);
   function logEvent(event) {
@@ -229,7 +259,7 @@ var dx = dy = 8;
   if (y + dy > canvas.height-ballRadius || y + dy < ballRadius) {
       dy = -dy;
   }
-  
+
   x += dx;
   y += dy;
 })();
