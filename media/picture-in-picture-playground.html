@@ -6,6 +6,9 @@
   navigator.serviceWorker.register('picture-in-picture-playground-serviceworker.js');
 </script>
 <style>
+  :picture-in-picture {
+    filter: drop-shadow(0 0 12px black);
+  }
   @media screen and (max-width:480px) {
     body { max-width: 480px; flex-direction: column; }
     pre { padding: 0 }
