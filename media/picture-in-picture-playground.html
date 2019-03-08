@@ -1,5 +1,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name=theme-color content=#2196F3>
+<title>Picture-in-Picture playground</title>
 <link rel="manifest" href="picture-in-picture-playground-manifest.json">
 <script>
   navigator.serviceWorker.register('picture-in-picture-playground-serviceworker.js');
@@ -230,6 +231,10 @@
   document.addEventListener('visibilitychange', function(e) {
     log.textContent += 'document.visibilityState: ' + document.visibilityState + '\n';
   });
+
+  if (!window.matchMedia("(display-mode: browser)").matches) {
+    document.title += ' (PWA)';
+  }
 
 /* Canvas stuff */
 
