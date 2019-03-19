@@ -224,8 +224,17 @@
     }
   });
 
-  video.addEventListener('enterpictureinpicture', logEvent);
+  const worker = new Worker('offscreencanvas.js');
+  video.addEventListener('enterpictureinpicture', function(e) {
+    logEvent(e);
+    if ('offscreenCanvas' in e.pictureInPictureWindow) {
+      const offscreenCanvas = e.pictureInPictureWindow.offscreenCanvas;
+      worker.postMessage({ offscreenCanvas }, [offscreenCanvas]);
+    }
+  });
+
   video.addEventListener('leavepictureinpicture', logEvent);
+
   function logEvent(event) {
     log.textContent += 'event: ' + event.type + ' on ' + event.target.id + '\n';
     log.textContent += 'document.pictureInPictureElement: ' + (document.pictureInPictureElement ? document.pictureInPictureElement.id : 'null') + '\n';
