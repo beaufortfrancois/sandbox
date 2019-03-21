@@ -1,0 +1,63 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200vh;
+    cursor: none;
+  }
+</style>
+<body>
+</body>
+<script>
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 100;
+  const ctx = canvas.getContext('2d', { alpha: false });
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  function draw(text) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = canvas.height / 8 + 'px Google Sans';
+    ctx.fillText(text || 'WARNING!', canvas.width / 2, canvas.height / 2);
+  }
+
+  const video = document.createElement('video');
+  video.srcObject = canvas.captureStream();
+  video.muted = true;
+  video.play();
+  
+  document.onpointerup = onUserInteraction;
+  document.onpointerdown = onUserInteraction;
+  document.onkeypress = onUserInteraction;
+  document.onkeydown = onUserInteraction;
+  document.onkeyup = onUserInteraction;
+  document.onclick = onUserInteraction;
+  
+  async function onUserInteraction(event) { 
+    await video.requestPictureInPicture();
+    if (event.key) {
+      draw(event.type + ' ' + event.key);
+    } else {
+      draw(event.type);
+    }
+  }
+
+  video.addEventListener('enterpictureinpicture', event => {
+    updateCanvasSize(event.pictureInPictureWindow);
+    event.pictureInPictureWindow.onresize = event => updateCanvasSize(event.target);
+  })
+
+  function updateCanvasSize(pictureInPictureWindow) {
+    // Update canvas based on Picture-in-Picture window size.
+    canvas.width = pictureInPictureWindow.width * devicePixelRatio;
+    canvas.height = pictureInPictureWindow.height * devicePixelRatio;
+    draw();
+  }
+</script>
