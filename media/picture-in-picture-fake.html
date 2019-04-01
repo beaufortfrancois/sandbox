@@ -1,0 +1,35 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+</style>
+<body>
+    <h1>Click to show fake Google account page in Picture-in-Picture</h1>
+</body>
+<script>
+  const image = new Image();
+  image.crossOrigin = true;
+  image.src = 'https://storage.googleapis.com/fbeaufort-test/fake-google-account-page.png';
+  image.addEventListener('load', _ => {
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0);
+
+    const video = document.createElement('video');
+    video.srcObject = canvas.captureStream();
+    video.muted = true;
+    video.play();
+
+    document.onclick = _ => {
+      ctx.drawImage(image, 0, 0);
+      video.requestPictureInPicture();
+    }
+  });
+</script>
