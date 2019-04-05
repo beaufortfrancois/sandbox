@@ -1,0 +1,51 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+</style>
+<body>
+    <h1>Click to open Picture-in-Picture window</h1>
+</body>
+<script>
+  const canvas = document.createElement('canvas');
+  // Assuming we're in landscape mode...
+  canvas.width = canvas.height = screen.availWidth / 5 * devicePixelRatio;
+
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#FA7268';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const video = document.createElement('video');
+  video.srcObject = canvas.captureStream();
+  video.muted = true;
+  video.play();
+
+  document.onclick = async _ => {
+    const pipWindow = await video.requestPictureInPicture();
+
+    // Got from OverlayWindowViews::CalculateAndUpdateWindowBounds()
+    // in src/chrome/browser/ui/views/overlay/overlay_window_views.cc
+    const windowDiffWidth = screen.availWidth - pipWindow.width;
+    const windowDiffHeight = (navigator.platform == 'MacIntel' ? screen.height : screen.availHeight) - pipWindow.height;
+    const buffer = (windowDiffWidth + windowDiffHeight) / 2 * 0.02;
+    const pipWindowX = Math.round(windowDiffWidth - buffer);
+    const pipWindowY = Math.round(windowDiffHeight - buffer);
+
+    const lineHeight  = canvas.height / 12;
+    ctx.font = `${lineHeight}px Google Sans`;
+    const margin = 36;
+    ctx.fillStyle = 'white';
+    ctx.textBaseline = 'top';
+
+    ctx.fillText(`Initial Coordinates`, margin, margin);
+    ctx.fillText(` left: ${pipWindowX * devicePixelRatio}px`, margin, lineHeight * 2 + margin);
+    ctx.fillText(` top: ${pipWindowY * devicePixelRatio}px`, margin, margin + lineHeight * 3);
+    ctx.fillText(` right: ${(pipWindowX + pipWindow.width) * devicePixelRatio}px`, margin, margin + lineHeight * 4);
+    ctx.fillText(` bottom: ${(pipWindowY + pipWindow.height) * devicePixelRatio}px`, margin, margin + lineHeight * 5);
+    ctx.fillText(`❤`, margin, margin + lineHeight * 10);
+  }
+</script>
