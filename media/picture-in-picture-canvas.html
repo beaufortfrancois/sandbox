@@ -25,6 +25,7 @@
   <div>
     <input id="width" placeholder="width (100 by default)" />
     <input id="height" placeholder="height (100 by default)" />
+    <button id="setCanvasSizeButton">Set canvas size</button>
   </div>
   <div>
     <label for="increaseWidth">
@@ -62,12 +63,9 @@
   video.srcObject = canvas.captureStream();
   video.play();
 
-  width.addEventListener('change', e => {
-    canvas.width = parseInt(width.value) || 400;
-  })
-
-  height.addEventListener('change', e => {
-    canvas.height = parseInt(height.value) || 400;
+  setCanvasSizeButton.addEventListener('click', e => {
+    canvas.width = parseInt(width.value) || 100;
+    canvas.height = parseInt(height.value) || 100;
   })
 
   button.addEventListener('click', async function () {
