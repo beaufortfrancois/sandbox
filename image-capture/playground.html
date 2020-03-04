@@ -1,31 +1,39 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Image Capture Playground</title>
 <style>
-  video { float: right; margin-left: 6px; margin-bottom: 6px; background: rgba(255, 255, 255, .2) }
+  video { position: absolute; right: 4px; top: 4px; background: rgba(255, 255, 255, .2); transform: scaleX(-1); }
   canvas { display: inline-block; }
-  pre { padding: 12px 8px; }
+  fieldset { margin: 12px 8px; max-width: 600px }
+  legend { font-family: monospace; text-transform: uppercase; padding: 0 4px; font-size: small; background: dimgray; color: white; line-height: 150%; }
+  pre { overflow: overlay; max-width: calc(100vw - 44px); line-height: 150%; }
   input, label { margin: 0; line-height: 28px; vertical-align: middle; }
   #devices input { margin: 6px; }
   #controls label { padding-left: 12px; }
   select { line-height: 24px; width: 129px }
-  select[disabled] + label { color: buttonface; }
+  [disabled] + label { color: lightgrey; }
   input[type=checkbox] { width: 129px }
   button { margin: 4px 0 }
-  hr { margin: 8px 0; border: 0 }
+  hr { margin: 8px 0; max-width: 600px; border: 0px}
+  hr::after { content: "takePhoto settings"; font-family: monospace; text-transform: uppercase; padding: 0 4px; font-size: small; background: dimgray; color: white; line-height: 150%; }
   .fg { width: 100%; height: 100%; position: absolute; object-fit: cover; margin: 0; top: 0; left: 0; right: 0; bottom: 0; }
-  #dashboard { background: #333; color: white; margin: -8; padding: 4px; }
-  #shots { background: #eee; margin: 0 -8; }
+  .dashboard { background: #333; color: white; margin: -8; padding: 8px 4px; }
+  #shots { margin: 12px -8px; }
   #controls { padding: 0 8px; margin: 16px -8px; }
-  #constraints { margin-top: 8px; overflow-wrap: break-word; font-family: monospace; }
+  #controls label { display: inline-block; width: 250px;}
+  #constraints { margin: 12px; overflow-wrap: break-word; font-family: monospace; }
   #constraints:before { content: 'Constraints:'; padding-right: 8px; }
-  #videoSize { position: absolute; top: 84px; right: 4px; width: 142px; text-align: center; }
-}
+  #videoSize { position: absolute; top: 6px; right: 0px; width: 142px; text-shadow: 0 1px 0 black}
 </style>
 
-<div id="dashboard">
+<div class="dashboard">
+  <div id="devices"></div>
   <video id="video" autoplay width="142" height="80"></video>
   <div id="videoSize"></div>
-  <div id="devices"></div>
+  <div id="constraints"></div>
+</div>
+<div id="controls"></div>
+
+<div class="dashboard">
   <button id="getSupportedConstraints">getSupportedConstraints</button>
   <button id="getCapabilities">getCapabilities</button>
   <button id="getSettings">getSettings</button>
@@ -35,9 +43,7 @@
   <button id="grabFrameButton">grabFrame</button>
   <button id="takePhotoButton">takePhoto</button>
   <button id="grabFrameAndTakePhotoButton">grabFrame & takePhoto</button>
-  <div id="constraints"></div>
 </div>
-<div id="controls"></div>
 <div id="shots"></div>
 
 <script>
@@ -118,6 +124,11 @@ function initControls() {
   let capabilities = imageCapture.track.getCapabilities();
   let settings = imageCapture.track.getSettings();
   let constraints = imageCapture.track.getConstraints();
+
+  let h4 = document.createElement('h4');
+  h4.innerText = "Live capabilities";
+  document.querySelector('#controls').appendChild(h4);
+
   for (let capabilityName in capabilities) {
     let capability = capabilities[capabilityName];
     if (capability.toString() === '[object MediaSettingsRange]') {
@@ -137,7 +148,11 @@ function initControls() {
   .then(photoSettings => {
     return imageCapture.getPhotoCapabilities()
     .then(photoCapabilities => {
-      document.querySelector('#controls').appendChild(document.createElement('hr'));
+
+      let h4 = document.createElement('h4');
+      h4.innerText = "Photo settings";
+      document.querySelector('#controls').appendChild(h4);
+
       if (photoCapabilities['fillLightMode'].length) {
         let select = document.createElement('select');
         select.id = 'fillLightMode';
@@ -186,6 +201,7 @@ function initControls() {
         input.min = range.min;
         input.max = range.max;
         input.step = range.step;
+        input.disabled = !('step' in range) || (range.step == 0) || (range.min == range.max);
         input.value = photoSettings[rangeName];
         input.onchange = function(event) {
           takePhotoSettings[rangeName] = event.target.value;
@@ -209,6 +225,7 @@ function addInputRange(capabilityName, value, range) {
   input.min = range.min;
   input.max = range.max;
   input.step = Math.round(range.step * 100) / 100;
+  input.disabled = !('step' in range) || (range.step == 0) || (range.min == range.max);
   input.value = value;
   input.oninput = function(event) {
     let options = {};
@@ -291,47 +308,52 @@ document.querySelector('#grabFrameAndTakePhotoButton').addEventListener('click',
 
 function getSupportedConstraints() {
   let supportedConstraints = navigator.mediaDevices.getSupportedConstraints();
+  let fieldset = appendFieldset('navigator.mediaDevices.getSupportedConstraints');
   let pre = document.createElement('pre');
-  pre.innerText = JSON.stringify(supportedConstraints, 0, 2);
-  document.querySelector('#shots').appendChild(pre);
+  for (let constraintName in supportedConstraints) {
+    let constraint = supportedConstraints[constraintName];
+    pre.textContent += `${constraintName}: ${JSON.stringify(constraint)}\r\n`;
+  }
+  fieldset.appendChild(pre);
 }
 
 function getCapabilities() {
   let capabilities = imageCapture.track.getCapabilities();
+  let fieldset = appendFieldset('imageCapture.track.getCapabilities');
   let pre = document.createElement('pre');
   for (let capabilityName in capabilities) {
-    pre.innerText += `${capabilityName}: `;
     let capability = capabilities[capabilityName];
-    if (capability.toString() === '[object MediaSettingsRange]') {
-      pre.innerText += `{ min: ${capability.min}, max: ${capability.max}, step: ${capability.step} }\r\n`;
-    } else {
-      pre.innerText += JSON.stringify(capability) + '\r\n';
-    }
+    pre.textContent += `${capabilityName}: ${JSON.stringify(capability)}\r\n`;
   }
-  document.querySelector('#shots').appendChild(pre);
+  fieldset.appendChild(pre);
 }
 
 function getSettings() {
   let settings = imageCapture.track.getSettings();
+  let fieldset = appendFieldset('imageCapture.track.getSettings');
   let pre = document.createElement('pre');
-  pre.innerText += JSON.stringify(settings, 0, 2);
-  document.querySelector('#shots').appendChild(pre);
+  for (let settingName in settings) {
+    let setting = settings[settingName];
+    pre.textContent += `${settingName}: ${JSON.stringify(setting)}\r\n`;
+  }
+  fieldset.appendChild(pre);
 }
 
 function getPhotoCapabilities() {
   imageCapture.getPhotoCapabilities()
   .then(photoCapabilities => {
+    let fieldset = appendFieldset('imageCapture.getPhotoCapabilities');
     let pre = document.createElement('pre');
     for (let capabilityName in photoCapabilities) {
-      pre.innerText += `${capabilityName}: `;
+      pre.textContent += `${capabilityName}: `;
       let capability = photoCapabilities[capabilityName];
       if (capability && capability.toString() === '[object MediaSettingsRange]') {
-        pre.innerText += `{ min: ${capability.min}, max: ${capability.max}, step: ${capability.step} }\r\n`;
+        pre.textContent += `{ min: ${capability.min}, max: ${capability.max}, step: ${capability.step} }\r\n`;
       } else {
-        pre.innerText += JSON.stringify(capability) + '\r\n';
+        pre.textContent += JSON.stringify(capability) + '\r\n';
       }
     }
-    document.querySelector('#shots').appendChild(pre);
+    fieldset.appendChild(pre);
   })
   .catch(error => {
     console.log(error);
@@ -341,13 +363,26 @@ function getPhotoCapabilities() {
 function getPhotoSettings() {
   imageCapture.getPhotoSettings()
   .then(photoSettings => {
+    let fieldset = appendFieldset('imageCapture.getPhotoSettings');
     let pre = document.createElement('pre');
-    pre.innerText += JSON.stringify(photoSettings, 0, 2);
-    document.querySelector('#shots').appendChild(pre);
+    for (let photoSettingName in photoSettings) {
+      let photoSetting = photoSettings[photoSettingName];
+      pre.textContent += `${photoSettingName}: ${JSON.stringify(photoSetting)}\r\n`;
+    }
+    fieldset.appendChild(pre);
   })
   .catch(error => {
     console.log(error);
   });
+}
+
+function appendFieldset(text) {
+  let fieldset = document.createElement('fieldset');
+  let legend = document.createElement('legend');
+  legend.textContent = text;
+  fieldset.appendChild(legend);
+  document.querySelector('#shots').appendChild(fieldset);
+  return fieldset;
 }
 
 function grabFrame() {

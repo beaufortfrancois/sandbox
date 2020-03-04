@@ -16,15 +16,18 @@
 </style>
 
 <body>
-  <button id="button">requestPictureInPicture()</button>
+  <div>
+    <button id="requestButton">requestPictureInPicture()</button>
+    <button id="exitButton">exitPictureInPicture()</button>
+  </div>
   <br/>
   <div id="container">
-    <canvas id="canvas" width="100" height="100"></canvas>
+    <canvas id="canvas" width="900" height="600"></canvas>
   </div>
   <br/>
   <div>
-    <input id="width" placeholder="width (100 by default)" />
-    <input id="height" placeholder="height (100 by default)" />
+    <input id="width" placeholder="width" />
+    <input id="height" placeholder="height" />
     <button id="setCanvasSizeButton">Set canvas size</button>
   </div>
   <div>
@@ -33,8 +36,14 @@
       <input id="increaseWidth" type="checkbox" />
     </label>
   </div>
+  <div>
+    <button id="switchDimensions">Switch width and height</button>
+  </div>
 </body>
 <script>
+  width.value = canvas.width;
+  height.value = canvas.height;
+  
   let pictureInPictureWindow;
 
   let i = 255;
@@ -68,8 +77,19 @@
     canvas.height = parseInt(height.value) || 100;
   })
 
-  button.addEventListener('click', async function () {
+  requestButton.addEventListener('click', function () {
     video.requestPictureInPicture();
+  });
+
+  exitButton.addEventListener('click', function () {
+    document.exitPictureInPicture();
+  });
+
+  switchDimensions.addEventListener('click', function() {
+    const widthValue = width.value;
+    width.value = height.value;
+    height.value = widthValue;
+    setCanvasSizeButton.click();
   });
 
   video.addEventListener('enterpictureinpicture', function(event) {
