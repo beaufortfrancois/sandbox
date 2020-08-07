@@ -103,14 +103,14 @@ function generateCode(options) {
         characteristicMethods += `
   async start${characteristicName}Notifications(listener) {
     const service = await this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)});
-    const characteristic = await service.getCharacteristic(${formatUUID(options.characteristicUuid)}));
+    const characteristic = await service.getCharacteristic(${formatUUID(options.characteristicUuid)});
     await characteristic.startNotifications();
     characteristic.addEventListener('characteristicvaluechanged', listener);
   }
 
   async stop${characteristicName}Notifications(listener) {
     const service = await this.device.gatt.getPrimaryService(${formatUUID(options.characteristicServiceUuid)});
-    const characteristic = await service.getCharacteristic(${formatUUID(options.characteristicUuid)}));
+    const characteristic = await service.getCharacteristic(${formatUUID(options.characteristicUuid)});
     await characteristic.stopNotifications();
     characteristic.removeEventListener('characteristicvaluechanged', listener);
   }
