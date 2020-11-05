@@ -97,7 +97,7 @@ function getUserMedia() {
     video: {
       width: { ideal: 1920 },
       height: { ideal: 1080 },
-      deviceId: { exact: localStorage.deviceId }
+      deviceId: { ideal: localStorage.deviceId }
     }
   };
   document.querySelector('#controls').innerHTML = '';
@@ -131,15 +131,13 @@ function initControls() {
 
   for (let capabilityName in capabilities) {
     let capability = capabilities[capabilityName];
-    if (capability.toString() === '[object MediaSettingsRange]') {
-      let value = settings[capabilityName];
-      addInputRange(capabilityName, value, capability);
-    } else if (typeof(capability) == 'boolean') {
-      let value = settings[capabilityName];
+    let value = settings[capabilityName];
+    if (typeof(capability) == 'boolean') {
       addInputCheckbox(capabilityName, value);
     } else if (Array.isArray(capability)) {
-      let value = settings[capabilityName];
       addSelect(capabilityName, value, capability);
+    } else {
+      addInputRange(capabilityName, value, capability);
     }
   }
   delete(constraints['deviceId']);
@@ -153,7 +151,7 @@ function initControls() {
       h4.innerText = "Photo settings";
       document.querySelector('#controls').appendChild(h4);
 
-      if (photoCapabilities['fillLightMode'].length) {
+      if ('fillLightMode' in photoCapabilities) {
         let select = document.createElement('select');
         select.id = 'fillLightMode';
         select.oninput = function(event) {
@@ -201,7 +199,7 @@ function initControls() {
         input.min = range.min;
         input.max = range.max;
         input.step = range.step;
-        input.disabled = !('step' in range) || (range.step == 0) || (range.min == range.max);
+        input.disabled = (range.step == 0) || (range.min == range.max);
         input.value = photoSettings[rangeName];
         input.onchange = function(event) {
           takePhotoSettings[rangeName] = event.target.value;
@@ -225,7 +223,7 @@ function addInputRange(capabilityName, value, range) {
   input.min = range.min;
   input.max = range.max;
   input.step = Math.round(range.step * 100) / 100;
-  input.disabled = !('step' in range) || (range.step == 0) || (range.min == range.max);
+  input.disabled = (range.step == 0) || (range.min == range.max);
   input.value = value;
   input.oninput = function(event) {
     let options = {};
@@ -345,13 +343,8 @@ function getPhotoCapabilities() {
     let fieldset = appendFieldset('imageCapture.getPhotoCapabilities');
     let pre = document.createElement('pre');
     for (let capabilityName in photoCapabilities) {
-      pre.textContent += `${capabilityName}: `;
       let capability = photoCapabilities[capabilityName];
-      if (capability && capability.toString() === '[object MediaSettingsRange]') {
-        pre.textContent += `{ min: ${capability.min}, max: ${capability.max}, step: ${capability.step} }\r\n`;
-      } else {
-        pre.textContent += JSON.stringify(capability) + '\r\n';
-      }
+      pre.textContent += `${capabilityName}: ${JSON.stringify(capability)} \r\n`;
     }
     fieldset.appendChild(pre);
   })
