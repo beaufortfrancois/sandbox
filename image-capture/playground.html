@@ -53,7 +53,7 @@ var takePhotoSettings = {};
 localStorage.deviceId = localStorage.deviceId || 'default';
 
 // Ask permission first and enumerate devices after...
-navigator.mediaDevices.getUserMedia({video : true})
+navigator.mediaDevices.getUserMedia({video : {pan: true, tilt: true, zoom: true}})
 .then(stream => {
   // Stop tracks.
   stream.getTracks().forEach(track => track.stop());
@@ -95,9 +95,10 @@ navigator.mediaDevices.getUserMedia({video : true})
 function getUserMedia() {
   var constraints = {
     video: {
-      width: { ideal: 1920 },
-      height: { ideal: 1080 },
-      deviceId: { ideal: localStorage.deviceId }
+      pan: true,
+      tilt: true,
+      zoom: true,
+      deviceId: { exact: localStorage.deviceId }
     }
   };
   document.querySelector('#controls').innerHTML = '';
@@ -105,11 +106,10 @@ function getUserMedia() {
   navigator.mediaDevices.getUserMedia(constraints)
   .then(mediaStream => {
     video.srcObject = mediaStream;
-    video.onplay = function() {
+    imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
+    initControls();
+    video.onresize = function() {
       videoSize.textContent = `${video.videoWidth}x${video.videoHeight}`;
-      imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
-      // Remove timeout when crbug.com/711524 is fixed.
-      setTimeout(initControls, 500);
     }
   })
   .catch(error => {
@@ -117,6 +117,7 @@ function getUserMedia() {
     pre.innerText = error.name;
     document.querySelector('#controls').appendChild(pre);
     console.log(error);
+    localStorage.deviceId = undefined;
   });
 }
 
@@ -134,9 +135,9 @@ function initControls() {
     let value = settings[capabilityName];
     if (typeof(capability) == 'boolean') {
       addInputCheckbox(capabilityName, value);
-    } else if (Array.isArray(capability)) {
+    } else if (Array.isArray(capability) && capability.length) {
       addSelect(capabilityName, value, capability);
-    } else {
+    } else if (Object.keys(capability).includes('min')) {
       addInputRange(capabilityName, value, capability);
     }
   }
@@ -285,13 +286,11 @@ function addSelect(capabilityName, value, capabilities) {
   document.querySelector('#controls').appendChild(document.createElement('br'));
 }
 
-function applyConstraints(options) {
-  imageCapture.track.applyConstraints({advanced: [ options ]})
-  .then(_ => {
-    let constraints = imageCapture.track.getConstraints();
-    delete(constraints['deviceId']);
-    document.querySelector('#constraints').textContent = JSON.stringify(constraints, 0, 2);
-  });
+async function applyConstraints(options) {
+  await imageCapture.track.applyConstraints({advanced: [ options ]});
+  let constraints = imageCapture.track.getConstraints();
+  delete(constraints['deviceId']);
+  document.querySelector('#constraints').textContent = JSON.stringify(constraints, 0, 2);
 }
 
 
