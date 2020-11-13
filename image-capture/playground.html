@@ -52,8 +52,12 @@ var takePhotoSettings = {};
 
 localStorage.deviceId = localStorage.deviceId || 'default';
 
+var supports = navigator.mediaDevices.getSupportedConstraints();
+var constraints = supports.pan
+  ? { video: { pan: true, tilt: true, zoom: true } }
+  : { video: true };
 // Ask permission first and enumerate devices after...
-navigator.mediaDevices.getUserMedia({video : {pan: true, tilt: true, zoom: true}})
+navigator.mediaDevices.getUserMedia(constraints)
 .then(stream => {
   // Stop tracks.
   stream.getTracks().forEach(track => track.stop());
@@ -93,14 +97,21 @@ navigator.mediaDevices.getUserMedia({video : {pan: true, tilt: true, zoom: true}
 });
 
 function getUserMedia() {
-  var constraints = {
-    video: {
-      pan: true,
-      tilt: true,
-      zoom: true,
-      deviceId: { exact: localStorage.deviceId }
-    }
-  };
+  var supports = navigator.mediaDevices.getSupportedConstraints();
+  var constraints = supports.pan
+    ? {
+        video: {
+          pan: true,
+          tilt: true,
+          zoom: true,
+          deviceId: { exact: localStorage.deviceId }
+        }
+      }
+    : {
+        video: {
+          deviceId: { exact: localStorage.deviceId }
+        }
+      };
   document.querySelector('#controls').innerHTML = '';
   document.querySelector('#shots').innerHTML = '';
   navigator.mediaDevices.getUserMedia(constraints)
