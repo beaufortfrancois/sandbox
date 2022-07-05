@@ -279,7 +279,7 @@ function addSelect(capabilityName, value, capabilities) {
   select.disabled = (capabilities.length <= 1);
   select.oninput = function(event) {
     let options = {};
-    options[capabilityName] = event.target.value;
+    options[capabilityName] = parseBoolean(event.target.value);
     applyConstraints(options);
   }
   for (capability of capabilities) {
@@ -295,6 +295,12 @@ function addSelect(capabilityName, value, capabilities) {
   document.querySelector('#controls').appendChild(select);
   document.querySelector('#controls').appendChild(label);
   document.querySelector('#controls').appendChild(document.createElement('br'));
+}
+
+function parseBoolean(value) {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return value;
 }
 
 async function applyConstraints(options) {
