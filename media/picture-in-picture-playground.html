@@ -57,6 +57,7 @@
   <button id="addVideoButton">Add Video</button>
   <button id="delayButton" disabled>Enter Picture-in-Picture twice</button>
   <button id="addVideoInIframeButton">Add Video in Iframe</button>
+  <button id="delayPipButton" disabled>Enter Picture-in-Picture after 1s</button>
   <label>
     <input id="rafCheckbox" type="checkbox">
     <code>requestAnimationFrame()</code>
@@ -175,6 +176,16 @@
     iframe.src = 'picture-in-picture-playground-iframe.html';
     anotherVideoBlock.appendChild(iframe);
     addVideoInIframeButton.disabled = true;
+  });
+
+
+  delayPipButton.addEventListener('click', function(e) {
+    setTimeout(() => {
+      video.requestPictureInPicture()
+      .catch(e => {
+        log.textContent += e + '\n';
+      });
+    }, 1000);
   });
 
   window.addEventListener('message', function(e) {
