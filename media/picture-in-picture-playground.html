@@ -57,7 +57,7 @@
   <button id="addVideoButton">Add Video</button>
   <button id="delayButton" disabled>Enter Picture-in-Picture twice</button>
   <button id="addVideoInIframeButton">Add Video in Iframe</button>
-  <button id="delayPipButton">Enter Picture-in-Picture after 1s</button>
+  <button id="delayPipButton">Enter Picture-in-Picture after 3s</button>
   <label>
     <input id="rafCheckbox" type="checkbox">
     <code>requestAnimationFrame()</code>
@@ -185,7 +185,7 @@
       .catch(e => {
         log.textContent += e + '\n';
       });
-    }, 1000);
+    }, 3000);
   });
 
   window.addEventListener('message', function(e) {
