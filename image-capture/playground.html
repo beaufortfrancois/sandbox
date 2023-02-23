@@ -1,49 +1,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Image Capture Playground</title>
 <style>
-  video { position: absolute; right: 4px; top: 4px; background: rgba(255, 255, 255, .2); transform: scaleX(-1); }
   canvas { display: inline-block; }
   fieldset { margin: 12px 8px; max-width: 600px }
   legend { font-family: monospace; text-transform: uppercase; padding: 0 4px; font-size: small; background: dimgray; color: white; line-height: 150%; }
   pre { overflow: overlay; max-width: calc(100vw - 44px); line-height: 150%; }
-  input, label { margin: 0; line-height: 28px; vertical-align: middle; }
+  label { margin: 0; line-height: 28px; vertical-align: middle; }
   #devices input { margin: 6px; }
+  #controls input[type="number"] { width: 100px; height: 19px; }
+  #controls input { vertical-align: middle; }
+  #controls button { width: 25px; margin-left: 4px; padding: 0px; height: 19px; vertical-align: middle;}
   #controls label { padding-left: 12px; }
   select { line-height: 24px; width: 129px }
   [disabled] + label { color: lightgrey; }
-  input[type=checkbox] { width: 129px }
   button { margin: 4px 0 }
   hr { margin: 8px 0; max-width: 600px; border: 0px}
   hr::after { content: "takePhoto settings"; font-family: monospace; text-transform: uppercase; padding: 0 4px; font-size: small; background: dimgray; color: white; line-height: 150%; }
-  .fg { width: 100%; height: 100%; position: absolute; object-fit: cover; margin: 0; top: 0; left: 0; right: 0; bottom: 0; }
-  .dashboard { background: #333; color: white; margin: -8; padding: 8px 4px; }
+  .dashboard { background: #333; color: white; margin: -8; padding: 8px 4px; text-align: center }
   #shots { margin: 12px -8px; }
-  #controls { padding: 0 8px; margin: 16px -8px; }
-  #controls label { display: inline-block; width: 250px;}
+  #controls { margin: 0 48px; }
+  #controls label { display: inline-block; max-width: 250px;}
   #constraints { margin: 12px; overflow-wrap: break-word; font-family: monospace; }
   #constraints:before { content: 'Constraints:'; padding-right: 8px; }
-  #videoSize { position: absolute; top: 6px; right: 0px; width: 142px; text-shadow: 0 1px 0 black}
+  #videoSize { margin: 12px; overflow-wrap: break-word; font-family: monospace; }
+  #videoSize:before { content: 'Video size:'; padding-right: 8px; }
+  video { max-width: 50%; width: 480px; max-height: 400px; }
+  #container { margin: 48px 0; display: flex; width: 100%; justify-content: center; align-items: flex-start; }
+  .invalid { border-color: red; }
+  @media (max-width: 1024px) {
+    #container { flex-direction: column; align-items: center;}
+    #controls { margin: 48px 0; }
+    #video { max-width: 100%; }
+  }
 </style>
 
 <div class="dashboard">
   <div id="devices"></div>
-  <video id="video" autoplay width="142" height="80"></video>
-  <div id="videoSize"></div>
-  <div id="constraints"></div>
-</div>
-<div id="controls"></div>
-
-<div class="dashboard">
   <button id="getSupportedConstraints">getSupportedConstraints</button>
   <button id="getCapabilities">getCapabilities</button>
   <button id="getSettings">getSettings</button>
-  <br/>
   <button id="getPhotoCapabilities">getPhotoCapabilities</button>
   <button id="getPhotoSettings">getPhotoSettings</button>
   <button id="grabFrameButton">grabFrame</button>
   <button id="takePhotoButton">takePhoto</button>
   <button id="grabFrameAndTakePhotoButton">grabFrame & takePhoto</button>
+  <div>
+    <span id="videoSize"></span>
+    <span id="constraints"></span>
+  </div>
 </div>
+
+<div id="container">
+  <video id="video" autoplay></video>
+  <div id="controls"></div>
+</div>
+
 <div id="shots"></div>
 
 <script>
@@ -65,6 +76,11 @@ navigator.mediaDevices.getUserMedia(constraints)
 })
 .then(devices => {
   var videoInputDevices = devices.filter(device => (device.kind == 'videoinput'));
+  if (videoInputDevices.length == 1) {
+    localStorage.deviceId = videoInputDevices[0].deviceId;
+    getUserMedia();
+    return;
+  }
   videoInputDevices.forEach(device => {
     var input = document.createElement('input');
     input.type = 'radio';
@@ -81,7 +97,6 @@ navigator.mediaDevices.getUserMedia(constraints)
     label.setAttribute('for', device.deviceId);
     document.querySelector('#devices').appendChild(input);
     document.querySelector('#devices').appendChild(label);
-    document.querySelector('#devices').appendChild(document.createElement('br'));
   });
   if (localStorage.deviceId == 'default') {
     document.querySelector('#devices input').click();
@@ -114,6 +129,7 @@ function getUserMedia() {
       };
   document.querySelector('#controls').innerHTML = '';
   document.querySelector('#shots').innerHTML = '';
+  video.srcObject = null;
   navigator.mediaDevices.getUserMedia(constraints)
   .then(mediaStream => {
     video.srcObject = mediaStream;
@@ -137,10 +153,6 @@ function initControls() {
   let settings = imageCapture.track.getSettings();
   let constraints = imageCapture.track.getConstraints();
 
-  let h4 = document.createElement('h4');
-  h4.innerText = "Live capabilities";
-  document.querySelector('#controls').appendChild(h4);
-
   for (let capabilityName in capabilities) {
     let capability = capabilities[capabilityName];
     let value = settings[capabilityName];
@@ -148,8 +160,10 @@ function initControls() {
       addInputCheckbox(capabilityName, value);
     } else if (Array.isArray(capability) && capability.length) {
       addSelect(capabilityName, value, capability);
-    } else if (Object.keys(capability).includes('min')) {
+    } else if (Object.keys(capability).includes('step')) {
       addInputRange(capabilityName, value, capability);
+    } else if (Object.keys(capability).includes('min')) {
+      addInputNumber(capabilityName, value, capability);
     }
   }
   delete(constraints['deviceId']);
@@ -251,6 +265,37 @@ function addInputRange(capabilityName, value, range) {
   }
   label.setAttribute('for', capabilityName);
   document.querySelector('#controls').appendChild(input);
+  document.querySelector('#controls').appendChild(label);
+  document.querySelector('#controls').appendChild(document.createElement('br'));
+}
+
+function addInputNumber(capabilityName, value, range) {
+  let input = document.createElement('input');
+  input.id = capabilityName;
+  input.type = 'number';
+  input.min = range.min;
+  input.max = range.max;
+  input.disabled = (range.min == range.max);
+  input.value = value;
+
+  let button = document.createElement('button');
+  button.innerText = '✓';
+  button.onclick = function(event) {
+    document.querySelector('label[for=' + capabilityName +']').classList.toggle('invalid', !input.checkValidity());
+    let options = {};
+    options[capabilityName] = input.value;
+    applyConstraints(options);
+    document.querySelector('label[for=' + capabilityName +']').textContent = capabilityName + ' (' + input.value + ')';
+  }
+  var label = document.createElement('label');
+  if (value >= range.min && value <= range.max) {
+    label.textContent = capabilityName + ' (' + value + ')';
+  } else {
+    label.textContent = capabilityName;
+  }
+  label.setAttribute('for', capabilityName);
+  document.querySelector('#controls').appendChild(input);
+  document.querySelector('#controls').appendChild(button);
   document.querySelector('#controls').appendChild(label);
   document.querySelector('#controls').appendChild(document.createElement('br'));
 }
@@ -438,8 +483,4 @@ function appendCanvas(imageBitmap, options) {
   }
   document.querySelector('#shots').appendChild(canvas);
 }
-
-video.addEventListener('click', function() {
-  video.classList.toggle('fg');
-});
 </script>
