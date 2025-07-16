@@ -1,0 +1,74 @@
+<label style="display: block; margin-top: 400px"
+  >Number of writeBuffer calls:
+  <input
+    id="writeBufferCallsNumber"
+    type="range"
+    min="0"
+    max="10000"
+    step="100"
+    value="0"
+  />
+</label>
+<pre id="info"></pre>
+
+<script type="module">
+  class RollingAverage {
+    #total = 0;
+    #samples = [];
+    #cursor = 0;
+    #numSamples;
+    constructor(numSamples = 100) {
+      this.#numSamples = numSamples;
+    }
+    addSample(v) {
+      console.log(v);
+      if (!Number.isNaN(v) && Number.isFinite(v)) {
+        this.#total += v - (this.#samples[this.#cursor] || 0);
+        this.#samples[this.#cursor] = v;
+        this.#cursor = (this.#cursor + 1) % this.#numSamples;
+      }
+    }
+    get() {
+      return this.#total / this.#samples.length;
+    }
+    getMin() {
+      return Math.min(...this.#samples);
+    }
+    getMax() {
+      return Math.max(...this.#samples);
+    }
+  }
+
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+
+  let then = 0;
+  const fpsAverage = new RollingAverage();
+
+  const uniformBufferSize = (12 + 16 + 16 + 4 + 4 + 4) * 4;
+  const uniformBuffer = device.createBuffer({
+    size: uniformBufferSize,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
+  // create a typedarray to hold the values for the uniforms in JavaScript
+  const uniformValues = new Float32Array(uniformBufferSize / 4);
+  uniformValues.fill(42);
+
+  (async function render(time) {
+    time *= 0.001; // convert to seconds
+    const deltaTime = time - then;
+    then = time;
+
+    for (let i = 0; i < (parseInt(writeBufferCallsNumber.value) || 1); i++) {
+      device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
+    }
+
+    fpsAverage.addSample(1 / deltaTime);
+    info.textContent = `${fpsAverage.get().toFixed(0)}fps - min: ${fpsAverage
+      .getMin()
+      .toFixed(0)}fps (${writeBufferCallsNumber.value} writeBuffer calls)`;
+
+    requestAnimationFrame(render);
+  })();
+</script>

@@ -1,0 +1,83 @@
+<pre id="pre"></pre>
+<script>
+  window.onerror = (error) => {
+    pre.append(`${error}\n`);
+  };
+</script>
+
+<canvas id="canvas" width="512" height="512"></canvas>
+<script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  // 1. Requires changes in Chromium to add this feature.
+  // 2. Requires changes in IsFeatureSupported() from src/dawn/wire/SupportedFeatures.cpp
+  const device = await adapter.requestDevice({
+    requiredFeatures: ["chromium-experimental-buffer-map-extended-usages"],
+  });
+
+  const context = canvas.getContext("webgpu");
+  const format = navigator.gpu.getPreferredCanvasFormat();
+  context.configure({ device, format });
+
+  const code = `
+    @binding(0) @group(0) var<uniform> buffer : vec4f;
+
+    @vertex fn vertexMain(@builtin(vertex_index) i : u32) ->
+      @builtin(position) vec4f {
+        var pos = array(vec2f(0, 1), vec2f(-1, -1), vec2f(1, -1));
+        return vec4f(pos[i], 0, 1);
+    }
+
+    @fragment fn fragmentMain() -> @location(0) vec4f {
+      return buffer;
+    }`;
+
+  const module = device.createShaderModule({ code });
+  const pipeline = await device.createRenderPipelineAsync({
+    layout: "auto",
+    vertex: { module },
+    fragment: { module, targets: [{ format }] },
+  });
+
+  const buffer = device.createBuffer({
+    size: 4 * Float32Array.BYTES_PER_ELEMENT,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.MAP_WRITE,
+  });
+
+  await writeBuffer([1, 0, 0, 1]);
+  draw();
+
+  await new Promise((r) => setTimeout(r, 1000));
+
+  await writeBuffer([0, 1, 0, 1]);
+  draw();
+
+  async function writeBuffer(data) {
+    await buffer.mapAsync(GPUMapMode.WRITE);
+    new Float32Array(buffer.getMappedRange()).set(data);
+    buffer.unmap();
+  }
+
+  function draw() {
+    const colorAttachments = [
+      {
+        view: context.getCurrentTexture().createView(),
+        loadOp: "clear",
+        storeOp: "store",
+      },
+    ];
+
+    const commandEncoder = device.createCommandEncoder();
+    const passEncoder = commandEncoder.beginRenderPass({ colorAttachments });
+
+    const bindGroup = device.createBindGroup({
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [{ binding: 0, resource: { buffer } }],
+    });
+
+    passEncoder.setBindGroup(0, bindGroup);
+    passEncoder.setPipeline(pipeline);
+    passEncoder.draw(3);
+    passEncoder.end();
+    device.queue.submit([commandEncoder.finish()]);
+  }
+</script>

@@ -1,0 +1,16 @@
+<script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+
+  const buffer = device.createBuffer({
+    label: "kikou",
+    mappedAtCreation: true,
+    size: 6,
+    usage: GPUBufferUsage.MAP_READ,
+  });
+  const arrayBuffer = buffer.getMappedRange();
+  console.log(arrayBuffer);
+
+  // const commandEncoder = device.createCommandEncoder();
+  // device.queue.submit([commandEncoder.finish()]);
+</script>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGPU Primitive ID</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1a202c; /* Tailwind dark gray */
+            color: #e2e8f0; /* Tailwind light gray */
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            width: 100%; /* Make canvas responsive */
+            max-width: 800px; /* Max width for larger screens */
+            aspect-ratio: 16 / 9; /* Maintain aspect ratio */
+            background-color: #2d3748; /* Darker background for canvas */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+            margin: 1rem;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            max-width: 900px;
+            width: 100%;
+        }
+        .title {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 700; /* font-bold */
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #90CDF4; /* Tailwind blue-300 */
+        }
+        .description {
+            font-size: 1.125rem; /* text-lg */
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: #cbd5e0; /* Tailwind gray-300 */
+        }
+        .message-box {
+            background-color: #fed7aa; /* Tailwind orange-200 */
+            color: #c05621; /* Tailwind orange-800 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            text-align: center;
+            font-weight: 600;
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">WebGPU Primitive ID Visualizer</h1>
+        <p class="description">
+            This example renders a quad (two triangles). Each triangle is colored based on its unique
+            `primitive_id` provided by WebGPU, demonstrating how to access this built-in value in the fragment shader.
+        </p>
+        <canvas id="webgpu-canvas"></canvas>
+        <div id="message-box" class="message-box"></div>
+    </div>
+
+    <script type="module">
+        // Get references to the canvas and message box elements
+        const canvas = document.getElementById('webgpu-canvas');
+        const messageBox = document.getElementById('message-box');
+
+        // Function to display messages to the user
+        function showMessage(message, isError = false) {
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            if (isError) {
+                messageBox.style.backgroundColor = '#fca5a5'; /* Tailwind red-300 */
+                messageBox.style.color = '#7f1d1d'; /* Tailwind red-900 */
+            } else {
+                messageBox.style.backgroundColor = '#d1fae5'; /* Tailwind green-100 */
+                messageBox.style.color = '#065f46'; /* Tailwind green-800 */
+            }
+        }
+
+        async function initWebGPU() {
+            // Check for WebGPU compatibility
+            if (!navigator.gpu) {
+                showMessage("Your browser does not support WebGPU. Please use a browser with WebGPU enabled (e.g., Chrome Canary, Firefox Nightly).", true);
+                return null;
+            }
+
+            // Request a GPU adapter
+            const adapter = await navigator.gpu.requestAdapter();
+            if (!adapter) {
+                showMessage("Could not get a WebGPU adapter. Please ensure your GPU drivers are up to date.", true);
+                return null;
+            }
+
+            // Request a GPU device
+            const device = await adapter.requestDevice();
+            if (!device) {
+                showMessage("Could not get a WebGPU device.", true);
+                return null;
+            }
+
+            // Get the canvas context for WebGPU
+            const context = canvas.getContext('webgpu');
+            const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+
+            // Configure the canvas context
+            context.configure({
+                device,
+                format: presentationFormat,
+                alphaMode: 'opaque', // Or 'premultiplied' if transparency is needed
+            });
+
+            return { device, context, presentationFormat };
+        }
+
+        // Main rendering function
+        async function render() {
+            const webGPUDevices = await initWebGPU();
+            if (!webGPUDevices) return;
+
+            const { device, context, presentationFormat } = webGPUDevices;
+
+            // Vertex shader: simple pass-through for position
+            // Outputs the vertex position to the fragment shader
+            const vertexShaderWGSL = `
+                @vertex
+                fn main(@location(0) position : vec4<f32>) -> @builtin(position) vec4<f32> {
+                    return position;
+                }
+            `;
+
+            // Fragment shader: uses primitive_id to color the triangle
+            // The @builtin(primitive_id) gives us the unique ID of the current primitive (triangle)
+            const fragmentShaderWGSL = `
+                @fragment
+                fn main(@builtin(primitive_id) prim_id : u32) -> @location(0) vec4<f32> {
+                    // Map primitive_id to color.
+                    // For a few primitives, we can cycle through distinct colors.
+                    // If you have many primitives, you might want to use a more continuous mapping
+                    // or a hash function to get more unique colors.
+                    var color : vec4<f32>;
+                    if (prim_id == 0u) {
+                        color = vec4<f32>(1.0, 0.2, 0.2, 1.0); // Reddish for primitive 0
+                    } else if (prim_id == 1u) {
+                        color = vec4<f32>(0.2, 1.0, 0.2, 1.0); // Greenish for primitive 1
+                    } else {
+                        // Fallback for more than 2 primitives, will create a rainbow effect
+                        // This uses a simple mapping from primitive ID to RGB channels
+                        let r = f32(prim_id % 256u) / 255.0;
+                        let g = f32((prim_id / 256u) % 256u) / 255.0;
+                        let b = f32((prim_id / (256u * 256u)) % 256u) / 255.0;
+                        color = vec4<f32>(r, g, b, 1.0);
+                    }
+                    return color;
+                }
+            `;
+
+            // Define the vertices for a quad (two triangles)
+            // A quad filling the screen from -1 to 1 in both X and Y
+            // Triangle 1: Top-left, Bottom-left, Top-right
+            // Triangle 2: Bottom-left, Bottom-right, Top-right
+            const vertices = new Float32Array([
+                // Triangle 1
+                -0.8,  0.8, 0.0, 1.0,  // Top-left
+                -0.8, -0.8, 0.0, 1.0,  // Bottom-left
+                 0.8,  0.8, 0.0, 1.0,  // Top-right
+
+                // Triangle 2
+                -0.8, -0.8, 0.0, 1.0,  // Bottom-left (re-used)
+                 0.8, -0.8, 0.0, 1.0,  // Bottom-right
+                 0.8,  0.8, 0.0, 1.0,  // Top-right (re-used)
+            ]);
+
+            // Create a GPU buffer to store the vertex data
+            const vertexBuffer = device.createBuffer({
+                size: vertices.byteLength,
+                usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+                mappedAtCreation: true, // Map the buffer for writing immediately
+            });
+            new Float32Array(vertexBuffer.getMappedRange()).set(vertices);
+            vertexBuffer.unmap(); // Unmap to make it available to the GPU
+
+            // Create a render pipeline
+            const pipeline = device.createRenderPipeline({
+                layout: device.createPipelineLayout({ bindGroupLayouts: [] }), // No bind groups needed for this simple example
+                vertex: {
+                    module: device.createShaderModule({
+                        code: vertexShaderWGSL
+                    }),
+                    entryPoint: 'main',
+                    buffers: [{
+                        arrayStride: 4 * 4, // 4 floats per vertex (x, y, z, w) * 4 bytes per float
+                        attributes: [{
+                            shaderLocation: 0, // Corresponds to @location(0) in vertex shader
+                            offset: 0,
+                            format: 'float32x4', // vec4<f32>
+                        }],
+                    }],
+                },
+                fragment: {
+                    module: device.createShaderModule({
+                        code: fragmentShaderWGSL
+                    }),
+                    entryPoint: 'main',
+                    targets: [{
+                        format: presentationFormat, // Match the canvas format
+                    }],
+                },
+                primitive: {
+                    topology: 'triangle-list', // Render as a list of independent triangles
+                },
+            });
+
+            // Create a command encoder to record GPU commands
+            const commandEncoder = device.createCommandEncoder();
+
+            // Begin a render pass
+            const renderPassDescriptor = {
+                colorAttachments: [{
+                    view: context.getCurrentTexture().createView(), // Get the current texture from the canvas context
+                    clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 }, // Clear to black
+                    loadOp: 'clear', // Clear before drawing
+                    storeOp: 'store', // Store the results
+                }],
+            };
+            const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+
+            // Set the render pipeline
+            passEncoder.setPipeline(pipeline);
+
+            // Set the vertex buffer (slot 0)
+            passEncoder.setVertexBuffer(0, vertexBuffer);
+
+            // Draw the vertices. We have 6 vertices for 2 triangles.
+            passEncoder.draw(vertices.length / 4, 1, 0, 0); // (vertexCount, instanceCount, firstVertex, firstInstance)
+
+            // End the render pass
+            passEncoder.end();
+
+            // Submit the command buffer to the GPU
+            device.queue.submit([commandEncoder.finish()]);
+
+            // Clean up the device when the window unloads
+            window.addEventListener('beforeunload', () => {
+                device.destroy();
+            });
+
+            // Optional: Resize observer for canvas to handle window resizing
+            const resizeObserver = new ResizeObserver(() => {
+                const devicePixelRatio = window.devicePixelRatio || 1;
+                const newWidth = canvas.clientWidth * devicePixelRatio;
+                const newHeight = canvas.clientHeight * devicePixelRatio;
+
+                if (canvas.width !== newWidth || canvas.height !== newHeight) {
+                    canvas.width = newWidth;
+                    canvas.height = newHeight;
+                    context.configure({
+                        device,
+                        format: presentationFormat,
+                        alphaMode: 'opaque',
+                        size: [newWidth, newHeight], // Update the canvas size in configure
+                    });
+                    // Re-render the scene after resize
+                    const newCommandEncoder = device.createCommandEncoder();
+                    const newRenderPassDescriptor = {
+                        colorAttachments: [{
+                            view: context.getCurrentTexture().createView(),
+                            clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                            loadOp: 'clear',
+                            storeOp: 'store',
+                        }],
+                    };
+                    const newPassEncoder = newCommandEncoder.beginRenderPass(newRenderPassDescriptor);
+                    newPassEncoder.setPipeline(pipeline);
+                    newPassEncoder.setVertexBuffer(0, vertexBuffer);
+                    newPassEncoder.draw(vertices.length / 4, 1, 0, 0);
+                    newPassEncoder.end();
+                    device.queue.submit([newCommandEncoder.finish()]);
+                }
+            });
+            resizeObserver.observe(canvas);
+        }
+
+        // Start the WebGPU rendering when the window loads
+        window.onload = render;
+    </script>
+</body>
+</html>

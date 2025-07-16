@@ -1,0 +1,27 @@
+<script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+
+  const buffer = device.createBuffer({
+    size: 0,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+  });
+  const promise1 = buffer.mapAsync(GPUMapMode.READ);
+  const promise2 = buffer.mapAsync(GPUMapMode.READ);
+  const result1 = await promise1;
+  console.log({ result1 });
+  const result2 = await promise2;
+  console.log({ result2 });
+</script>
+
+<script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+
+  const buffer = device.createBuffer({
+    label: "usage of 0",
+    size: 0,
+    usage: 0,
+  });
+  await buffer.mapAsync(GPUMapMode.READ);
+</script>

@@ -1,0 +1,33 @@
+<script type="module">
+  {
+    const adapter = await navigator.gpu.requestAdapter();
+    const device = await adapter.requestDevice({
+      requiredFeatures: ["texture-compression-bc"],
+    });
+
+    const sampleTexture = device.createTexture({
+      size: { width: 4, height: 4 },
+      usage: GPUTextureUsage.TEXTURE_BINDING,
+      format: "bc1-rgba-unorm",
+      dimension: "3d",
+    });
+    device.queue.submit([]); // Expected to fail
+  }
+  {
+    const adapter = await navigator.gpu.requestAdapter();
+    const device = await adapter.requestDevice({
+      requiredFeatures: [
+        "texture-compression-bc",
+        "texture-compression-bc-sliced-3d",
+      ],
+    });
+
+    const sampleTexture = device.createTexture({
+      size: { width: 4, height: 4 },
+      usage: GPUTextureUsage.TEXTURE_BINDING,
+      format: "bc1-rgba-unorm",
+      dimension: "3d",
+    });
+    device.queue.submit([]); // Expected to succeed
+  }
+</script>

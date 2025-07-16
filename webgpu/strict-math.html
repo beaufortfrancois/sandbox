@@ -1,0 +1,102 @@
+<div>
+  <input id="strictMathInput" type="checkbox" />
+  <label for="strictMathInput">strictMath</label>
+</div>
+<canvas id="canvas" width="512" height="512"></canvas>
+<script type="module">
+  (async function init() {
+    const adapter = await navigator.gpu.requestAdapter();
+    const device = await adapter.requestDevice();
+
+    const canvas = document.querySelector("canvas");
+    const context = canvas.getContext("webgpu");
+    const format = navigator.gpu.getPreferredCanvasFormat();
+    context.configure({ device, format });
+
+    const vertexModule = device.createShaderModule({
+      code: `
+
+        @vertex fn vs(
+          @builtin(vertex_index) vertexIndex : u32
+        ) -> @builtin(position) vec4f {
+          let pos = array(
+            vec2f( 0.0,  0.5),  // top center
+            vec2f(-0.5, -0.5),  // bottom left
+            vec2f( 0.5, -0.5)   // bottom right
+          );
+
+          return vec4f(pos[vertexIndex], 0.0, 1.0);
+        }
+`,
+    });
+    const fragmentModule = device.createShaderModule({
+      code: `
+              @group(0) @binding(0) var<uniform> uni: vec2f;
+
+
+        fn test (x : f32) -> f32 {
+          // strictMathInput.checked: ${strictMathInput.checked}
+          // let y = x * 1.0;
+          
+          return fract(x * cos(35.456+f32(x)));
+  // rand_seed = fract(rand_seed * cos(41.235+f32(invocation_id) * seed.xw));
+
+          // return y;
+        }
+         
+        @fragment fn fs() -> @location(0) vec4f {
+          return vec4f(test(uni[0]), 0, 0, 1);
+        }
+      `,
+      strictMath: strictMathInput.checked
+    });
+
+    const pipeline = device.createRenderPipeline({
+      label: "triangle with uniforms",
+      layout: "auto",
+      vertex: {
+        module: vertexModule,
+      },
+      fragment: {
+        module: fragmentModule,
+        targets: [{ format }],
+      },
+    });
+
+    const uniformBuffer = device.createBuffer({
+      size: 4 * 4,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    const uniformValues = new Float32Array(4);
+    uniformValues.set([1]);
+    device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
+
+    const bindGroup = device.createBindGroup({
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [{ binding: 0, resource: { buffer: uniformBuffer } }],
+    });
+
+    const renderPassDescriptor = {
+      colorAttachments: [
+        {
+          view: context.getCurrentTexture().createView(),
+          clearValue: [0.3, 0.3, 0.3, 1],
+          loadOp: "clear",
+          storeOp: "store",
+        },
+      ],
+    };
+
+    const encoder = device.createCommandEncoder();
+    const pass = encoder.beginRenderPass(renderPassDescriptor);
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(0, bindGroup);
+    pass.draw(3);
+    pass.end();
+
+    const commandBuffer = encoder.finish();
+    device.queue.submit([commandBuffer]);
+
+    strictMathInput.onchange = init;
+  })();
+</script>

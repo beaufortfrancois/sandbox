@@ -1,0 +1,59 @@
+<!-- <script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  console.log(adapter.limits);
+  const device = await adapter.requestDevice({
+    requiredLimits: {
+      // maxTextureDimension2D: 8194,
+      // maxTextureArrayLayers: 258
+    },
+  });
+  console.log(device.limits);
+
+  const canvas = document.createElement("canvas");
+  // canvas.width = 8193;
+
+  const ctx = canvas.getContext("webgpu");
+
+  ctx.configure({ device, format: "rgba8unorm" });
+
+  const texture = device.createTexture({
+    size: { width: 8193, height: 16, depthOrArrayLayers: 257 },
+    format: "rgba8unorm",
+    usage: GPUTextureUsage.TEXTURE_BINDING,
+  });
+  device.queue.submit([]);
+</script> -->
+
+<!-- <script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  console.log('adapter.limits.maxComputeWorkgroupsPerDimension:', adapter.limits.maxComputeWorkgroupsPerDimension);
+  const device = await adapter.requestDevice({
+    requiredLimits: {
+      maxComputeWorkgroupsPerDimension: 202,
+    },
+  });
+  console.log('device.limits.maxComputeWorkgroupsPerDimension:', device.limits.maxComputeWorkgroupsPerDimension);
+  
+const commandEncoder = device.createCommandEncoder();
+
+const passEncoder = commandEncoder.beginComputePass();
+
+
+  passEncoder.dispatchWorkgroups(202, 203);
+  passEncoder.end();
+  
+device.queue.submit([commandEncoder.finish()]);
+</script> -->
+
+<script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  // console.log('adapter.limits.maxBufferSize:', adapter.limits.maxBufferSize);
+  const device = await adapter.requestDevice();
+  // console.log('device.limits.maxBufferSize:', device.limits.maxBufferSize);
+  
+  const size = device.limits.maxBufferSize + 1; 
+  const buffer = device.createBuffer({ size, usage: GPUBufferUsage.MAP_READ });
+
+  device.queue.submit([]);
+
+</script>

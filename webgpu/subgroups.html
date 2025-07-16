@@ -1,0 +1,68 @@
+<pre id="pre"></pre>
+<script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  if (!adapter.features.has("chromium-experimental-subgroups")) {
+    throw new Error("Subgroups support is not available");
+  }
+  const device = await adapter.requestDevice({
+    requiredFeatures: ["chromium-experimental-subgroups"],
+  });
+  
+
+  const module = device.createShaderModule({
+    code: `\
+enable chromium_experimental_subgroups;
+
+@group(0) @binding(0) var<storage, read_write> output: array<u32>;
+
+@compute @workgroup_size(64) fn main(
+  @builtin(subgroup_invocation_id) subgroup_invocation_id : u32,
+  @builtin(subgroup_size) subgroup_size : u32,
+) {
+  output[0] = subgroup_size;
+}
+`,
+  });
+
+  const pipeline = device.createComputePipeline({
+    layout: "auto",
+    compute: { module },
+  });
+
+  const size = 1024 * 4;
+
+  const buffer = device.createBuffer({
+    size,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+  });
+
+  const readBuffer = device.createBuffer({
+    size,
+    usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+  });
+
+  const bindGroup = device.createBindGroup({
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [{ binding: 0, resource: { buffer: buffer } }],
+  });
+
+  const encoder = device.createCommandEncoder();
+
+  const pass = encoder.beginComputePass();
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bindGroup);
+  pass.dispatchWorkgroups(64);
+  pass.end();
+
+  encoder.copyBufferToBuffer(buffer, 0, readBuffer, 0, size);
+
+  device.queue.submit([encoder.finish()]);
+
+  await readBuffer.mapAsync(GPUMapMode.READ);
+  const data = new Uint32Array(readBuffer.getMappedRange());
+  console.log(data);
+
+  device.addEventListener("uncapturederror", ({ error }) => {
+    pre.append(`error: ${error.message}`);
+  });
+</script>

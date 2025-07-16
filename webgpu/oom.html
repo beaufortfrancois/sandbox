@@ -1,0 +1,139 @@
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+Backend:
+<br />
+<select id="backendSelect">
+  <option>WebGPU</option>
+  <option>WebGL</option>
+</select>
+<br />
+<br />
+Buffer size:
+<br />
+<select id="sizeSelect">
+  <option value="268435456">256MB</option>
+  <option value="536870912">512MB</option>
+  <option value="1073741824">1GB</option>
+  <option value="2147483648">2GB</option>
+  <option value="4294967296">4GB</option>
+</select>
+<br />
+<br />
+Buffer usage (WebGPU):
+<br />
+<select id="usageSelect">
+  <option>MAP_READ</option>
+  <option>MAP_WRITE</option>
+  <option>COPY_SRC</option>
+  <option>COPY_DST</option>
+  <option>INDEX</option>
+  <option>VERTEX</option>
+  <option>UNIFORM</option>
+  <option>STORAGE</option>
+  <option>INDIRECT</option>
+  <option>QUERY_RESOLVE</option>
+</select>
+<br />
+<br />
+<button id="button">Create buffers until 💥</button>
+<pre id="pre"></pre>
+<pre id="error" style="color: red"></pre>
+<script>
+  button.onclick = () => {
+    pre.textContent = "";
+    error.textContent = "";
+
+    switch (backendSelect.value) {
+      case "WebGPU":
+        webgpu();
+        break;
+      case "WebGL":
+        webgl();
+        break;
+    }
+  };
+
+  async function webgpu() {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) {
+      error.append(`No adapter!\n`);
+      return;
+    }
+
+    const requiredLimits = { maxBufferSize: adapter.limits.maxBufferSize };
+    const device = await adapter.requestDevice({ requiredLimits });
+    if (!device) {
+      error.append(`No device!\n`);
+      return;
+    }
+
+    let stopCreatingBuffers = false;
+    device.lost.then((info) => {
+      stopCreatingBuffers = true;
+      error.append(`Device was lost:\n${info.message}\n`);
+    });
+
+    device.onuncapturederror = (event) => {
+      stopCreatingBuffers = true;
+      error.append(`Device uncaptured error fired:\n${event.error.message}\n`);
+    };
+
+    const size = eval(sizeSelect.selectedOptions[0].value);
+    const usage = eval(
+      `GPUBufferUsage.${usageSelect.selectedOptions[0].value}`
+    );
+    let accumulatedSize = 0;
+    while (!stopCreatingBuffers) {
+      device.createBuffer({ size, usage });
+      device.queue.submit([]);
+      try {
+        await device.queue.onSubmittedWorkDone();
+
+        if (!stopCreatingBuffers) {
+          accumulatedSize += size;
+          pre.textContent = `> Accumulated size: ${
+            accumulatedSize / 1024 / 1024 / 1024
+          }GB\n`;
+        }
+      } catch (error) {
+        error.append(`onSubmittedWorkDone failed with error:\n${error}\n`);
+      }
+    }
+  }
+
+  async function webgl() {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl");
+
+    const size = eval(sizeSelect.selectedOptions[0].value);
+
+    let stopCreatingBuffers = false;
+    let accumulatedSize = 0;
+
+    while (!stopCreatingBuffers) {
+      const buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, size, gl.DYNAMIC_DRAW);
+
+      if (!stopCreatingBuffers) {
+        accumulatedSize += size;
+        pre.textContent = `> Accumulated size: ${
+          accumulatedSize / 1024 / 1024 / 1024
+        }GB\n`;
+      }
+
+      await new Promise(r => setTimeout(r, 500));
+      const glError = gl.getError();
+      if (glError) {
+        error.append(`getError() returned error:\n${error}\n`);
+        stopCreatingBuffers = true;
+      }
+    }
+  }
+
+  window.onerror = (error) => {
+    error.append(`${error}\n`);
+  };
+  window.onunhandledrejection = (event) => {
+    error.append(`${event.reason}\n`);
+  };
+</script>

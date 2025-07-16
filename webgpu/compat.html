@@ -1,0 +1,78 @@
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<pre id="pre" style="white-space: pre-wrap"></pre>
+<script type="module">
+  pre.append(navigator.userAgent)
+        pre.append(document.createElement("hr"));
+
+  const requestAdapterOptionsSets = [
+    {},
+    { powerPreference: "high-performance" },
+    { powerPreference: "low-power" },
+    { powerPreference: "low-power", forceFallbackAdapter: true },
+  ];
+
+  let supportsFeatureLevel = false;
+  let compatFeatureLevel = {};
+  Object.defineProperty(compatFeatureLevel, "featureLevel", {
+    enumerable: true,
+    get: () => {
+      supportsFeatureLevel = true;
+      return "compatibility";
+    },
+  });
+  requestAdapterOptionsSets.push(compatFeatureLevel);
+
+  for (const requestAdapterOptions of requestAdapterOptionsSets) {
+    try {
+      const adapter = await navigator.gpu.requestAdapter(requestAdapterOptions);
+      const checkCompat =
+        supportsFeatureLevel &&
+        requestAdapterOptions.featureLevel === "compatibility";
+
+      if (!adapter) {
+        throw Error("no adapter");
+      }
+      const device = await adapter.requestDevice();
+      if (!device) {
+        throw Error("no device");
+      }
+
+      pre.append(JSON.stringify(requestAdapterOptions));
+      pre.append(document.createElement("br"));
+      pre.append(
+        `✅${adapter.info?.description ? ` ${adapter.info?.description}` : ""}${
+          adapter.info?.backend ? ` - ${adapter.info?.backend}` : ""
+        } `
+      );
+
+      if (requestAdapterOptions.featureLevel === "compatibility") {
+        if (!checkCompat) {
+          pre.append(`⚠️ feature level is not supported!`);
+        } else {
+          if (!adapter.features.has("core-features-and-limits")) {
+            pre.append(`adapter supports compatibility mode only`);
+          } else {
+            if (
+              device.features.has("core-features-and-limits") &&
+              device.limits.maxStorageBuffersInVertexStage === 0
+            ) {
+              pre.append(
+                `adapter is a core adapter and only supports core (WebKit)`
+              );
+            } else {
+              pre.append(
+                `adapter supports compat mode with compat limitations on top of a core device`
+              );
+            }
+          }
+        }
+      }
+    } catch (e) {
+      pre.append(JSON.stringify(requestAdapterOptions));
+      pre.append(document.createElement("br"));
+      pre.append(`❌ ${e.message}`);
+    } finally {
+      pre.append(document.createElement("hr"));
+    }
+  }
+</script>

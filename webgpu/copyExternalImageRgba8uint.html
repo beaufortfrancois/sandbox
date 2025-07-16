@@ -1,0 +1,91 @@
+<script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+
+  const source = document.createElement("img");
+  source.crossOrigin = "";
+  source.src =
+    "https://cdn.glitch.global/bbb4ffa9-cda2-4fcd-aeea-0c84de43f121/qrcode_gpuweb.github.io.png";
+  await source.decode();
+
+  const size = [source.width, source.height];
+  const texture = device.createTexture({
+    size,
+    format: "rgba8uint",
+    usage:
+      GPUTextureUsage.COPY_DST |
+      GPUTextureUsage.RENDER_ATTACHMENT |
+      GPUTextureUsage.TEXTURE_BINDING,
+  });
+
+  device.queue.copyExternalImageToTexture({ source }, { texture }, size);
+
+//   const module = device.createShaderModule({
+//     code: `
+//         @group(0) @binding(0) var<storage, read_write> buffer: array<vec4u>;
+//         @group(0) @binding(1) var ourTexture: texture_2d<u32>;
+
+//         @compute @workgroup_size(1, 1, 1)
+//         fn cs(@builtin(global_invocation_id) global_invocation_id: vec3u) {
+//           let position = global_invocation_id.xy;
+//           let color = textureLoad(ourTexture, position, 0);
+
+//           let flatIndex : u32 = (global_invocation_id.x + ${source.width}u * global_invocation_id.y);
+//           buffer[flatIndex] = color;
+//         }
+//       `,
+//   });
+
+//   const pipeline = device.createComputePipeline({
+//     label: "histogram",
+//     layout: "auto",
+//     compute: {
+//       module,
+//     },
+//   });
+
+//   const bufferSize = source.width * source.height * 4 /* RGBA */ * 4; /* u32 */
+
+//   const textureBuffer = device.createBuffer({
+//     size: bufferSize,
+//     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+//   });
+
+//   const resultBuffer = device.createBuffer({
+//     size: bufferSize,
+//     usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+//   });
+
+//   const bindGroup = device.createBindGroup({
+//     layout: pipeline.getBindGroupLayout(0),
+//     entries: [
+//       { binding: 0, resource: { buffer: textureBuffer } },
+//       { binding: 1, resource: texture.createView() },
+//     ],
+//   });
+
+//   const encoder = device.createCommandEncoder({ label: "histogram encoder" });
+//   const pass = encoder.beginComputePass();
+//   pass.setPipeline(pipeline);
+//   pass.setBindGroup(0, bindGroup);
+//   pass.dispatchWorkgroups(texture.width, texture.height);
+//   pass.end();
+
+//   encoder.copyBufferToBuffer(
+//     textureBuffer,
+//     0,
+//     resultBuffer,
+//     0,
+//     resultBuffer.size
+//   );
+
+//   const commandBuffer = encoder.finish();
+//   device.queue.submit([commandBuffer]);
+
+//   await resultBuffer.mapAsync(GPUMapMode.READ);
+//   const results = new Uint32Array(resultBuffer.getMappedRange());
+
+//   console.log(results);
+
+//   resultBuffer.unmap();
+</script>

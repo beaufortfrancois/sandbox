@@ -1,0 +1,31 @@
+<script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+
+  const code = `
+    @vertex fn main(@builtin(vertex_index) i : u32) ->
+      @builtin(position) vec4f {
+       const pos = array(vec2f(0, 1), vec2f(-1, -1), vec2f(1, -1));
+       return vec4f(pos[i], 0, 1);
+    }`;
+  const shaderModule = device.createShaderModule({ code });
+  window.pipelineDescriptor = {
+    layout: "auto",
+    vertex: {
+      module: shaderModule,
+      entryPoint: "main",
+    },
+    depthStencil: {
+      // format: "stencil8",
+      format: "depth16unorm",
+      // depthCompare: "always",
+      depthWriteEnabled: false,
+      stencilFront: {
+        depthFailOp: "zero"
+      }
+    },
+  };
+  const pipeline = device.createRenderPipeline(pipelineDescriptor);
+  const commandEncoder = device.createCommandEncoder();
+  device.queue.submit([commandEncoder.finish()]);
+</script>

@@ -1,0 +1,66 @@
+<pre id="pre"></pre>
+<script type="module">
+  const feature = "packed_4x8_integer_dot_product";
+  if (!navigator.gpu.wgslLanguageFeatures.has(feature)) {
+    throw new Error(`${feature} is not available`);
+  }
+
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+
+  const module = device.createShaderModule({
+    code: `
+    // requires packed_4x8_integer_dot_product;
+    @group(0) @binding(0) var<storage, read_write> buffer: u32;
+
+    @compute @workgroup_size(1)
+    fn main() {
+      // 0x01 * 0x02 + 0x02 * 0x04 + 0x03 * 0x06 + 0x04 * 0x08 
+      buffer = dot4U8Packed(0x01020304u, 0x02040608u); // 60u
+    }`,
+  });
+
+  const pipeline = device.createComputePipeline({
+    layout: "auto",
+    compute: { module },
+  });
+
+  const size = Float32Array.BYTES_PER_ELEMENT;
+  const buffer = device.createBuffer({
+    size,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+  });
+
+  const bindGroup = device.createBindGroup({
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [{ binding: 0, resource: { buffer } }],
+  });
+
+  // Commands submission
+
+  const commandEncoder = device.createCommandEncoder();
+
+  const passEncoder = commandEncoder.beginComputePass();
+  passEncoder.setPipeline(pipeline);
+  passEncoder.setBindGroup(0, bindGroup);
+  passEncoder.dispatchWorkgroups(1);
+  passEncoder.end();
+
+  const readBuffer = device.createBuffer({
+    size,
+    usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+  });
+
+  commandEncoder.copyBufferToBuffer(buffer, 0, readBuffer, 0, size);
+
+  device.queue.submit([commandEncoder.finish()]);
+
+  // Read the buffer
+  await readBuffer.mapAsync(GPUMapMode.READ);
+
+  console.log(new Uint32Array(readBuffer.getMappedRange())[0]);
+
+  device.addEventListener("uncapturederror", ({ error }) => {
+    pre.append(`error: ${error.message}`);
+  });
+</script>

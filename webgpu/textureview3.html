@@ -1,0 +1,103 @@
+<script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+
+  const texture = device.createTexture({
+    size: [42, 42],
+    format: navigator.gpu.getPreferredCanvasFormat(),
+    usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+  });
+
+  const dimensionsBufferSize = Uint32Array.BYTES_PER_ELEMENT * 2;
+  const dimensionsBuffer = device.createBuffer({
+    size: dimensionsBufferSize,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+  });
+  const readDimensionsBuffer = device.createBuffer({
+    size: dimensionsBufferSize,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+  });
+
+  const loadBufferSize = Float32Array.BYTES_PER_ELEMENT * 4;
+  const loadBuffer = device.createBuffer({
+    mappedAtCreation: true,
+    size: loadBufferSize,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+  });
+  
+  const arrayBuffer = loadBuffer.getMappedRange();
+  new Float32Array(arrayBuffer).set([42, 42, 42, 42]);
+  loadBuffer.unmap();
+  
+  const readLoadBuffer = device.createBuffer({
+    size: loadBufferSize,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+  });
+
+  const module = device.createShaderModule({
+    code: `
+@group(0) @binding(0) var texture : texture_external;
+@group(0) @binding(1) var<storage, read_write> dimensionsBuffer: vec2u;
+//@group(0) @binding(2) var<storage, read_write> loadBuffer: vec4f;
+    
+@compute @workgroup_size(1) fn main() {
+  dimensionsBuffer = textureDimensions(texture);
+  //loadBuffer = textureLoad(texture, vec2(0,0));
+}`,
+  });
+
+  const pipeline = device.createComputePipeline({
+    layout: "auto",
+    compute: { module },
+  });
+
+  const bindGroup = device.createBindGroup({
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      {
+        binding: 0,
+        resource: texture.createView(),
+      },
+      { binding: 1, resource: { buffer: dimensionsBuffer } },
+      //{ binding: 2, resource: { buffer: loadBuffer } },
+    ],
+  });
+
+  const commandEncoder = device.createCommandEncoder();
+
+  const passEncoder = commandEncoder.beginComputePass();
+  passEncoder.setPipeline(pipeline);
+  passEncoder.setBindGroup(0, bindGroup);
+  passEncoder.dispatchWorkgroups(1);
+  passEncoder.end();
+
+  commandEncoder.copyBufferToBuffer(
+    dimensionsBuffer,
+    0,
+    readDimensionsBuffer,
+    0,
+    dimensionsBufferSize
+  );
+  commandEncoder.copyBufferToBuffer(
+    loadBuffer,
+    0,
+    readLoadBuffer,
+    0,
+    loadBufferSize
+  );
+
+  device.queue.submit([commandEncoder.finish()]);
+
+  {
+    await readDimensionsBuffer.mapAsync(GPUMapMode.READ);
+    const array = new Uint32Array(readDimensionsBuffer.getMappedRange());
+    console.log(`width: ${array[0]}, height: ${array[1]}`);
+  }
+  {
+    await readLoadBuffer.mapAsync(GPUMapMode.READ);
+    const array = new Float32Array(readLoadBuffer.getMappedRange());
+    console.log(
+      `x: ${array[0]}, y: ${array[1]}, z: ${array[1]}, w: ${array[1]}`
+    );
+  }
+</script>

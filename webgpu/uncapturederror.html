@@ -1,0 +1,16 @@
+<script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+
+  device.addEventListener("uncapturederror", (e) => {
+    console.log('addEventListener("uncapturederror")', e);
+  });
+
+  device.onuncapturederror = (e) => {
+    console.log("onuncapturederror", e);
+  };
+
+  // Will generate a GPU validation error...
+  device.createBuffer({ size: 0, usage: 0 });
+  await device.queue.onSubmittedWorkDone();
+</script>

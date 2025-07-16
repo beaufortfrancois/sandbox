@@ -1,0 +1,62 @@
+<script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+
+  const texture = device.createTexture({
+    size: [42, 42],
+    format: navigator.gpu.getPreferredCanvasFormat(),
+    usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+  });
+
+  const bufferSize = Uint32Array.BYTES_PER_ELEMENT * 2;
+  const buffer = device.createBuffer({
+    size: bufferSize,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+  });
+  const readBuffer = device.createBuffer({
+    size: bufferSize,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+  });
+
+  const module = device.createShaderModule({
+    code: `
+@group(0) @binding(0) var texture : texture_external;
+@group(0) @binding(1) var<storage, read_write> buffer: vec2u;
+    
+@compute @workgroup_size(1) fn main() {
+  buffer = textureDimensions(texture);
+}`,
+  });
+
+  const pipeline = device.createComputePipeline({
+    layout: "auto",
+    compute: { module },
+  });
+
+  const bindGroup = device.createBindGroup({
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: texture.createView() },
+      { binding: 1, resource: { buffer } },
+    ],
+  });
+
+  const commandEncoder = device.createCommandEncoder();
+
+  const passEncoder = commandEncoder.beginComputePass();
+  passEncoder.setPipeline(pipeline);
+  passEncoder.setBindGroup(0, bindGroup);
+  passEncoder.dispatchWorkgroups(1);
+  passEncoder.end();
+
+  commandEncoder.copyBufferToBuffer(buffer, 0, readBuffer, bufferSize, 0); // Before
+  commandEncoder.copyBufferToBuffer(buffer, readBuffer); // Now
+
+  device.queue.submit([commandEncoder.finish()]);
+
+  {
+    await readBuffer.mapAsync(GPUMapMode.READ);
+    const array = new Uint32Array(readBuffer.getMappedRange());
+    console.log(`width: ${array[0]}, height: ${array[1]}`);
+  }
+</script>

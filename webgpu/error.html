@@ -1,0 +1,13 @@
+<script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+
+  const sampleTexture = device.createTexture({
+    label: "Sample Texture",
+    size: { width: 0, height: 10 },
+    usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+    format: "rgba8unorm",
+  });
+  const sampleTextureView = sampleTexture.createView();
+  device.destroy();
+</script>

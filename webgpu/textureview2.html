@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <p>
+      Half of the canvas is green if texture view is supported in
+      externalTexture binding, otherwise it's yellow.
+    </p>
+    <canvas id="canvas" width="100" height="100"></canvas>
+    <script type="module">
+      const adapter = await navigator.gpu.requestAdapter();
+      const device = await adapter.requestDevice();
+
+      const size = [canvas.width, canvas.height];
+      const format = navigator.gpu.getPreferredCanvasFormat();
+
+      const sampledTexture = device.createTexture({
+        size,
+        format,
+        usage:
+          GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+      });
+
+      // Initialize texture with green to ensure it is sampled from later.
+      {
+        const commandEncoder = device.createCommandEncoder();
+        const passEncoder = commandEncoder.beginRenderPass({
+          colorAttachments: [
+            {
+              view: sampledTexture.createView(),
+              clearValue: [0, 1, 0, 1],
+              loadOp: "clear",
+              storeOp: "store",
+            },
+          ],
+        });
+        passEncoder.end();
+
+        device.queue.submit([commandEncoder.finish()]);
+      }
+
+      const module = device.createShaderModule({
+        code: `
+@vertex fn vsMain(@builtin(vertex_index) VertexIndex : u32) -> @builtin(position) vec4f {
+  var positions = array(
+    vec4f(-1.0, 1.0, 0.0, 1.0),
+    vec4f(-1.0, -1.0, 0.0, 1.0),
+    vec4f(1.0, 1.0, 0.0, 1.0),
+    vec4f(1.0, -1.0, 0.0, 1.0),
+    vec4f(-1.0, -1.0, 0.0, 1.0),
+    vec4f(1.0, 1.0, 0.0, 1.0)
+  );
+  return positions[VertexIndex];
+}
+
+@group(0) @binding(0) var s : sampler;
+@group(0) @binding(1) var t : texture_external;
+
+@fragment fn fsMain(@builtin(position) FragCoord : vec4f) -> @location(0) vec4f {
+  return textureSampleBaseClampToEdge(t, s, FragCoord.xy / vec2f(4.0, 4.0));
+}`,
+      });
+
+      const pipeline = device.createRenderPipeline({
+        layout: "auto",
+        vertex: { module },
+        fragment: { module, targets: [{ format }] },
+      });
+
+      const sampler = device.createSampler();
+
+
+      const bindGroupDescriptor = {
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [
+          { binding: 0, resource: sampler },
+          { binding: 1, resource: sampledTexture.createView() },
+        ],
+      }
+
+      device.pushErrorScope("validation");
+
+      let bindGroup = device.createBindGroup(bindGroupDescriptor);
+
+      // If texture view is not supported, create a yellow canvas to use as source of an external texture.
+      if (await device.popErrorScope()) {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "rgb(255, 255, 0)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const imageBitmap = await createImageBitmap(imageData);
+        const source = new VideoFrame(imageBitmap, { timestamp: 0 });
+        const externalTexture = device.importExternalTexture({ source });
+
+        bindGroupDescriptor.entries[1].resource = externalTexture;
+        bindGroup = device.createBindGroup(bindGroupDescriptor);
+      }
+
+      const context = canvas.getContext("webgpu");
+      context.configure({ device, format });
+
+      // Run the shader, which should sample from the texture view and draw a triangle into the
+      // upper left corner of the render texture.
+      const commandEncoder = device.createCommandEncoder();
+      const passEncoder = commandEncoder.beginRenderPass({
+        colorAttachments: [
+          {
+            view: context.getCurrentTexture().createView(),
+            loadOp: "clear",
+            storeOp: "store",
+          },
+        ],
+      });
+      passEncoder.setPipeline(pipeline);
+      passEncoder.setBindGroup(0, bindGroup);
+      passEncoder.draw(3);
+      passEncoder.end();
+
+      device.queue.submit([commandEncoder.finish()]);
+    </script>
+  </body>
+</html>

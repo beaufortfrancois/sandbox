@@ -1,0 +1,226 @@
+<style>
+  input[type="number"],
+  select {
+    text-align: right;
+    border: 1px solid black;
+    border-radius: 4px;
+    height: 22px;
+    width: 100px;
+    margin-bottom: 5px;
+  }
+  #red {
+    color: white;
+    background: red;
+  }
+  #green {
+    color: white;
+    background: green;
+  }
+  #blue {
+    color: white;
+    background: blue;
+  }
+  #alpha {
+    background: white;
+  }
+  #errors {
+    color: red;
+  }
+</style>
+<h1>Texture component swizzle 🥤</h1>
+<label>
+  <input id="requestFeature" type="checkbox" checked />request
+  <code>"texture-component-swizzle"</code> feature </label
+><br />
+<label>
+  <input id="useRenderAttachment" type="checkbox" />use
+  <code>RENDER_ATTACHMENT</code> texture usage </label
+><br />
+<label>
+  <input id="useStorageBinding" type="checkbox" />use
+  <code>STORAGE_BINDING</code> texture usage </label
+><br />
+<label>
+  <input id="passSwizzle" type="checkbox" checked />pass swizzle in
+  <code>createView()</code>
+</label>
+<br />
+<br />
+<input id="red" type="number" min="0" max="255" step="1" value="255" />
+<input id="green" type="number" min="0" max="255" step="1" value="0" />
+<input id="blue" type="number" min="0" max="255" step="1" value="0" />
+<input id="alpha" type="number" min="0" max="255" step="1" value="255" />
+<br />
+<select id="r">
+  <option value="">undefined</option>
+  <hr />
+  <option value="zero">"zero"</option>
+  <option value="one">"one"</option>
+  <option value="r">"r"</option>
+  <option value="g">"g"</option>
+  <option value="b">"b"</option>
+  <option value="a">"a"</option>
+</select>
+<select id="g">
+  <option value="">undefined</option>
+  <hr />
+  <option value="zero">"zero"</option>
+  <option value="one">"one"</option>
+  <option value="r">"r"</option>
+  <option value="g">"g"</option>
+  <option value="b">"b"</option>
+  <option value="a">"a"</option>
+</select>
+<select id="b">
+  <option value="">undefined</option>
+  <hr />
+  <option value="zero">"zero"</option>
+  <option value="one">"one"</option>
+  <option value="r">"r"</option>
+  <option value="g">"g"</option>
+  <option value="b">"b"</option>
+  <option value="a">"a"</option>
+</select>
+<select id="a">
+  <option value="">undefined</option>
+  <hr />
+  <option value="zero">"zero"</option>
+  <option value="one">"one"</option>
+  <option value="r">"r"</option>
+  <option value="g">"g"</option>
+  <option value="b">"b"</option>
+  <option value="a">"a"</option>
+</select>
+<pre id="logs"></pre>
+<pre id="errors"></pre>
+<script type="module">
+  async function run() {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter.features.has("texture-component-swizzle")) {
+      throw new Error("Texture component swizzle support is not available");
+    }
+    const requiredFeatures = requestFeature.checked
+      ? ["texture-component-swizzle"]
+      : [];
+    const device = await adapter.requestDevice({ requiredFeatures });
+
+    device.onuncapturederror = ({ error }) => {
+      errors.textContent += error.message;
+    };
+
+    const textureWidth = 64;
+    const textureHeight = 1;
+
+    let usage = GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING;
+    if (useRenderAttachment.checked) {
+      usage |= GPUTextureUsage.RENDER_ATTACHMENT;
+    }
+    if (useStorageBinding.checked) {
+      usage |= GPUTextureUsage.STORAGE_BINDING;
+    }
+    const texture = device.createTexture({
+      size: [textureWidth, textureHeight],
+      format: "rgba8unorm",
+      usage,
+    });
+
+    const pixelData = new Uint8ClampedArray(textureWidth * textureHeight * 4);
+    for (let i = 0; i < pixelData.length; i += 4) {
+      pixelData[i + 0] = parseInt(red.value);
+      pixelData[i + 1] = parseInt(green.value);
+      pixelData[i + 2] = parseInt(blue.value);
+      pixelData[i + 3] = parseInt(alpha.value);
+    }
+
+    const textureBuffer = device.createBuffer({
+      size: pixelData.byteLength,
+      usage: GPUBufferUsage.COPY_SRC,
+      mappedAtCreation: true,
+    });
+    new Uint8Array(textureBuffer.getMappedRange()).set(pixelData);
+    textureBuffer.unmap();
+
+    const commandEncoder = device.createCommandEncoder();
+
+    commandEncoder.copyBufferToTexture(
+      { buffer: textureBuffer, bytesPerRow: textureWidth * 4 },
+      { texture },
+      [1, 1]
+    );
+
+    const bufferSize = Float32Array.BYTES_PER_ELEMENT * 4;
+    const buffer = device.createBuffer({
+      size: bufferSize,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    const readBuffer = device.createBuffer({
+      size: bufferSize,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    });
+
+    const module = device.createShaderModule({
+      code: `
+        @group(0) @binding(0) var texture : texture_2d<f32>;
+        @group(0) @binding(1) var<storage, read_write> buffer: vec4f;
+
+        @compute @workgroup_size(1) fn main() {
+          buffer = textureLoad(texture, vec2i(0, 0), 0);
+        }`,
+    });
+
+    const pipeline = device.createComputePipeline({
+      layout: "auto",
+      compute: { module },
+    });
+
+    const swizzle = {
+      r: r.value || undefined,
+      g: g.value || undefined,
+      b: b.value || undefined,
+      a: a.value || undefined,
+    };
+    const viewDescriptor = {
+      label: "swizzle view descriptor",
+      swizzle: passSwizzle.checked ? swizzle : undefined,
+    };
+    const bindGroup = device.createBindGroup({
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        {
+          binding: 0,
+          resource: texture.createView(viewDescriptor),
+        },
+        { binding: 1, resource: { buffer } },
+      ],
+    });
+
+    const passEncoder = commandEncoder.beginComputePass();
+    passEncoder.setPipeline(pipeline);
+    passEncoder.setBindGroup(0, bindGroup);
+    passEncoder.dispatchWorkgroups(1);
+    passEncoder.end();
+
+    commandEncoder.copyBufferToBuffer(buffer, readBuffer);
+
+    device.queue.submit([commandEncoder.finish()]);
+
+    await readBuffer.mapAsync(GPUMapMode.READ);
+    const array = new Float32Array(readBuffer.getMappedRange());
+    return `[${red.value}, ${green.value}, ${blue.value}, ${alpha.value}] => [${parseInt(array[0]*255)}, ${parseInt(array[1]*255)}, ${parseInt(array[2]*255)}, ${parseInt(array[3]*255)}]`;
+  }
+
+  async function onchange() {
+    errors.textContent = "";
+    logs.textContent = "";
+    try {
+      const result = await run();
+      logs.textContent = result;
+    } catch (error) {
+      errors.textContent = error;
+    }
+  }
+  Array.from(document.querySelectorAll("select,input")).forEach((element) => {
+    element.onchange = onchange;
+  });
+  onchange();
+</script>

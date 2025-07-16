@@ -1,0 +1,185 @@
+<pre id="info"></pre>
+<canvas id="canvas" width="512" height="512"></canvas>
+<label style="display:block">Number of writeBuffer calls:
+<input id="writeBufferCallsNumber" type="range" min="0" max="100000" step="1000" value="0"/>
+</label>
+<pre id="gpuInfo"></pre>
+<pre id="jsInfo"></pre>
+
+<script type="module">
+  // See https://webgpufundamentals.org/webgpu/lessons/webgpu-timing.html
+  class RollingAverage {
+    #total = 0;
+    #samples = [];
+    #cursor = 0;
+    #numSamples;
+    constructor(numSamples = 30) {
+      this.#numSamples = numSamples;
+    }
+    addSample(v) {
+      if (!Number.isNaN(v) && Number.isFinite(v)) {
+        this.#total += v - (this.#samples[this.#cursor] || 0);
+        this.#samples[this.#cursor] = v;
+        this.#cursor = (this.#cursor + 1) % this.#numSamples;
+      }
+    }
+    get() {
+      return this.#total / this.#samples.length;
+    }
+  }
+
+  const adapter = await navigator.gpu.requestAdapter();
+
+  if (!adapter.features.has("timestamp-query")) {
+    info.textContent = `Warning! Run Chrome with --enable-dawn-features=allow_unsafe_apis to enable the "timestamp-query" feature.`;
+  }
+
+  const device = await adapter.requestDevice({
+    requiredFeatures: ["timestamp-query"],
+  });
+
+  const context = canvas.getContext("webgpu");
+  const format = navigator.gpu.getPreferredCanvasFormat();
+  context.configure({ device, format });
+
+  const code = ` 
+    @group(0) @binding(0) var<uniform> color: vec4f;
+
+    @vertex fn vertexMain(@builtin(vertex_index) i : u32) ->
+      @builtin(position) vec4f {
+        const pos = array(vec2f(0, 1), vec2f(-1, -1), vec2f(1, -1));
+        return vec4f(
+          pos[i], 0.0, 1.0);
+    }
+    @fragment fn fragmentMain() -> @location(0) vec4f {
+      return vec4f(color[0], 0, 0, 1);
+    }`;
+  const shaderModule = device.createShaderModule({ code });
+  const pipeline = await device.createRenderPipelineAsync({
+    layout: "auto",
+    vertex: {
+      module: shaderModule,
+      entryPoint: "vertexMain",
+    },
+    fragment: {
+      module: shaderModule,
+      entryPoint: "fragmentMain",
+      targets: [{ format }],
+    },
+  });
+
+  // New!
+  const querySet = device.createQuerySet({
+    type: "timestamp",
+    // The number of queries managed by querySet.
+    count: 2,
+  });
+  const resolveBuffer = device.createBuffer({
+    size: 2 * BigInt64Array.BYTES_PER_ELEMENT,
+    usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC,
+  });
+  const resultBuffer = device.createBuffer({
+    size: 2 * BigInt64Array.BYTES_PER_ELEMENT,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+  });
+  const timestampWrites = {
+    querySet,
+    // Before the pass commands begin executing, write the current queue timestamp into index beginningOfPassWriteIndex of querySet.
+    beginningOfPassWriteIndex: 0,
+    // After the pass commands finish executing, write the current queue timestamp into index endOfPassWriteIndex of querySet.
+    endOfPassWriteIndex: 1,
+  };
+
+  let v = 1;
+  let then = 0;
+  const fpsAverage = new RollingAverage();
+  const jsAverage = new RollingAverage();
+  const gpuAverage = new RollingAverage();
+
+  const uniformBufferSize = 4 * 4; // color is 4 32bit floats (4bytes each)
+  const uniformBuffer = device.createBuffer({
+    size: uniformBufferSize,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
+  // create a typedarray to hold the values for the uniforms in JavaScript
+  const uniformValues = new Float32Array(uniformBufferSize / 4);
+
+  const bindGroup = device.createBindGroup({
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer }},
+    ],
+  });
+
+  (async function render(time) {
+    time *= 0.001; // convert to seconds
+    const deltaTime = time - then;
+    then = time;
+
+    const start = performance.now();
+  
+    uniformValues.set([1, 1, 0, 1], 0); // set the color
+
+    for (let i = 0; i < (parseInt(writeBufferCallsNumber.value) || 1); i++) {
+      device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
+    }
+    
+    const commandEncoder = device.createCommandEncoder();
+    const colorAttachments = [
+      {
+        view: context.getCurrentTexture().createView(),
+        loadOp: "clear",
+        storeOp: "store",
+        // clearValue: { r: v, g: 1, b: v, a: 0 },
+      },
+    ];
+
+    const passEncoder = commandEncoder.beginRenderPass({
+      colorAttachments,
+      timestampWrites, // New!
+    });
+    passEncoder.setPipeline(pipeline);
+    passEncoder.setBindGroup(0, bindGroup);
+    passEncoder.draw(3);
+
+    passEncoder.end();
+
+    // New!
+    commandEncoder.resolveQuerySet(
+      querySet,
+      /*firstQuery=*/ 0,
+      /*queryCount=*/ 2,
+      /*destination*/ resolveBuffer,
+      /*destinationOffset=*/ 0
+    );
+    commandEncoder.copyBufferToBuffer(
+      /*source=*/ resolveBuffer,
+      /*sourceOffset=*/ 0,
+      /*destination=*/ resultBuffer,
+      /*destinationOffset=*/ 0,
+      /*size=*/ resultBuffer.size
+    );
+
+    device.queue.submit([commandEncoder.finish()]);
+
+    jsAverage.addSample(performance.now() - start);
+    fpsAverage.addSample(1 / deltaTime);
+    jsInfo.textContent = ` [JS] render pass duration: ${jsAverage
+      .get()
+      .toFixed(1)}ms - ${fpsAverage.get().toFixed(0)}fps (${writeBufferCallsNumber.value} writeBuffer calls)`;
+
+    // New!
+    await resultBuffer.mapAsync(GPUMapMode.READ);
+    const times = new BigInt64Array(resultBuffer.getMappedRange());
+    const gpuDurationInNanoSeconds = Number(times[1] - times[0]);
+    // console.log(gpuDurationInNanoSeconds);
+    gpuAverage.addSample(gpuDurationInNanoSeconds / 1000 / 1000);
+    gpuInfo.textContent = `[GPU] render pass duration: ${gpuAverage
+      .get()
+      .toFixed(1)}ms (${gpuDurationInNanoSeconds}ns)`;
+    resultBuffer.unmap();
+
+    requestAnimationFrame(render);
+  })();
+</script>

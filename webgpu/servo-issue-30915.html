@@ -1,0 +1,22 @@
+<pre id="pre"></pre>
+<script type="module">
+  log(`1`);
+  navigator.gpu
+    .requestAdapter()
+    .then((adapter) => {
+      log(`adapter: ${adapter}`);
+      return adapter
+        .requestDevice({
+          requiredLimits: { maxTextureDimension1D: 123456 },
+        })
+        .then((device) => {
+          log(`device: ${device}`);
+        });
+    })
+    .catch((error) => {
+      log(`error: ${error}`);
+    });
+  function log(text) {
+    pre.textContent += `${text}\r\n`;
+  }
+</script>

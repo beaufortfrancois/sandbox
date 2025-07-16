@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        display: grid;
+        grid-gap: 24px;
+        place-items: center;
+      }
+      canvas {
+        border-radius: 12px;
+      }
+      p {
+        display: none;
+      }
+      .visible {
+        display: block;
+      }
+    </style>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦖</text></svg>"
+    />
+  </head>
+  <body>
+    <canvas id="canvas" width="225" height="225"></canvas>
+    <input
+      id="range"
+      type="range"
+      min="1"
+      max="3"
+      value="1.2"
+      step="0.1"
+      list="steplist"
+    />
+    <datalist id="steplist">
+      <option>1</option>
+      <option>2</option>
+      <option>3</option>
+    </datalist>
+    <script type="module">
+      const canvas = document.getElementById("canvas");
+      const range = document.getElementById("range");
+
+      const adapter = await navigator.gpu.requestAdapter();
+      const device = await adapter.requestDevice();
+      const context = canvas.getContext("webgpu");
+      const format = "rgba16float";
+
+      canvas.height = canvas.height * devicePixelRatio;
+      canvas.width = canvas.width * devicePixelRatio;
+      canvas.style.height = `${canvas.height / devicePixelRatio}px`;
+      canvas.style.width = `${canvas.width / devicePixelRatio}px`;
+
+      context.configure({
+        device,
+        format,
+        usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        toneMapping: { mode: "extended" },
+        viewFormats: ["rgba16float"], // Not necessary.
+      });
+      console.log(context.getConfiguration());
+
+      // HTMLImageElement
+      let source = document.createElement("img");
+      source.crossOrigin = "";
+      source.src =
+        "https://cdn.glitch.global/bbb4ffa9-cda2-4fcd-aeea-0c84de43f121/qrcode_gpuweb.github.io.png";
+      await source.decode();
+
+      (function render() {
+        requestAnimationFrame(render);
+
+        const code = `
+struct VertexOutput {
+  @builtin(position) position : vec4f,
+  @location(0) fragUV : vec2f,
+}
+
+@vertex
+fn vertexMain(@builtin(vertex_index) i : u32) -> VertexOutput {
+  const quadPos = array(vec2f(-1, 1), vec2f(-1, -1), vec2f(1, 1), vec2f(1, -1));
+  const quadUV = array(vec2f(0, 0), vec2f(0, 1), vec2f(1, 0), vec2f(1, 1));
+
+  var output: VertexOutput;
+  output.position = vec4f(quadPos[i], 0, 1);
+  output.fragUV = quadUV[i];
+  return output;
+}
+
+@group(0) @binding(0) var mySampler: sampler;
+@group(0) @binding(1) var myTexture: texture_2d<f32>;
+
+@fragment
+fn fragmentMain(@location(0) fragUV : vec2f) -> @location(0) vec4f {
+  return textureSample(myTexture, mySampler, fragUV) * ${range.value};
+}`;
+
+        const module = device.createShaderModule({ code });
+
+        const pipeline = device.createRenderPipeline({
+          layout: "auto",
+          vertex: { module },
+          fragment: { module, targets: [{ format }] },
+          primitive: { topology: "triangle-strip" },
+        });
+
+        const size = [source.width, source.height];
+        const texture = device.createTexture({
+          size,
+          format,
+          usage:
+            GPUTextureUsage.COPY_DST |
+            GPUTextureUsage.RENDER_ATTACHMENT |
+            GPUTextureUsage.TEXTURE_BINDING,
+        });
+
+        device.queue.copyExternalImageToTexture({ source }, { texture }, size);
+
+        const bindGroup = device.createBindGroup({
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: device.createSampler() },
+            { binding: 1, resource: texture.createView() },
+          ],
+        });
+
+        const colorAttachments = [
+          {
+            view: context.getCurrentTexture().createView(),
+            loadOp: "clear",
+            storeOp: "store",
+          },
+        ];
+
+        const commandEncoder = device.createCommandEncoder();
+        const passEncoder = commandEncoder.beginRenderPass({
+          colorAttachments,
+        });
+        passEncoder.setPipeline(pipeline);
+        passEncoder.setBindGroup(0, bindGroup);
+        passEncoder.draw(4);
+        passEncoder.end();
+
+        device.queue.submit([commandEncoder.finish()]);
+      })();
+    </script>
+  </body>
+</html>

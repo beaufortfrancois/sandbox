@@ -1,0 +1,201 @@
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  @import url(https://webgpufundamentals.org/webgpu/resources/webgpu-lesson.css);
+  html,
+  body {
+    margin: 0; /* remove the default margin          */
+    height: 100%; /* make the html,body fill the page   */
+  }
+  canvas {
+    display: block; /* make the canvas act like a block   */
+    width: 100%; /* make the canvas fill its container */
+    height: 100%;
+  }</style
+><canvas width="64" height="64"></canvas>
+
+<script type="module">
+  import GUI from "https://webgpufundamentals.org/3rdparty/muigui-0.x.module.js";
+
+  async function main() {
+    const searchParams = new URLSearchParams(location.search);
+    let adapterOptions = {};
+    if (searchParams.has("compat")) {
+      adapterOptions.featureLevel = "compatibility";
+    }
+    const adapter = await navigator.gpu?.requestAdapter(adapterOptions);
+    const device = await adapter?.requestDevice();
+    if (!device) {
+      fail(
+        `need a browser that supports WebGPU adapter: ${adapter}, adapterOptions: ${JSON.stringify(
+          adapterOptions
+        )}`
+      );
+      return;
+    }
+
+    // Get a WebGPU context from the canvas and configure it
+    const canvas = document.querySelector("canvas");
+    const context = canvas.getContext("webgpu");
+    const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+    context.configure({
+      device,
+      format: presentationFormat,
+      alphaMode: "premultiplied",
+    });
+
+    const module = device.createShaderModule({
+      code: `
+      @group(0) @binding(0) var sampler0 : sampler;
+      @group(0) @binding(1) var texture0 : texture_2d<f32>;
+
+      @fragment
+      fn fmain(@builtin(position) FragCoord : vec4f) -> @location(0) vec4f {
+          return textureSample(texture0, sampler0, FragCoord.xy / vec2(2.0, 2.0));
+      }
+
+      @vertex
+      fn vmain(@builtin(vertex_index) VertexIndex : u32) -> @builtin(position) vec4f {
+          var pos = array(
+              vec2f(-2.0, -2.0),
+              vec2f(-2.0,  2.0),
+              vec2f( 2.0, -2.0),
+              vec2f(-2.0,  2.0),
+              vec2f( 2.0, -2.0),
+              vec2f( 2.0,  2.0));
+          return vec4f(pos[VertexIndex], 0.0, 1.0);
+      }
+    `,
+    });
+
+    const pipeline = device.createRenderPipeline({
+      layout: "auto",
+      vertex: {
+        module,
+      },
+      fragment: {
+        module,
+        targets: [{ format: presentationFormat }],
+      },
+    });
+
+    const width = 2;
+    const height = 2;
+    const b = [0, 0, 0, 255]; // black
+    const w = [255, 255, 255, 255]; // white
+    const textureData = new Uint8Array([b, w, b, w].flat());
+
+    const texture = device.createTexture({
+      size: [width, height],
+      format: "rgba8unorm",
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+    });
+    device.queue.writeTexture(
+      { texture },
+      textureData,
+      { bytesPerRow: width * 4 },
+      { width, height }
+    );
+
+    const renderPassDescriptor = {
+      label: "our basic canvas renderPass",
+      colorAttachments: [
+        {
+          // view: <- to be filled out when we render
+          clearValue: [0.3, 0, 0, 1],
+          loadOp: "clear",
+          storeOp: "store",
+        },
+      ],
+    };
+
+    const settings = {
+      addressModeU: "repeat",
+      addressModeV: "repeat",
+      magFilter: "nearest",
+      borderColor: "transparent-black",
+    };
+
+    const addressOptions = [
+      "repeat",
+      "mirror-repeat",
+      "clamp-to-edge",
+      "clamp-to-border-color",
+    ];
+    const borderColorOptions = [
+      "transparent-black",
+      "opaque-black",
+      "opaque-white",
+    ];
+
+    const gui = new GUI();
+    gui.addLabel(`Adapter vendor: "${adapter.info.vendor}"`);
+    gui.addLabel(`Adapter architecture: "${adapter.info.architecture}"`);
+    gui.addLabel(`Adapter device: "${adapter.info.device}"`);
+    gui.addLabel(`Adapter description: "${adapter.info.description}"`);
+    gui.addLabel(`Adapter driver: "${adapter.info.driver}"`);
+    gui.addLabel(`Adapter backend: "${adapter.info.backend}"`);
+    gui.addLabel(`Adapter type: "${adapter.info.type}"`);
+
+    gui.onChange(render);
+    gui.add(settings, "addressMode", addressOptions);
+    gui.add(settings, "borderColor", borderColorOptions);
+
+    function render(event) {
+      const sampler = device.createSampler({
+        addressModeU: settings.addressMode,
+        addressModeV: settings.addressMode,
+        addressModeW: settings.addressMode,
+        borderColor: settings.borderColor,
+      });
+
+      const bindGroup = device.createBindGroup({
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [
+          { binding: 0, resource: sampler },
+          { binding: 1, resource: texture.createView() },
+        ],
+      });
+
+      renderPassDescriptor.colorAttachments[0].view = context
+        .getCurrentTexture()
+        .createView();
+
+      const encoder = device.createCommandEncoder();
+      const pass = encoder.beginRenderPass(renderPassDescriptor);
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.draw(6); // call our vertex shader 6 times
+      pass.end();
+
+      const commandBuffer = encoder.finish();
+      device.queue.submit([commandBuffer]);
+    }
+    render();
+
+    /*     const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const canvas = entry.target;
+        const width = entry.contentBoxSize[0].inlineSize;
+        const height = entry.contentBoxSize[0].blockSize;
+        canvas.width = Math.max(
+          1,
+          Math.min(width, device.limits.maxTextureDimension2D)
+        );
+        canvas.height = Math.max(
+          1,
+          Math.min(height, device.limits.maxTextureDimension2D)
+        );
+        // re-render
+        render();
+      }
+    });
+    observer.observe(canvas); */
+  }
+
+  function fail(msg) {
+    // eslint-disable-next-line no-alert
+    alert(msg);
+  }
+
+  main();
+</script>

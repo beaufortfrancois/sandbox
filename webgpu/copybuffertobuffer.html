@@ -1,0 +1,120 @@
+<script type="module">
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+
+  const loadBufferSize = Float32Array.BYTES_PER_ELEMENT * 4;
+  const loadBuffer = device.createBuffer({
+    mappedAtCreation: true,
+    size: loadBufferSize,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+  });
+
+  const arrayBuffer = loadBuffer.getMappedRange();
+  new Float32Array(arrayBuffer).set([0, 1, 2, 3]);
+  loadBuffer.unmap();
+
+  try {
+    const readLoadBuffer = device.createBuffer({
+      size: loadBufferSize,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    });
+
+    const commandEncoder = device.createCommandEncoder();
+
+    // All.
+    commandEncoder.copyBufferToBuffer(
+      loadBuffer,
+      0,
+      readLoadBuffer,
+      0,
+      loadBufferSize
+    );
+
+    device.queue.submit([commandEncoder.finish()]);
+
+    {
+      await readLoadBuffer.mapAsync(GPUMapMode.READ);
+      const array = new Float32Array(readLoadBuffer.getMappedRange());
+      console.log(
+        `x: ${array[0]}, y: ${array[1]}, z: ${array[2]}, w: ${array[3]}`
+      );
+    }
+  } catch (error) {
+    console.error(error);
+  }
+  try {
+    const readLoadBuffer = device.createBuffer({
+      size: loadBufferSize,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    });
+
+    const commandEncoder = device.createCommandEncoder();
+
+    // Size optional.
+    commandEncoder.copyBufferToBuffer(loadBuffer, 0, readLoadBuffer, 0);
+
+    device.queue.submit([commandEncoder.finish()]);
+
+    {
+      await readLoadBuffer.mapAsync(GPUMapMode.READ);
+      const array = new Float32Array(readLoadBuffer.getMappedRange());
+      console.log(
+        `x: ${array[0]}, y: ${array[1]}, z: ${array[2]}, w: ${array[3]}`
+      );
+    }
+  } catch (error) {
+    console.error(error);
+  }
+
+  try {
+    const readLoadBuffer = device.createBuffer({
+      size: loadBufferSize,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    });
+
+    const commandEncoder = device.createCommandEncoder();
+
+    // Offset optional.
+    commandEncoder.copyBufferToBuffer(
+      loadBuffer,
+      readLoadBuffer,
+      loadBufferSize
+    );
+
+    device.queue.submit([commandEncoder.finish()]);
+
+    {
+      await readLoadBuffer.mapAsync(GPUMapMode.READ);
+      const array = new Float32Array(readLoadBuffer.getMappedRange());
+      console.log(
+        `x: ${array[0]}, y: ${array[1]}, z: ${array[2]}, w: ${array[3]}`
+      );
+    }
+  } catch (error) {
+    console.error(error);
+  }
+
+  try {
+    const readLoadBuffer = device.createBuffer({
+      size: loadBufferSize,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    });
+
+    const commandEncoder = device.createCommandEncoder();
+
+    // Offset and size optional.
+    commandEncoder.copyBufferToBuffer(loadBuffer, readLoadBuffer);
+
+    device.queue.submit([commandEncoder.finish()]);
+
+    {
+      await readLoadBuffer.mapAsync(GPUMapMode.READ);
+      const array = new Float32Array(readLoadBuffer.getMappedRange());
+      console.log(
+        `x: ${array[0]}, y: ${array[1]}, z: ${array[2]}, w: ${array[3]}`
+      );
+    }
+  } catch (error) {
+    console.error(error);
+  }
+</script>
