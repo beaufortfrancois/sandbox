@@ -109,7 +109,7 @@
     const device = await adapter.requestDevice({ requiredFeatures });
 
     device.onuncapturederror = ({ error }) => {
-      errors.textContent += error.message;
+      errors.innerHTML += `<b>${error[Symbol.toStringTag]}</b><br/>${error.message}\n`;
     };
 
     const textureWidth = 64;
