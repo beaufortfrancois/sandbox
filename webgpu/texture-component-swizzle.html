@@ -41,6 +41,10 @@
   <code>STORAGE_BINDING</code> texture usage </label
 ><br />
 <label>
+  <input id="invalidSwizzle" type="checkbox" />override swizzle to
+  <code>"invalid"</code> string </label
+><br />
+<label>
   <input id="passSwizzle" type="checkbox" checked />pass swizzle in
   <code>createView()</code>
 </label>
@@ -181,7 +185,7 @@
     };
     const viewDescriptor = {
       label: "swizzle view descriptor",
-      swizzle: passSwizzle.checked ? swizzle : undefined,
+      swizzle: passSwizzle.checked ? (invalidSwizzle.checked ? "invalid" : swizzle) : undefined,
     };
     const bindGroup = device.createBindGroup({
       layout: pipeline.getBindGroupLayout(0),
