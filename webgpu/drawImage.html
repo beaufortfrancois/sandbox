@@ -37,12 +37,29 @@
   passEncoder.end();
   device.queue.submit([commandEncoder.finish()]);
 
-  console.log(canvas1.toDataURL());
+  // console.log(canvas1.toDataURL());
 
-  const context = canvas2.getContext("2d");
-  context.drawImage(canvas1, 0, 0);
-  console.log(canvas2.toDataURL());
+  {
+    // Regular onscreen canvas.
+    const context = canvas2.getContext("2d");
+    context.drawImage(canvas1, 0, 0);
+    console.log(canvas2.toDataURL());
 
-  const imageData = context.getImageData(0, 0, canvas2.width, canvas2.height);
-  console.log(imageData);
+    const imageData = context.getImageData(0, 0, canvas2.width, canvas2.height);
+    console.log(imageData);
+  }
+  {
+    // Canvas created but not displayed on screen.
+    const canvas3 = document.createElement('canvas');
+    canvas3.width = canvas1.width;
+    canvas3.height = canvas1.height;
+    const offscreenContext = canvas3.getContext("2d");
+    offscreenContext.drawImage(canvas1, 0, 0);
+    console.log(canvas3.toDataURL());
+
+    const imageData = offscreenContext.getImageData(0, 0, canvas2.width, canvas2.height);
+    console.log(imageData);
+    await new Promise(r => setTimeout(r, 1000));
+    document.body.append(canvas3);
+  }
 </script>
