@@ -15,6 +15,7 @@
 <hr />
 <button id="button" disabled>Call Built-in AI API</button>
 <progress id="progress" value="0"></progress>
+<pre id="errors" style="color: red"></pre>
 <pre id="logs"></pre>
 <script type="module">
   document.querySelectorAll('[name="aiRadio"]').forEach(
@@ -40,7 +41,11 @@
             init('LanguageDetector', { expectedInputLanguages: ['en'] }, 'detect');
             break;
           case 'Prompt':
-            init('LanguageModel', { expectedInputLanguages: ['en'] }, 'prompt');
+            init(
+              'LanguageModel',
+              { expectedOutputs: [{ type: 'text', languages: ['en'] }] },
+              'prompt'
+            );
             break;
           default:
             log('error');
@@ -53,14 +58,15 @@
     try {
       const availability = await self[aiInterface].availability(options);
       if (availability === 'unavailable') {
-        log("The user's device or requested options are not supported");
+        errors.innerHTML = "The user's device or requested options are not supported<br>";
         return;
       }
     } catch (error) {
-      log(`The ${aiInterface} Built-in AI API is not available in this browser`);
+      errors.innerHTML = `The ${aiInterface} Built-in AI API is not available in this browser<br>`;
       return;
     }
 
+    errors.innerHTML = '';
     button.disabled = false;
     button.onclick = () => callAPI(aiInterface, options, aiMethod);
   }
