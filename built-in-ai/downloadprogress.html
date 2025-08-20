@@ -71,6 +71,7 @@
     button.onclick = () => callAPI(aiInterface, options, aiMethod);
   }
 
+  let startDate;
   let isProcessing = false;
 
   async function callAPI(aiInterface, options, aiMethod) {
@@ -126,8 +127,6 @@
         });
     });
   }
-
-  let startDate;
 
   function log(text) {
     const now = new Date();
