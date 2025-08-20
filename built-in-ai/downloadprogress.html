@@ -1,0 +1,131 @@
+<input type="radio" name="aiRadio" id="summarizer" value="Summarizer" />
+<label for="summarizer">Summarizer</label>
+<input type="radio" name="aiRadio" id="writer" value="Writer" />
+<label for="writer">Writer</label>
+<input type="radio" name="aiRadio" id="rewriter" value="Rewriter" />
+<label for="rewriter">Rewriter</label>
+<input type="radio" name="aiRadio" id="translatorEs" value="TranslatorEs" />
+<label for="translatorEs">Spanish Translator</label>
+<input type="radio" name="aiRadio" id="translatorFr" value="TranslatorFr" />
+<label for="translatorFr">French Translator</label>
+<input type="radio" name="aiRadio" id="languageDetector" value="LanguageDetector" />
+<label for="languageDetector">LanguageDetector</label>
+<input type="radio" name="aiRadio" id="prompt" value="Prompt" />
+<label for="prompt">Prompt</label>
+<hr />
+<button id="button" disabled>Call Built-in AI API</button>
+<progress id="progress" value="0"></progress>
+<pre id="logs"></pre>
+<script type="module">
+  document.querySelectorAll('[name="aiRadio"]').forEach(
+    (radio) =>
+      (radio.onchange = () => {
+        switch (radio.value) {
+          case 'Summarizer':
+            init('Summarizer', { expectedInputLanguages: ['en'] }, 'summarize');
+            break;
+          case 'Writer':
+            init('Writer', { expectedInputLanguages: ['en'] }, 'write');
+            break;
+          case 'Rewriter':
+            init('Rewriter', { expectedInputLanguages: ['en'] }, 'rewrite');
+            break;
+          case 'TranslatorEs':
+            init('Translator', { sourceLanguage: 'en', targetLanguage: 'es' }, 'translate');
+            break;
+          case 'TranslatorFr':
+            init('Translator', { sourceLanguage: 'en', targetLanguage: 'fr' }, 'translate');
+            break;
+          case 'LanguageDetector':
+            init('LanguageDetector', { expectedInputLanguages: ['en'] }, 'detect');
+            break;
+          case 'Prompt':
+            init('LanguageModel', { expectedInputLanguages: ['en'] }, 'prompt');
+            break;
+          default:
+            log('error');
+        }
+      })
+  );
+
+  async function init(aiInterface, options, aiMethod) {
+    button.disabled = true;
+    try {
+      const availability = await self[aiInterface].availability(options);
+      if (availability === 'unavailable') {
+        log("The user's device or requested options are not supported");
+        return;
+      }
+    } catch (error) {
+      log(`The ${aiInterface} Built-in AI API is not available in this browser`);
+      return;
+    }
+
+    button.disabled = false;
+    button.onclick = () => callAPI(aiInterface, options, aiMethod);
+  }
+
+  let isProcessing = false;
+
+  async function callAPI(aiInterface, options, aiMethod) {
+    if (isProcessing) {
+      return;
+    }
+
+    startDate = new Date();
+    logs.innerHTML += '<br><br>';
+    isProcessing = true;
+
+    try {
+      const ai = await downloadModel(aiInterface, options, aiMethod);
+
+      log(`Calling ${aiInterface}.${aiMethod}('hello world')`);
+      progress.removeAttribute('value');
+      const result = await ai[aiMethod]('hello world');
+      if (Array.isArray(result)) {
+        log(`> [${JSON.stringify(result[0])}, ...]`);
+      } else {
+        log(`> ${result}`);
+      }
+    } catch (error) {
+      log(error);
+    } finally {
+      isProcessing = false;
+      progress.value = 0;
+    }
+  }
+
+  async function downloadModel(aiInterface, options) {
+    log(`Creating ${aiInterface} with ${JSON.stringify(options)}`);
+    progress.value = 0;
+
+    return new Promise((resolve, reject) => {
+      const aiPromise = self[aiInterface]
+        .create({
+          ...options,
+          monitor(m) {
+            m.ondownloadprogress = (e) => {
+              progress.value = e.loaded;
+              if (e.loaded === 0) {
+                log(`  Downloading ${aiInterface} model`);
+              } else if (e.loaded === 1) {
+                log(`  Downloaded ${aiInterface} model`);
+                resolve(aiPromise);
+              }
+            };
+          },
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  }
+
+  let startDate;
+
+  function log(text) {
+    const now = new Date();
+    const timeElapsed = `${Math.round((new Date() - startDate) / 1000)}s elapsed`;
+    logs.innerHTML += `${text} <div style="float:right">${timeElapsed}</div><hr>`;
+  }
+</script>
