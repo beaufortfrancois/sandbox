@@ -1,0 +1,48 @@
+<textarea id="promptInput"></textarea><br>
+<input id="fileInput" type="file" />
+<p id="p"></p>
+<script type="module">
+  fileInput.onchange = async () => {
+    try {
+      const image = await readFileAsImage(fileInput.files[0]);
+      await image.decode();
+
+      const languageModel = await LanguageModel.create({
+        expectedInputs: [{ type: 'image' }],
+        expectedOutputs: [{ type: 'text', languages: ['en'] }],
+      });
+
+      const stream = languageModel.promptStreaming([
+        {
+          role: 'user',
+          content: [
+            { type: 'text', value: promptInput.value },
+            { type: 'image', value: image },
+          ],
+        },
+      ]);
+      for await (const chunk of stream) {
+        p.innerHTML += chunk;
+      }
+    } catch (error) {
+      p.innerHTML = error;
+    }
+  };
+
+  async function readFileAsImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Image failed to load.'));
+      };
+
+      reader.onerror = () => reject(new Error('Failed to read the file.'));
+      reader.readAsDataURL(file);
+    });
+  }
+</script>
