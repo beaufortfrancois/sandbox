@@ -12,8 +12,10 @@
 <label for="languageDetector">LanguageDetector</label>
 <input type="radio" name="aiRadio" id="prompt" value="Prompt" />
 <label for="prompt">Prompt</label>
+<input type="radio" name="aiRadio" id="speech" value="SpeechRecognition" />
+<label for="speech">SpeechRecognition</label>
 <hr />
-<button id="button" disabled>Call Built-in AI API</button>
+<button id="button" disabled>Call API</button>
 <progress id="progress" value="0"></progress>
 <pre id="errors" style="color: red"></pre>
 <pre id="logs"></pre>
@@ -47,6 +49,9 @@
               'prompt'
             );
             break;
+          case 'SpeechRecognition':
+            initSpeechRecognition();
+            break;
           default:
             log('error');
         }
@@ -62,7 +67,7 @@
         return;
       }
     } catch (error) {
-      errors.innerHTML = `The ${aiInterface} Built-in AI API is not available in this browser<br>`;
+      errors.innerHTML = `The ${aiInterface} Built-in AI API is not available in this browser: ${error}`;
       return;
     }
 
@@ -126,6 +131,46 @@
           reject(error);
         });
     });
+  }
+
+  /* SpeechRecognition is special */
+
+  async function initSpeechRecognition() {
+    button.disabled = true;
+    const options = { langs: ['en'], processLocally: true };
+    try {
+      const availability = await SpeechRecognition.available(options);
+      if (availability === 'unavailable') {
+        errors.innerHTML = "The user's device or requested options are not supported<br>";
+        return;
+      }
+    } catch (error) {
+      errors.innerHTML = `The SpeechRecognition API is not available in this browser: ${error}`;
+      return;
+    }
+
+    errors.innerHTML = '';
+    button.disabled = false;
+    button.onclick = async () => {
+      if (isProcessing) {
+        return;
+      }
+      startDate = new Date();
+      logs.innerHTML += '<br><br>';
+      isProcessing = true;
+
+      try {
+        progress.removeAttribute('value');
+        log(`Installing SpeechRecognition model with ${JSON.stringify(options)}`);
+        const result = await SpeechRecognition.install(options);
+        log(`> ${result}`);
+      } catch (error) {
+        log(error);
+      } finally {
+        isProcessing = false;
+        progress.value = 0;
+      }
+    };
   }
 
   function log(text) {
