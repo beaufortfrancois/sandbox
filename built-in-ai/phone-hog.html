@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Phone Hog</title>
+    <style>
+      body {
+        font-family: helvetica, arial, sans-serif;
+        margin: 2em;
+      }
+      p {
+        font-style: italic;
+      }
+      #errors {
+        color: red;
+      }
+      @media screen and (min-width: 640px) {
+        body {
+          margin: 2em auto;
+          max-width: calc(640px - 2em);
+        }
+      }
+    </style>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22> ☎️</text></svg>"
+    />
+  </head>
+  <body>
+    <h1>☎️ The Phone Hog</h1>
+    <input id="toggle" type="checkbox" />
+    <label for="toggle">Block other websites from using Built-in AI APIs</label>
+    <p id="errors"></p>
+    <p id="p"></p>
+    <script>
+      toggle.onclick = async () => {
+        errors.innerHTML = '';
+        try {
+          await onToggle();
+        } catch (error) {
+          errors.innerHTML = error;
+        }
+      };
+
+      let languageModel, controller;
+
+      async function onToggle() {
+        if (!toggle.checked) {
+          controller.abort('');
+          return;
+        }
+
+        controller = new AbortController();
+        controller.signal.onabort = () => {
+          p.innerHTML += '<br>';
+        };
+
+        languageModel ||= await LanguageModel.create({
+          expectedInputs: [{ type: 'text' }],
+          expectedOutputs: [{ type: 'text', languages: ['en'] }],
+        });
+        await prompt({ signal: controller.signal });
+      }
+
+      async function prompt(options) {
+        const stream = languageModel.promptStreaming('Keep counting forever.', options);
+        for await (const chunk of stream) {
+          p.innerHTML += chunk;
+        }
+        prompt(options);
+      }
+    </script>
+  </body>
+</html>
