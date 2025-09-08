@@ -10,6 +10,8 @@
 <label for="translatorFr">French Translator</label>
 <input type="radio" name="aiRadio" id="languageDetector" value="LanguageDetector" />
 <label for="languageDetector">LanguageDetector</label>
+<input type="radio" name="aiRadio" id="proofreader" value="Proofreader" />
+<label for="proofreader">Proofreader</label>
 <input type="radio" name="aiRadio" id="prompt" value="Prompt" />
 <label for="prompt">Prompt</label>
 <input type="radio" name="aiRadio" id="speech" value="SpeechRecognition" />
@@ -41,6 +43,9 @@
             break;
           case 'LanguageDetector':
             init('LanguageDetector', { expectedInputLanguages: ['en'] }, 'detect');
+            break;
+          case 'Proofreader':
+            init('Proofreader', { expectedInputLanguages: ['en'] }, 'proofread');
             break;
           case 'Prompt':
             init(
@@ -97,7 +102,7 @@
       if (Array.isArray(result)) {
         log(`> [${JSON.stringify(result[0])}, ...]`);
       } else {
-        log(`> ${result}`);
+        log(`> ${JSON.stringify(result)}`);
       }
     } catch (error) {
       log(error);
