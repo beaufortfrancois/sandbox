@@ -1,0 +1,121 @@
+<style>
+  body {
+    font-family: helvetica, arial, sans-serif;
+    margin: 2em;
+  }
+  button {
+    margin-bottom: 6px;
+  }
+  @media screen and (min-width: 640px) {
+    body {
+      margin: 2em auto;
+      max-width: calc(640px - 2em);
+    }
+  }
+</style>
+<button id="logAvailabilityButton">Get Built-in AI APIs availability results</button>
+<br />
+<button id="createSummarizerWithMonitorButton">Summarizer.create({ monitor })</button>
+<button id="createSummarizerWithoutMonitorButton">Summarizer.create()</button>
+<br />
+<button id="createFrenchTranslatorWithMonitorButton">
+  Translator.create({ targetLanguage: 'fr', monitor })
+</button>
+<button id="createFrenchTranslatorWithoutMonitorButton">
+  Translator.create({ targetLanguage: 'fr' })
+</button>
+
+<pre id="logs"></pre>
+<script type="module">
+  const tests = {
+    Summarizer: () => {
+      return self.Summarizer?.availability({ expectedInputLanguages: ['en'] });
+    },
+    Writer: () => {
+      return self.Writer?.availability({ expectedInputLanguages: ['en'] });
+    },
+    Rewriter: () => {
+      return self.Rewriter?.availability({ expectedInputLanguages: ['en'] });
+    },
+    'Translator (fr-en)': () => {
+      return self.Translator?.availability({
+        sourceLanguage: 'fr',
+        targetLanguage: 'en',
+      });
+    },
+    'Translator (en-fr)': () => {
+      return self.Translator?.availability({
+        sourceLanguage: 'en',
+        targetLanguage: 'fr',
+      });
+    },
+    'Translator (en-es)': () => {
+      return self.Translator?.availability({
+        sourceLanguage: 'en',
+        targetLanguage: 'es',
+      });
+    },
+    LanguageDetector: () => {
+      return self.LanguageDetector?.availability();
+    },
+    Proofreader: () => {
+      return self.Proofreader?.availability({ expectedInputLanguages: ['en'] });
+    },
+    Prompt: () => {
+      return self.LanguageModel?.availability({
+        expectedOutputs: [{ type: 'text', languages: ['en'] }],
+      });
+    },
+  };
+
+  async function logResults(timeElapsed) {
+    const results = await Promise.allSettled(Object.values(tests).map((f) => f()));
+    results.forEach(({ value }, index) => {
+      if (!value) return;
+      logs.innerHTML += `${Object.keys(tests)[index].padStart(18, ' ')} ${emoji(
+        value
+      )} ${`"${value}"`.padEnd(15, ' ')}${timeElapsed.padStart(40, ' ')}<br>`;
+    });
+    logs.innerHTML += '<hr><br>';
+
+    function emoji(value) {
+      if (value == 'unavailable') return '🔴';
+      if (value == 'downloadable') return '🟡';
+      if (value == 'downloading') return '🟠';
+      if (value == 'available') return '🟢';
+      return '';
+    }
+  }
+
+  logResults('on page load');
+
+  createSummarizerWithMonitorButton.onclick = () => {
+    logs.innerHTML += '> Summarizer.create({ monitor })<br><br>';
+    Summarizer.create({ monitor() {} });
+  };
+  createSummarizerWithoutMonitorButton.onclick = () => {
+    logs.innerHTML += '> Summarizer.create()<br><br>';
+    Summarizer.create();
+  };
+  createFrenchTranslatorWithMonitorButton.onclick = () => {
+    logs.innerHTML += `> Translator.create({ sourceLanguage: 'en', targetLanguage: 'fr', monitor })<br><br>`;
+    Translator.create({
+      sourceLanguage: 'en',
+      targetLanguage: 'fr',
+      monitor() {},
+    });
+  };
+  createFrenchTranslatorWithoutMonitorButton.onclick = () => {
+    logs.innerHTML += `> Translator.create({ sourceLanguage: 'en', targetLanguage: 'fr', })<br><br>`;
+    Translator.create({
+      sourceLanguage: 'en',
+      targetLanguage: 'fr',
+    });
+  };
+
+  const startDate = new Date();
+  logAvailabilityButton.onclick = () => {
+    const seconds = Math.round((new Date() - startDate) / 1000);
+    logResults(`${seconds}s since page load`);
+  };
+</script>
