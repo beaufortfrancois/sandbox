@@ -56,44 +56,36 @@
 <input id="alpha" type="number" min="0" max="255" step="1" value="255" />
 <br />
 <select id="r">
-  <option value="">undefined</option>
-  <hr />
-  <option value="zero">"zero"</option>
-  <option value="one">"one"</option>
-  <option value="r">"r"</option>
-  <option value="g">"g"</option>
-  <option value="b">"b"</option>
-  <option value="a">"a"</option>
+  <option selected value="r">r</option>
+  <option value="g">g</option>
+  <option value="b">b</option>
+  <option value="a">a</option>
+  <option value="0">0</option>
+  <option value="1">1</option>
 </select>
 <select id="g">
-  <option value="">undefined</option>
-  <hr />
-  <option value="zero">"zero"</option>
-  <option value="one">"one"</option>
-  <option value="r">"r"</option>
-  <option value="g">"g"</option>
-  <option value="b">"b"</option>
-  <option value="a">"a"</option>
+  <option value="r">r</option>
+  <option selected value="g">g</option>
+  <option value="b">b</option>
+  <option value="a">a</option>
+  <option value="0">0</option>
+  <option value="1">1</option>
 </select>
 <select id="b">
-  <option value="">undefined</option>
-  <hr />
-  <option value="zero">"zero"</option>
-  <option value="one">"one"</option>
-  <option value="r">"r"</option>
-  <option value="g">"g"</option>
-  <option value="b">"b"</option>
-  <option value="a">"a"</option>
+  <option value="r">r</option>
+  <option value="g">g</option>
+  <option selected value="b">b</option>
+  <option value="a">a</option>
+  <option value="0">0</option>
+  <option value="1">1</option>
 </select>
 <select id="a">
-  <option value="">undefined</option>
-  <hr />
-  <option value="zero">"zero"</option>
-  <option value="one">"one"</option>
-  <option value="r">"r"</option>
-  <option value="g">"g"</option>
-  <option value="b">"b"</option>
-  <option value="a">"a"</option>
+  <option value="r">r</option>
+  <option value="g">g</option>
+  <option value="b">b</option>
+  <option selected value="a">a</option>
+  <option value="0">0</option>
+  <option value="1">1</option>
 </select>
 <pre id="logs"></pre>
 <pre id="errors"></pre>
@@ -177,12 +169,7 @@
       compute: { module },
     });
 
-    const swizzle = {
-      r: r.value || undefined,
-      g: g.value || undefined,
-      b: b.value || undefined,
-      a: a.value || undefined,
-    };
+    const swizzle = `${r.value}${g.value}${b.value}${a.value}`;
     const viewDescriptor = {
       label: "swizzle view descriptor",
       swizzle: passSwizzle.checked ? (invalidSwizzle.checked ? "invalid" : swizzle) : undefined,
