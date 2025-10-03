@@ -103,9 +103,6 @@
 <script type="module">
   async function run() {
     const adapter = await navigator.gpu.requestAdapter();
-    if (!adapter.features.has("texture-component-swizzle")) {
-      throw new Error("Texture component swizzle support is not available");
-    }
     const requiredFeatures = requestFeature.checked
       ? ["texture-component-swizzle"]
       : [];
