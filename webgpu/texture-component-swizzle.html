@@ -43,10 +43,6 @@
   <code>"texture-component-swizzle"</code> feature </label
 ><br />
 <label>
-  <input id="useRenderAttachment" type="checkbox" />use
-  <code>RENDER_ATTACHMENT</code> texture usage </label
-><br />
-<label>
   <input id="useStorageBinding" type="checkbox" />use
   <code>STORAGE_BINDING</code> texture usage and <code>texture_storage_2d</code> in WGSL</label
 ><br />
@@ -123,9 +119,6 @@
     const textureHeight = 1;
 
     let usage = GPUTextureUsage.COPY_DST;
-    if (useRenderAttachment.checked) {
-      usage |= GPUTextureUsage.RENDER_ATTACHMENT;
-    }
     if (useStorageBinding.checked) {
       usage |= GPUTextureUsage.STORAGE_BINDING;
     } else {
