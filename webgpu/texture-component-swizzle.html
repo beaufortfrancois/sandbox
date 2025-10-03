@@ -8,6 +8,13 @@
     width: 100px;
     margin-bottom: 5px;
   }
+  div {
+    display: inline-block;
+    text-align: center;
+    height: 22px;
+    width: 100px;
+    margin-bottom: 5px;
+  }
   #red {
     color: white;
     background: red;
@@ -22,6 +29,9 @@
   }
   #alpha {
     background: white;
+  }
+  #logs {
+    margin-top: 22px;
   }
   #errors {
     color: red;
@@ -38,7 +48,7 @@
 ><br />
 <label>
   <input id="useStorageBinding" type="checkbox" />use
-  <code>STORAGE_BINDING</code> texture usage </label
+  <code>STORAGE_BINDING</code> texture usage and <code>texture_storage_2d</code> in WGSL</label
 ><br />
 <label>
   <input id="invalidSwizzle" type="checkbox" />override swizzle to
@@ -49,6 +59,11 @@
   <code>createView()</code>
 </label>
 <br />
+<br />
+<div>Red</div>
+<div>Green</div>
+<div>Blue</div>
+<div>Alpha</div>
 <br />
 <input id="red" type="number" min="0" max="255" step="1" value="255" />
 <input id="green" type="number" min="0" max="255" step="1" value="0" />
@@ -107,12 +122,14 @@
     const textureWidth = 64;
     const textureHeight = 1;
 
-    let usage = GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING;
+    let usage = GPUTextureUsage.COPY_DST;
     if (useRenderAttachment.checked) {
       usage |= GPUTextureUsage.RENDER_ATTACHMENT;
     }
     if (useStorageBinding.checked) {
       usage |= GPUTextureUsage.STORAGE_BINDING;
+    } else {
+      usage |= GPUTextureUsage.TEXTURE_BINDING;
     }
     const texture = device.createTexture({
       size: [textureWidth, textureHeight],
@@ -156,11 +173,17 @@
 
     const module = device.createShaderModule({
       code: `
-        @group(0) @binding(0) var texture : texture_2d<f32>;
-        @group(0) @binding(1) var<storage, read_write> buffer: vec4f;
+      ${useStorageBinding.checked ? 
+      "@group(0) @binding(0) var texture : texture_storage_2d<rgba8unorm, read>;" :
+      "@group(0) @binding(0) var texture : texture_2d<f32>;"
+      }
+      @group(0) @binding(1) var<storage, read_write> buffer: vec4f;
 
         @compute @workgroup_size(1) fn main() {
-          buffer = textureLoad(texture, vec2i(0, 0), 0);
+          ${useStorageBinding.checked ?
+          "buffer = textureLoad(texture, vec2i(0, 0));" :
+          "buffer = textureLoad(texture, vec2i(0, 0), 0);"
+          }
         }`,
     });
 
