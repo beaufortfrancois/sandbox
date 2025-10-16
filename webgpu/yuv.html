@@ -1,0 +1,126 @@
+<canvas id="canvas"></canvas>
+<canvas id="webgpuCanvas"></canvas>
+<script type="module">
+  let videoFrame;
+  {
+    const width = 256;
+    const height = 256;
+
+    // 1. Create the Y (Luminance) plane data.
+    const yData = new Uint8Array(width * height);
+    // ... fill yData with fake luminance values
+    for (let i = 0; i < width * height; i++) {
+      yData[i] = i % 255;
+    }
+
+    // 2. Create the U and V (Chrominance) plane data - sub-sampled 4:2:0 is 1/4 size
+    const chromaSize = (width * height) / 4;
+    const uData = new Uint8Array(chromaSize).fill(128); // Fill with 128 for no color
+    const vData = new Uint8Array(chromaSize).fill(128); // Fill with 128 for no color
+
+    // 3. Combine the planes into a single buffer (I420 plane order: Y, U, V)
+    const buffer = new Uint8Array(yData.length + uData.length + vData.length);
+    buffer.set(yData, 0);
+    buffer.set(uData, yData.length);
+    buffer.set(vData, yData.length + uData.length);
+
+    videoFrame = new VideoFrame(buffer, {
+      format: 'I420',
+      codedWidth: width,
+      codedHeight: height,
+      timestamp: Date.now(),
+    });
+
+    canvas.width = videoFrame.codedWidth;
+    canvas.height = videoFrame.codedHeight;
+    canvas.getContext('2d').drawImage(videoFrame, 0, 0);
+  }
+  {
+    const adapter = await navigator.gpu.requestAdapter();
+    const device = await adapter.requestDevice();
+
+    const context = webgpuCanvas.getContext('webgpu');
+    const format = navigator.gpu.getPreferredCanvasFormat();
+    context.configure({ device, format });
+
+    webgpuCanvas.width = videoFrame.codedWidth;
+    webgpuCanvas.height = videoFrame.codedHeight;
+
+    const shaderModule = device.createShaderModule({
+      code: `
+        @vertex
+        fn vs_main(@builtin(vertex_index) vertexIndex: u32) -> @builtin(position) vec4f {
+            let pos = array<vec2f, 6>(
+                vec2f(-1.0, -1.0), vec2f( 1.0, -1.0), vec2f( 1.0,  1.0),
+                vec2f(-1.0, -1.0), vec2f( 1.0,  1.0), vec2f(-1.0,  1.0)
+            );
+            return vec4f(pos[vertexIndex], 0.0, 1.0);
+        }
+
+        @group(0) @binding(0) var mySampler: sampler;
+        @group(0) @binding(1) var myExternalTexture: texture_external;
+
+        @fragment
+        fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
+            let coords = pos.xy / vec2f(
+                f32(${webgpuCanvas.width}), f32(${webgpuCanvas.height})
+            );
+
+            return textureSampleBaseClampToEdge(
+                myExternalTexture,
+                mySampler,
+                coords
+            );
+        }
+              `,
+    });
+
+    const pipeline = device.createRenderPipeline({
+      layout: 'auto',
+      vertex: { module: shaderModule },
+      fragment: {
+        module: shaderModule,
+        targets: [{ format: context.getCurrentTexture().format }],
+      },
+      primitive: { topology: 'triangle-list' },
+    });
+
+    const sampler = device.createSampler({
+      magFilter: 'linear',
+      minFilter: 'linear',
+    });
+
+    const externalTexture = device.importExternalTexture({ source: videoFrame });
+    console.log(`isZeroCopy: ${externalTexture.isZeroCopy}`);
+
+    const bindGroup = device.createBindGroup({
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: sampler },
+        { binding: 1, resource: externalTexture },
+      ],
+    });
+
+    const commandEncoder = device.createCommandEncoder();
+
+    const renderPass = commandEncoder.beginRenderPass({
+      colorAttachments: [
+        {
+          view: context.getCurrentTexture(),
+          loadOp: 'clear',
+          storeOp: 'store',
+          clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+        },
+      ],
+    });
+
+    renderPass.setPipeline(pipeline);
+    renderPass.setBindGroup(0, bindGroup);
+    renderPass.draw(6);
+    renderPass.end();
+
+    device.queue.submit([commandEncoder.finish()]);
+
+    videoFrame.close();
+  }
+</script>
