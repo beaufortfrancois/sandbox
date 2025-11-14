@@ -39,8 +39,8 @@
     <canvas id="canvas2" width="600" height="600"></canvas>
 
     <script type="module">
-      drawCanvas(canvas1, 1, 0);
-      drawCanvas(canvas2, 0, 1);
+      drawCanvas(canvas1, '0.1', '0.9');
+      drawCanvas(canvas2, '0.9', '0.1');
 
       async function drawCanvas(canvas, fragDepth1, fragDepth2) {
         const adapter = await navigator.gpu.requestAdapter();
@@ -103,7 +103,7 @@
             depthStencil: {
               format: 'depth24plus',
               depthWriteEnabled: true, // MUST be enabled to write frag_depth
-              depthCompare: 'always',
+              depthCompare: 'less',
             },
           });
         }
