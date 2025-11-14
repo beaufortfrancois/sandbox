@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebGPU Builtin(frag_depth)</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        height: 100vh;
+        margin: 0;
+        background-color: #1a1a1a;
+        font-family: sans-serif;
+      }
+      canvas {
+        border: 2px solid #5a5a5a;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      }
+      #info {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #ccc;
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 0.9em;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="info">Left: Red triangle frag_depth is 1, green triangle frag_depth is 0.<br>Right: Red triangle frag_depth is 0, green triangle frag_depth is 1.</div>
+    <canvas id="canvas1" width="600" height="600"></canvas>
+    <canvas id="canvas2" width="600" height="600"></canvas>
+
+    <script type="module">
+      drawCanvas(canvas1, 1, 0);
+      drawCanvas(canvas2, 0, 1);
+
+      async function drawCanvas(canvas, fragDepth1, fragDepth2) {
+        const adapter = await navigator.gpu.requestAdapter();
+        const device = await adapter.requestDevice();
+        const context = canvas.getContext('webgpu');
+        const format = navigator.gpu.getPreferredCanvasFormat();
+        context.configure({ device, format });
+
+        // 1. Create Depth Texture
+        // We need a depth texture because we are manually writing to the depth buffer
+        const depthTexture = device.createTexture({
+          size: { width: canvas.width, height: canvas.height },
+          format: 'depth24plus',
+          usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        });
+
+        // 2. Create the Render Pipelines
+        const shaderModule1 = createShaderModule({
+          fragDepth: fragDepth1,
+          rgb: '1.0, 0.0, 0.0',
+          positions: 'vec2f(0, 1), vec2f(-1, -1), vec2f(1, -1)',
+        });
+        const pipeline1 = await createRenderPipeline(shaderModule1);
+
+        const shaderModule2 = createShaderModule({
+          fragDepth: fragDepth2,
+          rgb: '0.0, 1.0, 0.0',
+          positions: 'vec2f(0.5, 0.5), vec2f(0.0, -0.5), vec2f(1, -0.5)',
+        });
+        const pipeline2 = await createRenderPipeline(shaderModule2);
+
+        // 3. Render Loop
+        draw(pipeline1, pipeline2);
+
+        function createShaderModule({ fragDepth, rgb, positions }) {
+          const code = `// hash: ${new Date()}
+            struct FragmentOutput {
+                @builtin(frag_depth) depth: f32,
+                @location(0) color: vec4<f32>,
+            };
+
+            @vertex fn vs_main(@builtin(vertex_index) i : u32) -> @builtin(position) vec4f {
+                return vec4f(array(${positions})[i], 0, 1);
+            }
+
+            @fragment fn fs_main() -> FragmentOutput {
+                return FragmentOutput(${fragDepth}, vec4<f32>(${rgb}, 1.0));
+            }`;
+
+          return device.createShaderModule({ code });
+        }
+
+        async function createRenderPipeline(module) {
+          return device.createRenderPipeline({
+            layout: 'auto',
+            vertex: { module },
+            fragment: { module, targets: [{ format }] },
+            primitive: { topology: 'triangle-list' },
+            // Crucially, define the depth-stencil state since we are writing depth
+            depthStencil: {
+              format: 'depth24plus',
+              depthWriteEnabled: true, // MUST be enabled to write frag_depth
+              depthCompare: 'always',
+            },
+          });
+        }
+
+        function draw(pipeline1, pipeline2) {
+          const commandEncoder = device.createCommandEncoder();
+
+          const renderPassDescriptor = {
+            colorAttachments: [
+              {
+                view: context.getCurrentTexture().createView(),
+                clearValue: { r: 0.1, g: 0.1, b: 0.15, a: 1.0 },
+                loadOp: 'clear',
+                storeOp: 'store',
+              },
+            ],
+            // 4. Attach the depth texture view
+            depthStencilAttachment: {
+              view: depthTexture.createView(),
+              depthClearValue: 1.0, // Clear depth to the far plane
+              depthLoadOp: 'clear',
+              depthStoreOp: 'store',
+            },
+          };
+
+          const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+
+          passEncoder.setPipeline(pipeline1);
+          passEncoder.draw(3);
+          passEncoder.setPipeline(pipeline2);
+          passEncoder.draw(3);
+
+          passEncoder.end();
+          device.queue.submit([commandEncoder.finish()]);
+        }
+      }
+    </script>
+  </body>
+</html>
