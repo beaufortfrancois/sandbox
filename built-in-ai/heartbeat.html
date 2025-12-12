@@ -1,0 +1,81 @@
+<button id="button">log</button>
+<pre id="pre"></pre>
+<script type="module">
+  window.languageModel = await LanguageModel.create({
+    expectedOutputs: [{ type: "text", languages: ["en"] }],
+  });
+
+  async function log(timeout) {
+    const controller = new AbortController();
+    const startTime = Date.now();
+    await languageModel.promptStreaming("", { signal: controller.signal }).getReader().read();
+    pre.textContent += `${new Date().toLocaleTimeString()} | promptStreaming call responded in ${
+      Date.now() - startTime
+    }ms. (${(timeout / 1000 / 60).toFixed(1)}min elapsed)\n`;
+
+    timeout += 30_000;
+    setTimeout(log, timeout, timeout);
+    controller.abort();
+  }
+
+  button.onclick = () => {
+    pre.textContent = "";
+    log(0);
+  };
+
+  // https://developer.chrome.com/docs/web-platform/page-lifecycle-api#how_to_observe_state_changes
+  const getState = () => {
+    if (document.visibilityState === "hidden") {
+      return "hidden";
+    }
+    if (document.hasFocus()) {
+      return "active";
+    }
+    return "passive";
+  };
+
+  // Stores the initial state using the `getState()` function (defined above).
+  let state = getState();
+
+  // Accepts a next state and, if there's been a state change, logs the
+  // change to the console. It also updates the `state` value defined above.
+  const logStateChange = (nextState) => {
+    const prevState = state;
+    if (nextState !== prevState) {
+      pre.textContent += `State change: ${prevState} >>> ${nextState}\n`;
+      state = nextState;
+    }
+  };
+
+  // Options used for all event listeners.
+  const opts = { capture: true };
+
+  // These lifecycle events can all use the same listener to observe state
+  // changes (they call the `getState()` function to determine the next state).
+  ["pageshow", "focus", "blur", "visibilitychange", "resume"].forEach((type) => {
+    window.addEventListener(type, () => logStateChange(getState()), opts);
+  });
+
+  // The next two listeners, on the other hand, can determine the next
+  // state from the event itself.
+  window.addEventListener(
+    "freeze",
+    () => {
+      // In the freeze event, the next state is always frozen.
+      logStateChange("frozen");
+    },
+    opts
+  );
+
+  window.addEventListener(
+    "pagehide",
+    (event) => {
+      // If the event's persisted property is `true` the page is about
+      // to enter the back/forward cache, which is also in the frozen state.
+      // If the event's persisted property is not `true` the page is
+      // about to be unloaded.
+      logStateChange(event.persisted ? "frozen" : "terminated");
+    },
+    opts
+  );
+</script>
