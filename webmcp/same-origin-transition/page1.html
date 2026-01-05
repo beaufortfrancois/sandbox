@@ -1,0 +1,35 @@
+<style>
+  body {
+    margin: 2em;
+  }
+  @media screen and (min-width: 640px) {
+    body {
+      margin: 2em auto;
+      max-width: calc(640px - 2em);
+    }
+  }
+</style>
+<h1>Page 1</h1>
+<p>
+  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor ante sed nibh sagittis
+  aliquam. Nullam accumsan velit quis cursus mollis. Duis fringilla laoreet mi ac tincidunt. Donec
+  eu sollicitudin nisl. Maecenas a ligula viverra, accumsan mauris eu, rhoncus tellus. Curabitur
+  efficitur faucibus pharetra. Duis scelerisque dui sit amet pharetra luctus. Donec aliquam, nibh
+  vel faucibus rhoncus, ex nulla dapibus lacus, hendrerit venenatis sapien quam a velit.
+  Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nunc
+  vel turpis sodales, eleifend ante sed, elementum leo. Maecenas sed sapien nisi. Vivamus mollis est
+  ac quam fermentum efficitur. Cras erat dui, interdum sed pharetra non, tincidunt eget leo.
+</p>
+<p>Try prompting "<code style="user-select: all">Go to next page, then zoom in the text of the page</code>"</p>
+<script>
+  navigator.modelContext.registerTool({
+    name: "goToNextPage",
+    description: "Returns the URL of the next page that was turned to.",
+    execute: function () {
+      setTimeout(() => {
+        location.href = "page2.html";
+      }, 0);
+      return "page2.html";
+    },
+  });
+</script>

@@ -1,0 +1,40 @@
+<style>
+  body {
+    margin: 2em;
+  }
+  @media screen and (min-width: 640px) {
+    body {
+      margin: 2em auto;
+      max-width: calc(640px - 2em);
+    }
+  }
+</style>
+<h1>Page 2</h1>
+<p>
+  Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.
+  Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+  Praesent id fringilla magna. Fusce lacinia cursus risus. Quisque vel tellus eget nibh bibendum
+  scelerisque eget et mi. Fusce feugiat massa odio, in ullamcorper tortor pulvinar a. Quisque urna
+  nisi, porta vel fringilla non, malesuada in purus. Morbi dictum lorem mi. Orci varius natoque
+  penatibus et magnis dis parturient montes, nascetur ridiculus mus. Proin porttitor tincidunt ipsum
+  rutrum tempus. Maecenas rhoncus turpis sed dolor rutrum, eu porttitor dui accumsan. Quisque
+  dapibus placerat eros in mollis. Cras sapien arcu, viverra sed iaculis iaculis, dictum id ipsum.
+  Integer libero elit, varius ac diam vitae, molestie cursus velit. Donec in libero at leo pulvinar
+  tempor. Aliquam lacinia metus vitae pretium cursus.
+</p>
+<script>
+  navigator.modelContext.registerTool({
+    name: "zoomIn",
+    description: "Zoom in the text.",
+    execute: function () {
+      let zoom = 1;
+      (function zoomIn() {
+        zoom += 0.1;
+        document.querySelector("p").style.zoom = zoom;
+        if (zoom < 2.5) {
+          requestAnimationFrame(zoomIn);
+        }
+      })();
+    },
+  });
+</script>
