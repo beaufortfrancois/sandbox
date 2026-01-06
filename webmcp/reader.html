@@ -1,0 +1,51 @@
+<body style="margin: 0">
+  <div id="viewerCanvas" style="width: 100vw; height: 100vh"></div>
+  <script src="https://www.google.com/books/jsapi.js"></script>
+  <script>
+    let viewer;
+
+    google.books.load();
+    google.books.setOnLoadCallback(() => {
+      viewer = new google.books.DefaultViewer(viewerCanvas);
+      viewer.load("W2SjILeT_jIC");
+    });
+
+    navigator.modelContext.provideContext({
+      tools: [
+        {
+          name: "goToPage",
+          description: "Returns true if the page exists and was turned to.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              pageNumber: {
+                type: "number",
+                description: "The page number of the page to turn to.",
+              },
+            },
+            required: ["pageNumber"],
+          },
+          execute: function ({ pageNumber }) {
+            return viewer.goToPage(pageNumber);
+          },
+        },
+        {
+          name: "highlight",
+          description: "Highlights a term in the viewport.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              string: {
+                type: "string",
+                description: "A string to highlight. Turns off highlighting if null.",
+              },
+            },
+          },
+          execute: function ({ string }) {
+             viewer.highlight(string);
+          },
+        },
+      ],
+    });
+  </script>
+</body>

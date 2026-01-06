@@ -1,0 +1,30 @@
+<script>
+  navigator.modelContext.provideContext({
+    tools: [
+      {
+        name: "applyGradientBackground",
+        description:
+          "Apply a gradient background that fades from [Color 1] to [Color 2] and fills the entire screen.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            color1: {
+              type: "string",
+              description: "A CSS hex color.",
+            },
+            color2: {
+              type: "string",
+              description: "A CSS hex color.",
+            },
+          },
+          required: ["color1", "color2"],
+        },
+        execute: function ({ color1, color2 }) {
+          document.body.style.margin = "0";
+          document.body.style.background = `linear-gradient(to bottom right, ${color1}, ${color2})`;
+          document.body.style.minHeight = "100vh";
+        },
+      },
+    ],
+  });
+</script>
