@@ -1,0 +1,69 @@
+<p>Try prompting "<code style="user-select: all">What is the tide like in Burntcoat Head Park?</code>"</p>
+<p>Try prompting "<code style="user-select: all">What is the tide like in Paris?</code>"</p>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDSFeQO6ks5zFdUc81SfdtCYvuBXUTxnq8&loading=async&callback=init"></script>
+<script>
+  let geocoder;
+  function init() {
+    geocoder = new google.maps.Geocoder();
+    navigator.modelContext.provideContext({
+      tools: [
+        {
+          name: "seeCityTideChart",
+          description: "See a tide chart for a city",
+          inputSchema: {
+            type: "object",
+            properties: {
+              city: {
+                type: "string",
+                description: "A city name.",
+              },
+              country: {
+                type: "string",
+                description: "An optional country name.",
+              },
+            },
+            required: ["city"],
+          },
+          execute: function ({ city, country }) {
+            return seeTideChart(`${city}, ${country}`);
+          },
+        },
+        {
+          name: "seeLocationTideChart",
+          description: "See a tide chart for a location",
+          inputSchema: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description:
+                  "A location or a place name.",
+              },
+            },
+            required: ["location"],
+          },
+          execute: function ({ location }) {
+            return seeTideChart(`${location}`);
+          },
+        },
+      ],
+    });
+  }
+
+  async function seeTideChart(address) {
+    console.log(address);
+    try {
+      const { results } = await geocoder.geocode({ address });
+      console.log(results);
+      const lat = results[0].geometry.location.lat();
+      const lng = results[0].geometry.location.lng();
+      const dest = `https://tidesandcurrents.noaa.gov/map/index.shtml?lat=${lat}&lng=${lng}&zoom=10`;
+      setTimeout(() => {
+        window.location.href = dest;
+      }, 100);
+      return `Navigating to ${dest}`;
+    } catch (error) {
+      return `Failed to find coordinates for ${city}, ${country}. ${error}`;
+    }
+  }
+</script>
