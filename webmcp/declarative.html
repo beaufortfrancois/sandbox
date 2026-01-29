@@ -1,0 +1,176 @@
+<!doctype html>
+<title>Declarative Script Tool test</title>
+<head>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Message",
+      "text": "echoed value"
+    }
+    </script>
+</head>
+<style>
+  *:tool-form-active {
+    outline: light-dark(blue, cyan) dashed 1px;
+    outline-offset: -1px;
+  }
+
+  *:tool-submit-active {
+    outline: light-dark(red, pink) dashed 1px;
+    outline-offset: -1px;
+  }
+</style>
+<label for="preventDefaultCheckbox">call <code>preventDefault()</code> when submitting form</label>
+<input name="preventDefaultCheckbox" id="preventDefaultCheckbox" type="checkbox">
+<br>
+<label for="targetCheckbox">set form target</label>
+<input name="targetCheckbox" id="targetCheckbox" type="checkbox" checked>
+<br>
+<label for="formResponse">form response</label>
+<input name="formResponse" id="formResponse" type="text" value="yeah!">
+<br>
+<label for="toolAutoSubmitCheckbox">set toolautosubmit</label>
+<input name="toolAutoSubmitCheckbox" id="toolAutoSubmitCheckbox" type="checkbox" checked>
+<hr>
+<fieldset>
+  <legend>toolname="declarative_tool"</legend>
+
+  <form toolautosubmit toolname="declarative_tool" tooldescription="A declarative WebMCP tool" action="print-url.html" target="target">
+    <input id="text1" type="text" name="text" />
+    <label for="text2">text 2 label</label>
+
+    <input id="text2" type="text" name="text2" />
+    <!-- <div id="div" name="div">div</div> -->
+
+    <button id="button" name="button">button</button>
+
+    <input
+      id="imageInput"
+      type="image"
+      name="imageInput"
+      src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
+    />
+
+    <textarea id="textarea" name="textarea"></textarea>
+
+    <label for="select">select label</label>
+    <select id="select" name="select" required>
+      <option value="Option 1">This is option 1</option>
+      <option value="Option 2">This is option 2</option>
+      <option value="Option 3">This is option 3</option>
+    </select>
+
+    <label
+      >First value
+      <input type="radio" name="something" value="value_A" />
+    </label>
+    <label
+      >Second value
+      <input type="radio" name="something" value="value_B" />
+    </label>
+    <label
+      >Third value
+      <input type="radio" name="something" value="value_C" />
+    </label>
+
+    <my-control name="my-control"></my-control>
+    <my-control name="my-control2"></my-control>
+    <hr />
+    <button type="submit" name="submitname" value="submit_value">Submit Content</button>
+    <button type="submit" name="action" value="save_draft">Save Draft</button>
+    <button type="submit" name="action" value="publish_now">Publish</button>
+  </form>
+</fieldset>
+
+<!-- <fieldset>
+  <legend>toolname="search_tool"</legend>
+
+  <form toolname="search_tool" tooldescription="Search the web" target="target"></form>
+    <input type="text" name="query" />
+  </form>
+</fieldset> -->
+<iframe name="target" style="width:100%"></iframe>
+
+<pre style="user-select: all">
+{
+ "text": "text",
+ "text2": "text2",
+ "select": "Option 2"
+}
+</pre>
+<!-- <pre style="user-select: all">
+{
+ "text": "text",
+ "text2": "text2",
+ "textarea": "textarea_value",
+ "select": "Option 2",
+ "my-control": "my-control-value",
+ "my-control2-sub1": "subvalue1",
+ "my-control2-sub2": "subvalue2",
+ "submitname": "submit_value",
+ "my-form-data": "my-form-data-value"
+}
+</pre> -->
+
+<script>
+  // https://web.dev/articles/more-capable-form-controls
+  class MyControl extends HTMLElement {
+    static get formAssociated() {
+      return true;
+    }
+
+    constructor() {
+      super();
+      this.internals_ = this.attachInternals();
+      this.value_ = '';
+    }
+
+    get value() {
+      return this.value_;
+    }
+    set value(v) {
+      this.internals_.setFormValue(v);
+      this.value_ = v;
+    }
+    setValues(nameValues) {
+      const formData = new FormData();
+      for (let p of nameValues) {
+        formData.append(p[0], p[1]);
+      }
+      this.internals_.setFormValue(formData);
+    }
+  }
+  customElements.define('my-control', MyControl);
+
+  targetCheckbox.onchange = () => {
+      document.querySelector('form').target = targetCheckbox.checked ? "target" : "";
+      document.querySelector('form').action = targetCheckbox.checked ? "print-url.html" : "";
+  }
+
+  toolAutoSubmitCheckbox.onchange = () => {
+    if (toolAutoSubmitCheckbox.checked) {
+      document.querySelector('form').setAttribute('toolautosubmit');
+    } else {
+      document.querySelector('form').removeAttribute('toolautosubmit');
+    }
+  }
+
+  document.querySelector('[name=my-control]').value = 'my-control-value';
+  document.querySelector('[name=my-control2]').setValues([
+    ['my-control2-sub1', 'subvalue1'],
+    ['my-control2-sub2', 'subvalue2'],
+  ]);
+
+  document.querySelector('form').addEventListener('formdata', ({ formData }) => {
+    formData.append('my-form-data', 'my-form-data-value');
+  });
+
+  document.querySelector('form').addEventListener('submit', (e) => {
+    console.log(`e.agentInvoked: ${e.agentInvoked}`);
+    
+    if (preventDefaultCheckbox.checked) {
+      e.preventDefault();
+      e.respondWith(formResponse.value);
+    }
+  });
+</script>
