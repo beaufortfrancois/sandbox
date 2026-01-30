@@ -11,12 +11,12 @@
 </head>
 <style>
   *:tool-form-active {
-    outline: light-dark(blue, cyan) dashed 1px;
+    outline: light-dark(blue, cyan) dashed 10px;
     outline-offset: -1px;
   }
 
   *:tool-submit-active {
-    outline: light-dark(red, pink) dashed 1px;
+    outline: light-dark(red, pink) dashed 10px;
     outline-offset: -1px;
   }
 </style>
@@ -39,9 +39,20 @@
     <input id="text1" type="text" name="text" />
     <label for="text2">text 2 label</label>
 
-    <input id="text2" type="text" name="text2" />
+    <input id="text2" type="text" name="text2" toolparamdescription="Some nice description for text2" toolparamtitle="Some nice title for text2"/>
     <!-- <div id="div" name="div">div</div> -->
 
+    <label for="number">A number</label>
+    <input id="number" type="number" name="number" min="1" max="42" />
+    
+    <input id="check1" name="check1" type="checkbox">
+    <input id="check2" name="check2" type="checkbox" checked> 
+
+    <input name="range" type="range" min="0" max="10" step="2">
+
+    <input id="date1" name="date1" type="date">
+
+    <input id="button" type="button" value="input type=button">
     <button id="button" name="button">button</button>
 
     <input
@@ -90,27 +101,6 @@
   </form>
 </fieldset> -->
 <iframe name="target" style="width:100%"></iframe>
-
-<pre style="user-select: all">
-{
- "text": "text",
- "text2": "text2",
- "select": "Option 2"
-}
-</pre>
-<!-- <pre style="user-select: all">
-{
- "text": "text",
- "text2": "text2",
- "textarea": "textarea_value",
- "select": "Option 2",
- "my-control": "my-control-value",
- "my-control2-sub1": "subvalue1",
- "my-control2-sub2": "subvalue2",
- "submitname": "submit_value",
- "my-form-data": "my-form-data-value"
-}
-</pre> -->
 
 <script>
   // https://web.dev/articles/more-capable-form-controls
