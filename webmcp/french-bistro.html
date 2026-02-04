@@ -428,6 +428,9 @@
     const closeBtn = document.getElementById('closeDialogBtn');
     const modalDetails = document.getElementById('modalDetails');
     
+    let isFormValid = true;
+    let validationErrors = []; // Array to collect error messages
+    
     // --- 1. Set Minimum Date to Today ---
     const dateInput = document.getElementById('date');
     const today = new Date().toISOString().split('T')[0];
@@ -437,9 +440,63 @@
     form.addEventListener('submit', function(e) {
         e.preventDefault(); 
         
-        let isValid = true;
-        let validationErrors = []; // Array to collect error messages
+        isFormValid = true;
+        validationErrors = [];
 
+        validateForm();
+
+        // --- CHECK RESULTS ---
+        if (!isFormValid) {
+            if (e.agentInvoked) { e.respondWith(validationErrors) };
+            return;
+        }
+
+        // Gather Success Data
+
+        const name = document.getElementById('name').value;
+        const time = document.getElementById('time').value;
+        const guests = document.getElementById('guests').value;
+        const seating = document.getElementById('seating').options[document.getElementById('seating').selectedIndex].text;
+        
+        // Format Date for UI
+        const dateObj = new Date(document.getElementById('date').value);
+        const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+        // Show Modal
+        modalDetails.innerHTML = `
+            Hello <strong>${name}</strong>,<br>
+            We look forward to welcoming you on:<br><br>
+            <strong>${dateStr}</strong> at <strong>${time}</strong><br>
+            Party of <strong>${guests}</strong> &bull; ${seating}
+        `;
+        dialog.showModal();
+
+        if (e.agentInvoked) { e.respondWith(modalDetails.textContent) };
+    });
+
+    // --- 3. Close Modal ---
+    closeBtn.addEventListener('click', () => {
+        dialog.close();
+        form.reset();
+        resetValidationUI();
+    });
+
+    dialog.addEventListener('click', (e) => {
+        const rect = dialog.getBoundingClientRect();
+        if (e.clientY < rect.top || e.clientY > rect.bottom || 
+            e.clientX < rect.left || e.clientX > rect.right) {
+            dialog.close();
+            form.reset();
+            resetValidationUI();
+        }
+    });
+
+    function resetValidationUI() {
+        document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
+        document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
+    }
+            
+    function validateForm() {
         // Helper: Toggle error styles and collect messages
         function validateField(input, condition) {
             const errorSpan = input.parentElement.querySelector('.error-msg');
@@ -451,7 +508,7 @@
                 if(errorSpan) errorSpan.style.display = 'block';
                 
                 // Logic updates
-                isValid = false;
+                isFormValid = false;
                 
                 // Add to debug collection
                 validationErrors.push({
@@ -493,56 +550,21 @@
         // F. Validate Seating
         const seatingInput = document.getElementById('seating');
         validateField(seatingInput, seatingInput.selectedIndex !== -1);
+    }
 
-        // --- CHECK RESULTS ---
-        if (!isValid) {
-            if (e.agentInvoked) { e.respondWith(validationErrors) };
+    async function waitForToolFormActive() {
+        if (form.matches(':tool-form-active')) {
             return;
         }
-
-        // Gather Success Data
-        const name = nameInput.value;
-        const time = timeInput.value;
-        const guests = document.getElementById('guests').value;
-        const seating = seatingInput.options[seatingInput.selectedIndex].text;
-        
-        // Format Date for UI
-        const dateObj = new Date(dateInput.value);
-        const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-
-        // Show Modal
-        modalDetails.innerHTML = `
-            Hello <strong>${name}</strong>,<br>
-            We look forward to welcoming you on:<br><br>
-            <strong>${dateStr}</strong> at <strong>${time}</strong><br>
-            Party of <strong>${guests}</strong> &bull; ${seating}
-        `;
-        dialog.showModal();
-
-        if (e.agentInvoked) { e.respondWith(modalDetails.textContent) };
-    });
-
-    // --- 3. Close Modal ---
-    closeBtn.addEventListener('click', () => {
-        dialog.close();
-        form.reset();
-        resetValidationUI();
-    });
-
-    dialog.addEventListener('click', (e) => {
-        const rect = dialog.getBoundingClientRect();
-        if (e.clientY < rect.top || e.clientY > rect.bottom || 
-            e.clientX < rect.left || e.clientX > rect.right) {
-            dialog.close();
-            form.reset();
-            resetValidationUI();
-        }
-    });
-
-    function resetValidationUI() {
-        document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
-        document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
+        await new Promise(r => setTimeout(r, 0));
+        return waitForToolFormActive();
     }
+
+    window.addEventListener('toolactivation',  async ({ toolName }) => {
+        if (toolName !== 'book_table_le_petit_bistro') return;
+        await waitForToolFormActive();
+        validateForm();
+    });
 </script>
 </body>
 </html>
