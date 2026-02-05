@@ -552,17 +552,8 @@
         validateField(seatingInput, seatingInput.selectedIndex !== -1);
     }
 
-    async function waitForToolFormActive() {
-        if (form.matches(':tool-form-active')) {
-            return;
-        }
-        await new Promise(r => setTimeout(r, 0));
-        return waitForToolFormActive();
-    }
-
-    window.addEventListener('toolactivation',  async ({ toolName }) => {
+    window.addEventListener('toolactivated',  ({ toolName }) => {
         if (toolName !== 'book_table_le_petit_bistro') return;
-        await waitForToolFormActive();
         validateForm();
     });
 </script>
