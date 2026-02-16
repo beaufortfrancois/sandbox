@@ -1,0 +1,38 @@
+<p style="user-select: all">Add the white color</p>
+<pre id="pre"></pre>
+<script>
+  function getColor(id) {
+    if (id === '1') return 'Blue';
+    if (id === '2') return 'White';
+    if (id === '3') return 'Red';
+    return `unrecognized id`;
+  }
+  const inputSchema = {
+    type: 'object',
+    properties: {
+      id: {
+        type: 'string',
+        title: 'color_id',
+        description:
+          'The color ID to add. Match the desired color using the oneOf titles — each title is the color name (e.g. Blue) and its const value is the corresponding color ID to use.',
+        oneOf: [
+          { const: '1', title: getColor('1') },
+          { const: '2', title: getColor('2') },
+          { const: '3', title: getColor('3') },
+        ],
+        enum: ['1', '2', '3'],
+      },
+    },
+    required: ['id'],
+  };
+
+  navigator.modelContext.registerTool({
+    name: 'add_color',
+    description: 'Add color',
+    inputSchema,
+    execute: ({ id }) => {
+      pre.textContent = `Tool was executed with "${getColor(id)}" ({id: "${id}"})`;
+      return `The ${getColor(id)} color was added.`; 
+    },
+  });
+</script>
