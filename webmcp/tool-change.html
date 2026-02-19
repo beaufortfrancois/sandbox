@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Simple React Form</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@19?dev",
+          "react-dom/client": "https://esm.sh/react-dom@19/client?dev"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import React, { useState, useEffect, createElement } from 'react';
+      import { createRoot } from 'react-dom/client';
+
+      function App() {
+        const [toolName, setToolName] = useState();
+        const [toolDescription, setToolDescription] = useState();
+        const [inputName, setInputName] = useState();
+        const [counter, setCounter] = useState(1);
+
+        const update = (fn, label) => {
+          fn(`${label}-${counter}`);
+          setCounter((c) => c + 1);
+        };
+
+        const listTools = (prefix) => {
+          const tools = navigator.modelContextTesting.listTools();
+          const line = document.createElement('pre');
+          line.textContent = `${prefix}: ${JSON.stringify(tools)}`;
+          document.body.appendChild(line);
+        };
+
+        useEffect(() => {
+          if (navigator.modelContextTesting?.registerToolsChangedCallback) {
+            navigator.modelContextTesting.registerToolsChangedCallback(() => {
+              listTools('Tools changed');
+            });
+          }
+          if (navigator.modelContext?.addEventListener) {
+            navigator.modelContext.addEventListener('toolchange', () => {
+              listTools('Tool change');
+            });
+          }
+        }, []);
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          alert('Form submitted!');
+        };
+
+        return createElement(
+          'div',
+          null,
+          createElement(
+            'form',
+            {
+              toolname: toolName,
+              tooldescription: toolDescription,
+              onSubmit: handleSubmit,
+            },
+            createElement('input', { type: 'text', name: inputName }),
+            createElement('button', { type: 'submit' }, 'Submit'),
+          ),
+          createElement('hr'),
+          createElement(
+            'button',
+            {
+              onClick: () => update(setToolName, 'name'),
+            },
+            'Set Tool Name',
+          ),
+          createElement(
+            'button',
+            {
+              onClick: () => update(setToolDescription, 'description'),
+            },
+            'Set Tool Description',
+          ),
+          createElement(
+            'button',
+            {
+              onClick: () => update(setInputName, 'param'),
+            },
+            'Set Input Name',
+          ),
+          createElement(
+            'button',
+            {
+              onClick: () => {
+                setToolName(undefined);
+                setToolDescription(undefined);
+              },
+            },
+            'Remove Tool',
+          ),
+          createElement(
+            'button',
+            {
+              onClick: () => {
+                listTools('Tools');
+              },
+            },
+            'List Tools',
+          ),
+        );
+      }
+
+      const root = createRoot(document.getElementById('root'));
+      root.render(createElement(App));
+    </script>
+  </body>
+</html>
