@@ -1,3 +1,8 @@
+<label>
+  Register <code>"color_name_to_color_id"</code> tool.
+  <input id="checkbox" type="checkbox" />
+</label>
+<hr />
 <p style="user-select: all">Add the white color</p>
 <pre id="pre"></pre>
 <script>
@@ -32,7 +37,37 @@
     inputSchema,
     execute: ({ id }) => {
       pre.textContent = `Tool was executed with "${getColor(id)}" ({id: "${id}"})`;
-      return `The ${getColor(id)} color was added.`; 
+      return `The ${getColor(id)} color was added.`;
     },
   });
+
+  checkbox.onchange = () => {
+    if (!checkbox.checked) {
+      navigator.modelContext.unregisterTool('color_name_to_color_id');
+      return;
+    }
+    navigator.modelContext.registerTool({
+      name: 'color_name_to_color_id',
+      description: 'Maps color name to color ID',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          color_name: {
+            type: 'string',
+            description: 'The color name (e.g. Blue)',
+          },
+        },
+      },
+      required: ['color_name'],
+      execute: ({ color_name }) => {
+        const results = inputSchema.properties.id.oneOf.filter(
+          (i) => i.title.toLowerCase() == color_name.toLowerCase(),
+        );
+        if (results.length) {
+          return results[0].const;
+        }
+        return 'The color name is invalid';
+      },
+    });
+  };
 </script>
