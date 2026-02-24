@@ -42,6 +42,11 @@
               listTools('Tools changed');
             });
           }
+          if (navigator.modelContextTesting?.addEventListener) {
+            navigator.modelContextTesting.addEventListener('toolchange', () => {
+              listTools('Tool change');
+            });
+          }
           if (navigator.modelContext?.addEventListener) {
             navigator.modelContext.addEventListener('toolchange', () => {
               listTools('Tool change');
