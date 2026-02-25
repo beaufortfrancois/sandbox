@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebMCP zaMaker!</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍕</text></svg>"
+    />
+    <style>
+      :root {
+        --crust: #edb44e;
+        --sauce: #d32f2f;
+        --cheese: #ffd54f;
+        --bg: #fff9c4;
+      }
+
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          Oxygen,
+          Ubuntu,
+          Cantarell,
+          'Open Sans',
+          'Helvetica Neue',
+          sans-serif;
+        background-color: var(--bg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+        padding: 20px;
+      }
+
+      h1 {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        color: var(--sauce);
+        font-size: clamp(2.5rem, 6vw, 3.5rem);
+        margin-bottom: 20px;
+        letter-spacing: -2px;
+        font-weight: 800;
+        text-shadow:
+          0px 2px 0px rgba(0, 0, 0, 0.2),
+          0 0 20px rgba(255, 255, 255, 0.5);
+        text-align: center;
+      }
+
+      #pizza-container {
+        position: relative;
+        width: 350px;
+        height: 350px;
+        background-color: var(--crust);
+        border-radius: 50%;
+        border: 15px solid #d4a342;
+        box-shadow:
+          0 30px 60px rgba(0, 0, 0, 0.4),
+          0 10px 0 #b38635,
+          inset 0 0 25px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+        transform: perspective(1000px) rotateX(25deg);
+        transform-style: preserve-3d;
+      }
+
+      #sauce-layer,
+      #cheese-layer {
+        position: absolute;
+        border-radius: 50%;
+        display: none;
+        pointer-events: none;
+      }
+
+      #sauce-layer {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        background-color: var(--sauce);
+      }
+
+      #cheese-layer {
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
+        background-color: var(--cheese);
+        border: 2px dashed #fbc02d;
+      }
+
+      .topping {
+        position: absolute;
+        font-size: 50px;
+        user-select: none;
+        filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+        transform-style: preserve-3d;
+      }
+
+      .topping span {
+        display: inline-block;
+        animation: slideDrop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+      }
+
+      @keyframes slideDrop {
+        0% {
+          transform: translateY(-600px) translateZ(600px) rotateX(-45deg) scale(2);
+          opacity: 0;
+        }
+        30% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(0) translateZ(0) rotateX(0deg) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .controls {
+        background: white;
+        padding: 30px;
+        margin-top: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        text-align: center;
+      }
+
+      /* Hide controls if WebMCP is supported */
+      body.webmcp-supported .controls {
+        display: none;
+      }
+
+      .btn-group {
+        margin: 15px 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      button {
+        padding: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      button:active {
+        transform: scale(0.95);
+      }
+      .btn-size {
+        background: #64b5f6;
+      }
+      .btn-style {
+        background: #ab47bc;
+      }
+      .btn-add {
+        background: #81c784;
+      }
+      .btn-remove {
+        background: #e57373;
+      }
+      .btn-reset {
+        background: #90a4ae;
+      }
+
+      .size-label {
+        font-weight: 700;
+        color: #34495e;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .slogan {
+        font-style: italic;
+        color: #7f8c8d;
+        margin-top: -15px;
+        margin-bottom: 0px;
+        font-size: 1.2rem;
+        font-weight: 400;
+      }
+
+      .slogan a {
+        text-decoration: none;
+        color: #7f8c8d;
+      }
+
+      @media (max-width: 600px) {
+        body {
+          padding-left: 0;
+          padding-right: 0;
+          padding-bottom: 0;
+        }
+
+        .controls {
+          border-radius: 20px 20px 0 0;
+          padding: 0;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>WebMCP zaMaker!</h1>
+    <p class="slogan">
+      Simply 'za best <a href="https://www.youtube.com/watch?v=GC5E8ie2pdM" target="_blank">♪</a>
+    </p>
+
+    <div id="pizza-container">
+      <div id="sauce-layer"></div>
+      <div id="cheese-layer"></div>
+    </div>
+
+    <div class="controls">
+      <p class="size-label">Size: <span id="size-text">Medium</span></p>
+      <div class="btn-group">
+        <button class="btn-size" onclick="changeSize(0.6, 'Small')">🐥 Small</button>
+        <button class="btn-size" onclick="changeSize(1.0, 'Medium')">🐻 Medium</button>
+        <button class="btn-size" onclick="changeSize(1.2, 'Large')">🦖 Large</button>
+        <button class="btn-size" onclick="changeSize(1.8, 'Too Large')">🏢 Too Large</button>
+      </div>
+      <div class="btn-group">
+        <button class="btn-style" onclick="setPizzaStyle('Classic')">Classic</button>
+        <button class="btn-style" onclick="setPizzaStyle('Bianca')">Bianca</button>
+        <button class="btn-style" onclick="setPizzaStyle('BBQ')">BBQ</button>
+        <button class="btn-style" onclick="setPizzaStyle('Pesto')">Pesto</button>
+      </div>
+      <hr />
+      <div class="btn-group">
+        <button class="btn-add" onclick="toggleLayer('sauce-layer')">🍅 Sauce</button>
+        <button class="btn-add" onclick="toggleLayer('cheese-layer')">🧀 Cheese</button>
+      </div>
+      <div class="btn-group">
+        <button class="btn-add" onclick="addTopping('🍕')">Pepperoni</button>
+        <button class="btn-add" onclick="addTopping('🍄')">Mushrooms</button>
+        <button class="btn-add" onclick="addTopping('🌿')">Basil</button>
+        <button class="btn-add" onclick="addTopping('🍍')">Pineapple</button>
+        <button class="btn-add" onclick="addTopping('🫑')">Peppers</button>
+        <button class="btn-add" onclick="addTopping('🥓')">Bacon</button>
+        <button class="btn-add" onclick="addTopping('🧅')">Onion</button>
+        <button class="btn-add" onclick="addTopping('🫒')">Olive</button>
+        <button class="btn-add" onclick="addTopping('🌽')">Corn</button>
+        <button class="btn-add" onclick="addTopping('🌶️')">Hot Pepper</button>
+      </div>
+      <div class="btn-group">
+        <button class="btn-remove" onclick="removeLastTopping()">⬅️ Remove Last</button>
+        <button class="btn-reset" onclick="resetPizza()">🧹 Start Over</button>
+        <button class="btn-reset" onclick="sharePizza()">🔗 Share</button>
+      </div>
+    </div>
+
+    <script>
+      const pizza = document.getElementById('pizza-container');
+      const sizeText = document.getElementById('size-text');
+      let currentStyle = 'Classic';
+
+      const sizes = {
+        Small: 0.8,
+        Medium: 1.0,
+        Large: 1.2,
+        'Too Large': 1.8,
+      };
+
+      const styles = {
+        Classic: { crust: '#edb44e', sauce: '#d32f2f', cheese: '#ffd54f' },
+        Bianca: { crust: '#e6c27b', sauce: '#fff3e0', cheese: '#fff9c4' },
+        BBQ: { crust: '#d4a342', sauce: '#5d4037', cheese: '#ffab00' },
+        Pesto: { crust: '#c5e1a5', sauce: '#388e3c', cheese: '#f1f8e9' },
+      };
+
+      function setPizzaStyle(styleName) {
+        const style = styles[styleName];
+        if (style) {
+          currentStyle = styleName;
+          document.documentElement.style.setProperty('--crust', style.crust);
+          document.documentElement.style.setProperty('--sauce', style.sauce);
+          document.documentElement.style.setProperty('--cheese', style.cheese);
+        }
+      }
+
+      function changeSize(scale, name) {
+        pizza.style.transform = `perspective(1000px) rotateX(25deg) scale(${scale})`;
+        if (sizeText) sizeText.innerText = name;
+      }
+
+      function toggleLayer(layerId, action = 'toggle') {
+        const layer = document.getElementById(layerId);
+        if (action === 'add') {
+          layer.style.display = 'block';
+        } else if (action === 'remove') {
+          layer.style.display = 'none';
+        } else {
+          layer.style.display = layer.style.display === 'block' ? 'none' : 'block';
+        }
+      }
+
+      function addTopping(emoji, size = 'Medium', count = 1) {
+        for (let i = 0; i < count; i++) {
+          const topping = document.createElement('div');
+          topping.className = 'topping';
+          topping.innerHTML = `<span>${emoji}</span>`;
+          const radius = 180;
+          const angle = Math.random() * Math.PI * 2;
+          const dist = Math.random() * radius;
+          const x = 165 + dist * Math.cos(angle);
+          const y = 142 + dist * Math.sin(angle);
+          topping.style.left = `${x}px`;
+          topping.style.top = `${y}px`;
+
+          const scale = sizes[size] || '1.0';
+          topping.style.transform = `rotate(${Math.random() * 90 - 45}deg) scale(${scale})`;
+          pizza.appendChild(topping);
+        }
+      }
+
+      function removeLastTopping() {
+        const toppings = document.querySelectorAll('.topping');
+        if (toppings.length > 0) toppings[toppings.length - 1].remove();
+      }
+
+      function removeTopping(emoji, all = false) {
+        const toppings = Array.from(document.querySelectorAll('.topping'));
+        if (all) {
+          let removed = false;
+          toppings.forEach((t) => {
+            if (t.innerText === emoji) {
+              t.remove();
+              removed = true;
+            }
+          });
+          return removed;
+        } else {
+          for (let i = toppings.length - 1; i >= 0; i--) {
+            if (toppings[i].innerText === emoji) {
+              toppings[i].remove();
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      function resetPizza() {
+        document.querySelectorAll('.topping').forEach((t) => t.remove());
+        document.getElementById('sauce-layer').style.display = 'none';
+        document.getElementById('cheese-layer').style.display = 'none';
+        changeSize(1.0, 'Medium');
+        setPizzaStyle('Classic');
+      }
+
+      function getPizzaState() {
+        const sauceVisible = document.getElementById('sauce-layer').style.display === 'block';
+        const cheeseVisible = document.getElementById('cheese-layer').style.display === 'block';
+        const toppings = Array.from(document.querySelectorAll('.topping span')).map(
+          (s) => s.innerText,
+        );
+
+        return {
+          size: sizeText.innerText,
+          style: currentStyle,
+          layers: { sauce: sauceVisible, cheese: cheeseVisible },
+          toppings: toppings,
+        };
+      }
+
+      function sharePizza() {
+        const state = getPizzaState();
+        const jsonString = JSON.stringify(state);
+        // Correctly handle Unicode (emojis) with btoa
+        const base64 = btoa(unescape(encodeURIComponent(jsonString)));
+
+        const url = new URL(window.location.href);
+        const params = new URLSearchParams(url.search);
+        params.set('share', base64);
+        url.search = params.toString();
+        const shareUrl = url.toString();
+
+        if (navigator.share) {
+          navigator
+            .share({
+              title: 'My Magic Pizza',
+              text: 'Check out this pizza I made!',
+              url: shareUrl,
+            })
+            .catch(console.error);
+        } else {
+          navigator.clipboard
+            .writeText(shareUrl)
+            .then(() => {
+              alert('Link copied to clipboard!');
+            })
+            .catch(() => {
+              prompt('Copy this link:', shareUrl);
+            });
+        }
+        return shareUrl;
+      }
+
+      function loadPizzaStateFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        const base64 = params.get('share');
+        if (!base64) return;
+
+        try {
+          const jsonString = decodeURIComponent(escape(atob(base64)));
+          const state = JSON.parse(jsonString);
+
+          if (state.size && sizes[state.size]) changeSize(sizes[state.size], state.size);
+          if (state.style) setPizzaStyle(state.style);
+          if (state.layers) {
+            if (state.layers.sauce) toggleLayer('sauce-layer', 'add');
+            if (state.layers.cheese) toggleLayer('cheese-layer', 'add');
+          }
+          if (state.toppings) {
+            state.toppings.forEach((t) => addTopping(t));
+          }
+        } catch (e) {
+          console.warn('Failed to load pizza state from URL', e);
+        }
+      }
+
+      // Load state on startup
+      loadPizzaStateFromURL();
+
+      if (window.navigator.modelContext) {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (!urlParams.has('showButtons')) {
+          document.body.classList.add('webmcp-supported');
+        }
+
+        navigator.modelContext.registerTool({
+          name: 'set_pizza_size',
+          description: 'Set the size of the pizza',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              size: { type: 'string', enum: ['Small', 'Medium', 'Large', 'Too Large'] },
+            },
+            required: ['size'],
+          },
+          execute: ({ size }) => {
+            if (sizes[size]) {
+              changeSize(sizes[size], size);
+              return `Changed pizza size to ${size}`;
+            }
+            return `Invalid size: ${size}`;
+          },
+        });
+
+        navigator.modelContext.registerTool({
+          name: 'set_pizza_style',
+          description: 'Set the style of the pizza (colors/theme)',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              style: { type: 'string', enum: ['Classic', 'Bianca', 'BBQ', 'Pesto'] },
+            },
+            required: ['style'],
+          },
+          execute: ({ style }) => {
+            if (styles[style]) {
+              setPizzaStyle(style);
+              return `Changed pizza style to ${style}`;
+            }
+            return `Invalid style: ${style}`;
+          },
+        });
+
+        navigator.modelContext.registerTool({
+          name: 'toggle_layer',
+          description: 'Control pizza layers (sauce, cheese). Use "add", "remove", or "toggle".',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              layer: { type: 'string', enum: ['sauce-layer', 'cheese-layer'] },
+              action: { type: 'string', enum: ['add', 'remove', 'toggle'] },
+            },
+            required: ['layer'],
+          },
+          execute: ({ layer, action }) => {
+            toggleLayer(layer, action);
+            return `Performed ${action || 'toggle'} on layer: ${layer}`;
+          },
+        });
+
+        navigator.modelContext.registerTool({
+          name: 'add_topping',
+          description: 'Add one or more toppings to the pizza',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              topping: {
+                type: 'string',
+                enum: ['🍕', '🍄', '🌿', '🍍', '🫑', '🥓', '🧅', '🫒', '🌽', '🌶️'],
+              },
+              size: { type: 'string', enum: ['Small', 'Medium', 'Large', 'Too Large'] },
+              count: {
+                type: 'integer',
+                minimum: 1,
+                description: 'Number of toppings to add',
+              },
+            },
+            required: ['topping'],
+          },
+          execute: ({ topping, size, count }) => {
+            const num = count || 1;
+            addTopping(topping, size, num);
+            return `Added ${num} ${topping} topping(s)`;
+          },
+        });
+
+        navigator.modelContext.registerTool({
+          name: 'remove_topping',
+          description: 'Remove a specific topping from the pizza',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              topping: {
+                type: 'string',
+                enum: ['🍕', '🍄', '🌿', '🍍', '🫑', '🥓', '🧅', '🫒', '🌽', '🌶️'],
+              },
+              all: {
+                type: 'boolean',
+                description: 'Remove all toppings of this type',
+              },
+            },
+            required: ['topping'],
+          },
+          execute: ({ topping, all }) => {
+            const removed = removeTopping(topping, all);
+            if (all) {
+              return removed ? `Removed all ${topping} toppings` : `No ${topping} toppings found`;
+            }
+            return removed ? `Removed topping: ${topping}` : `Topping ${topping} not found`;
+          },
+        });
+
+        navigator.modelContext.registerTool({
+          name: 'manage_pizza',
+          description: 'Manage pizza state',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              action: { type: 'string', enum: ['remove_last', 'reset'] },
+            },
+            required: ['action'],
+          },
+          execute: ({ action }) => {
+            if (action === 'remove_last') {
+              removeLastTopping();
+              return 'Removed last topping';
+            } else if (action === 'reset') {
+              resetPizza();
+              return 'Reset pizza';
+            }
+            return 'Unknown action';
+          },
+        });
+
+        navigator.modelContext.registerTool({
+          name: 'share_pizza',
+          description: 'Get a shareable URL for the current pizza creation',
+          inputSchema: {
+            type: 'object',
+            properties: {},
+          },
+          execute: () => {
+            const url = sharePizza();
+            return `Share URL: ${url}`;
+          },
+        });
+      }
+    </script>
+  </body>
+</html>
