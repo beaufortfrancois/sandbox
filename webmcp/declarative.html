@@ -1,13 +1,14 @@
 <!doctype html>
 <title>Declarative Script Tool test</title>
+
 <head>
-    <script type="application/ld+json">
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Message",
       "text": "echoed value"
     }
-    </script>
+  </script>
 </head>
 <style>
   *:tool-form-active {
@@ -21,46 +22,61 @@
   }
 </style>
 <label for="preventDefaultCheckbox">call <code>preventDefault()</code> when submitting form</label>
-<input name="preventDefaultCheckbox" id="preventDefaultCheckbox" type="checkbox">
-<br>
+<input name="preventDefaultCheckbox" id="preventDefaultCheckbox" type="checkbox" />
+<br />
 <label for="targetCheckbox">set form target</label>
-<input name="targetCheckbox" id="targetCheckbox" type="checkbox" checked>
-<br>
+<input name="targetCheckbox" id="targetCheckbox" type="checkbox" checked />
+<br />
 <label for="formResponse">form response</label>
-<input name="formResponse" id="formResponse" type="text" value="yeah!">
-<br>
+<input name="formResponse" id="formResponse" type="text" value="yeah!" />
+<br />
 <label for="toolAutoSubmitCheckbox">set toolautosubmit</label>
-<input name="toolAutoSubmitCheckbox" id="toolAutoSubmitCheckbox" type="checkbox" checked>
-<hr>
+<input name="toolAutoSubmitCheckbox" id="toolAutoSubmitCheckbox" type="checkbox" checked />
+<hr />
 <fieldset>
   <legend>toolname="declarative_tool"</legend>
 
-  <form toolautosubmit toolname="declarative_tool" tooldescription="A declarative WebMCP tool" action="print-url.html" target="target">
-    <input id="text1" type="text" name="text" />
+  <form toolautosubmit toolname="declarative_tool" tooldescription="A declarative WebMCP tool" action="print-url.html"
+    target="target">
+    <input id="file1" type="file" name="file1" />
+
+    <input id="text1" type="text" name="text1" />
     <label for="text2">text 2 label</label>
 
-    <input id="text2" type="text" name="text2" toolparamdescription="Some nice description for text2" toolparamtitle="Some nice title for text2"/>
-    <!-- <div id="div" name="div">div</div> -->
+    <input id="text2" type="text" name="text2" toolparamdescription="Some nice description for text2"
+      toolparamtitle="Some nice title for text2" />
+    <input id="password" name="password" type="password" placeholder="password" autocomplete="current-password" />
+    <input id="hidden" name="hidden" type="hidden" />
+    <input id="textdisabled" type="text" name="textdisabled" disabled />
+    <input id="noname" type="text" name="" placeholder="noname" />
 
     <label for="number">A number</label>
     <input id="number" type="number" name="number" min="1" max="42" />
-    
-    <input id="check1" name="check1" type="checkbox">
-    <input id="check2" name="check2" type="checkbox" checked> 
 
-    <input name="range" type="range" min="0" max="10" step="2">
+    <input id="check1" name="check1" type="checkbox" />
+    <input id="check2" name="check2" type="checkbox" checked />
 
-    <input id="date1" name="date1" type="date">
+    <input name="range" type="range" min="0" max="10" step="2" />
 
-    <input id="button" type="button" value="input type=button">
+    <input id="date1" name="date1" type="date" />
+    <br />
+    <input id="datetimelocal1" name="datetimelocal1" type="datetime-local" />
+    <input id="datetimelocal2" name="datetimelocal2" type="datetime-local" step="1" />
+    <input id="datetimelocal3" name="datetimelocal3" type="datetime-local" step="0.001" />
+    <br />
+    <input id="month1" name="month1" type="month" />
+    <input id="week1" name="week1" type="week" />
+    <input id="time1" name="time1" type="time" />
+    <input id="time2" name="time2" type="time" step="1" />
+    <input id="time3" name="time3" type="time" step="0.001" />
+
+    <input id="color1" name="color1" type="color" />
+
+    <input id="button" type="button" value="input type=button" />
     <button id="button" name="button">button</button>
 
-    <input
-      id="imageInput"
-      type="image"
-      name="imageInput"
-      src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
-    />
+    <input id="imageInput" type="image" name="imageInput"
+      src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==" />
 
     <textarea id="textarea" name="textarea"></textarea>
 
@@ -71,18 +87,14 @@
       <option value="Option 3">This is option 3</option>
     </select>
 
-    <label
-      >First value
-      <input type="radio" name="something" value="value_A" />
-    </label>
-    <label
-      >Second value
-      <input type="radio" name="something" value="value_B" />
-    </label>
-    <label
-      >Third value
-      <input type="radio" name="something" value="value_C" />
-    </label>
+    <label>First value<input type="radio" name="radio1" value="value_A" /></label>
+    <label>Second value<input type="radio" name="radio1" value="value_B" /></label>
+    <label>Third value<input type="radio" name="radio1" value="value_C" /></label>
+
+    <fieldset>
+      <legend>legend</legend>
+      <input id="text_inside_fieldset" type="text" name="text_inside_fieldset" />
+    </fieldset>
 
     <my-control name="my-control"></my-control>
     <my-control name="my-control2"></my-control>
@@ -93,17 +105,18 @@
   </form>
 </fieldset>
 
-<!-- <fieldset>
-  <legend>toolname="search_tool"</legend>
+<fieldset>
+  <legend>duplicated tool</legend>
+  <form toolautosubmit toolname="declarative_tool" tooldescription="A declarative WebMCP tool" action="print-url.html"
+    target="target">
 
-  <form toolname="search_tool" tooldescription="Search the web" target="target"></form>
-    <input type="text" name="query" />
+    <button type="submit" name="submitname" value="submit_value">Submit Content</button>
   </form>
-</fieldset> -->
-<iframe name="target" style="width:100%"></iframe>
+</fieldset>
+
+<iframe name="target" style="width: 100%"></iframe>
 
 <script>
-  // https://web.dev/articles/more-capable-form-controls
   class MyControl extends HTMLElement {
     static get formAssociated() {
       return true;
@@ -112,7 +125,22 @@
     constructor() {
       super();
       this.internals_ = this.attachInternals();
-      this.value_ = '';
+      try {
+        this.internals_.setToolParamSchema(`{ "type":"string" }`);
+      } catch (e) { }
+      this.value_ = '<none>';
+      this.attachShadow({ mode: 'open' });
+      let div = document.createElement('div');
+      this.shadowRoot.append(div);
+      this.render();
+    }
+
+    toolFillCallback(value) {
+      this.value = value;
+    }
+
+    render() {
+      this.shadowRoot.querySelector('div').textContent = `my-control value: ${this.value_}`;
     }
 
     get value() {
@@ -121,46 +149,48 @@
     set value(v) {
       this.internals_.setFormValue(v);
       this.value_ = v;
-    }
-    setValues(nameValues) {
-      const formData = new FormData();
-      for (let p of nameValues) {
-        formData.append(p[0], p[1]);
-      }
-      this.internals_.setFormValue(formData);
+      this.render();
     }
   }
   customElements.define('my-control', MyControl);
 
+  document.querySelector('[name=my-control]').value = 'my-control-value';
+  const formData = new FormData();
+  formData.append('my-control2-sub1', 'subvalue1');
+  formData.append('my-control2-sub2', 'subvalue2');
+  document.querySelector('[name=my-control2]').value = formData;
+</script>
+
+<script>
   targetCheckbox.onchange = () => {
-      document.querySelector('form').target = targetCheckbox.checked ? "target" : "";
-      document.querySelector('form').action = targetCheckbox.checked ? "print-url.html" : "";
-  }
+    document.querySelector('form').target = targetCheckbox.checked ? 'target' : '';
+    document.querySelector('form').action = targetCheckbox.checked ? 'print-url.html' : '';
+  };
 
   toolAutoSubmitCheckbox.onchange = () => {
     if (toolAutoSubmitCheckbox.checked) {
-      document.querySelector('form').setAttribute('toolautosubmit');
+      document.querySelector('form').setAttribute('toolautosubmit', '');
     } else {
       document.querySelector('form').removeAttribute('toolautosubmit');
     }
-  }
-
-  document.querySelector('[name=my-control]').value = 'my-control-value';
-  document.querySelector('[name=my-control2]').setValues([
-    ['my-control2-sub1', 'subvalue1'],
-    ['my-control2-sub2', 'subvalue2'],
-  ]);
+  };
 
   document.querySelector('form').addEventListener('formdata', ({ formData }) => {
     formData.append('my-form-data', 'my-form-data-value');
   });
 
-  document.querySelector('form').addEventListener('submit', (e) => {
+  document.querySelector('form').addEventListener('submit', async (e) => {
     console.log(`e.agentInvoked: ${e.agentInvoked}`);
-    
+
     if (preventDefaultCheckbox.checked) {
       e.preventDefault();
       e.respondWith(formResponse.value);
     }
+
+    try {
+      const file = file1.files[0];
+      console.log(`file: ${file}`);
+      console.log(await file.text());
+    } catch (e) { }
   });
 </script>
