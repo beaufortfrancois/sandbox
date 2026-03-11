@@ -1,0 +1,15 @@
+<canvas id="canvas" layoutsubtree>
+    <form id="form" toolautosubmit toolname="declarative_tool" tooldescription="A declarative WebMCP tool">
+        <input type="text" name="input">
+        <button type="submit">Submit</button>
+    </form>
+</canvas>
+
+<script>
+    canvas.onpaint = () => {
+        const ctx = document.getElementById('canvas').getContext('2d');
+        ctx.reset();
+        let transform = ctx.drawElementImage(form, 0, 0);
+        form.style.transform = transform.toString();
+    };
+</script>
