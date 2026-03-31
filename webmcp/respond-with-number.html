@@ -1,0 +1,15 @@
+<button id="button">Execute tool</button>
+
+<form id="form" toolautosubmit toolname="respond_with_number" tooldescription="Respond with number"></form>
+
+<script>
+    button.onclick = async () => {
+        const result = await navigator.modelContextTesting.executeTool('respond_with_number', '{}');
+        console.log({result});
+        console.log(`JSON.parse(result): ${JSON.parse(result)}`);
+    }
+    form.onsubmit = (event) => {
+        event.preventDefault();
+        event.respondWith(42);
+    };
+</script>
