@@ -4,6 +4,19 @@
 </label>
 <hr />
 <p style="user-select: all">Add the white color</p>
+<form toolname="form_add_color" tooldescription="Add color" toolautosubmit>
+  <select required name="id" toolparamtitle="color_id" toolparamdescription="The color ID to add. Match the desired color using the oneOf titles — each title is the color name (e.g. Blue) and its const value is the corresponding color ID to use.">
+    <option value="1">Blue</option>
+    <option value="2">White</option>
+    <option value="3">Red</option>
+  </select>
+</form>
+<script>
+  document.querySelector('form').onsubmit = (e) => {
+    e.preventDefault();
+    pre.textContent = `${document.querySelector('id').value}`;
+  }
+</script>
 <pre id="pre"></pre>
 <script>
   function getColor(id) {

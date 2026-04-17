@@ -36,16 +36,32 @@
 <fieldset>
   <legend>toolname="declarative_tool"</legend>
 
-  <form toolautosubmit toolname="declarative_tool" tooldescription="A declarative WebMCP tool" action="print-url.html"
-    target="target">
+  <form
+    toolautosubmit
+    toolname="declarative_tool"
+    tooldescription="A declarative WebMCP tool"
+    action="print-url.html"
+    target="target"
+  >
     <input id="file1" type="file" name="file1" />
 
     <input id="text1" type="text" name="text1" />
     <label for="text2">text 2 label</label>
 
-    <input id="text2" type="text" name="text2" toolparamdescription="Some nice description for text2"
-      toolparamtitle="Some nice title for text2" />
-    <input id="password" name="password" type="password" placeholder="password" autocomplete="current-password" />
+    <input
+      id="text2"
+      type="text"
+      name="text2"
+      toolparamdescription="Some nice description for text2"
+      toolparamtitle="Some nice title for text2"
+    />
+    <input
+      id="password"
+      name="password"
+      type="password"
+      placeholder="password"
+      autocomplete="current-password"
+    />
     <input id="hidden" name="hidden" type="hidden" />
     <input id="textdisabled" type="text" name="textdisabled" disabled />
     <input id="noname" type="text" name="" placeholder="noname" />
@@ -75,8 +91,12 @@
     <input id="button" type="button" value="input type=button" />
     <button id="button" name="button">button</button>
 
-    <input id="imageInput" type="image" name="imageInput"
-      src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==" />
+    <input
+      id="imageInput"
+      type="image"
+      name="imageInput"
+      src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
+    />
 
     <textarea id="textarea" name="textarea"></textarea>
 
@@ -107,15 +127,25 @@
 
 <fieldset>
   <legend>duplicated tool</legend>
-  <form toolautosubmit toolname="declarative_tool" tooldescription="A declarative WebMCP tool" action="print-url.html"
-    target="target">
-
+  <form
+    toolautosubmit
+    toolname="declarative_tool"
+    tooldescription="A declarative WebMCP tool"
+    action="print-url.html"
+    target="target"
+  >
     <button type="submit" name="submitname" value="submit_value">Submit Content</button>
   </form>
 </fieldset>
 
 <iframe name="target" style="width: 100%"></iframe>
 
+<script>
+  const jsonLd = document.querySelector('script[type="application/ld+json"]');
+  const data = JSON.parse(jsonLd.textContent);
+  data.text = location.search;
+  jsonLd.textContent = JSON.stringify(data);
+</script>
 <script>
   class MyControl extends HTMLElement {
     static get formAssociated() {
@@ -127,7 +157,7 @@
       this.internals_ = this.attachInternals();
       try {
         this.internals_.setToolParamSchema(`{ "type":"string" }`);
-      } catch (e) { }
+      } catch (e) {}
       this.value_ = '<none>';
       this.attachShadow({ mode: 'open' });
       let div = document.createElement('div');
@@ -162,9 +192,28 @@
 </script>
 
 <script>
+  [...document.querySelectorAll('form *')].forEach((element) => {
+    if ('onchange' in element.__proto__) {
+      element.addEventListener('change', (e) => console.log(e));
+    }
+    if ('oninput' in element.__proto__) {
+      element.addEventListener('input', (e) => console.log(e));
+    }
+  });
+
+  window.addEventListener('toolactivated', (event) => {
+    console.log(event);
+  });
+
+  window.addEventListener('toolcancel', (event) => {
+    console.log(event);
+  });
+
   targetCheckbox.onchange = () => {
     document.querySelector('form').target = targetCheckbox.checked ? 'target' : '';
-    document.querySelector('form').action = targetCheckbox.checked ? 'print-url.html' : '';
+    document.querySelector('form').action = targetCheckbox.checked
+      ? './print-url.html'
+      : './declarative.html';
   };
 
   toolAutoSubmitCheckbox.onchange = () => {
@@ -191,6 +240,6 @@
       const file = file1.files[0];
       console.log(`file: ${file}`);
       console.log(await file.text());
-    } catch (e) { }
+    } catch (e) {}
   });
 </script>

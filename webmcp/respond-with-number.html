@@ -9,7 +9,8 @@
         console.log(`JSON.parse(result): ${JSON.parse(result)}`);
     }
     form.onsubmit = (event) => {
+        console.log(event);
         event.preventDefault();
-        event.respondWith(42);
+        event.respondWith("string result");
     };
 </script>

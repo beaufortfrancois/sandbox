@@ -9,6 +9,8 @@
     form.onsubmit = (event) => {
         event.preventDefault();
         event.respondWith('form submitted before form.remove() is called');
-        form.remove();
+        requestAnimationFrame(() => {
+            form.remove();
+        })
     };
 </script>
