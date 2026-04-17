@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+  <head>
+    <title>React Form App</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+
+  <body>
+    <script type="text/babel">
+      const { useState } = React;
+
+      function Form() {
+        const [isSubmitted, setIsSubmitted] = useState(false);
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+
+          if (e.nativeEvent && e.nativeEvent.agentInvoked) {
+            e.nativeEvent.respondWith('Form auto submission was successful');
+          }
+
+          // Delaying state update to prevent execution cancellation
+          if (new URLSearchParams(location.search).has('setTimeout'))
+            setTimeout(() => {
+              setIsSubmitted(true);
+            }, 0);
+          else {
+            setIsSubmitted(true);
+          }
+        };
+
+        if (isSubmitted) {
+          return <p>Your submission was successful and the form has been removed.</p>;
+        }
+
+        return (
+          <form
+            toolname="submit_form"
+            tooldescription="Submit form"
+            toolautosubmit=""
+            onSubmit={handleSubmit}
+          >
+            <button type="submit">Submit</button>
+          </form>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.body);
+      root.render(<Form />);
+    </script>
+  </body>
+</html>
