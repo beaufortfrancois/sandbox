@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "WebMCP Debugger Extension",
+  "description": "Uses the chrome.debugger API to inspect WebMCP tools on web pages.",
+  "version": "1.0",
+  "permissions": ["debugger", "sidePanel", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js" },
+  "action": {}
+}
