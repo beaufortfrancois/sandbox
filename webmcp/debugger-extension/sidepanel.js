@@ -5,5 +5,5 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
 
 const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 const debuggee = { tabId: tab.id };
-await new Promise((resolve) => chrome.debugger.attach(debuggee, '1.3', resolve));
-await new Promise((resolve) => chrome.debugger.sendCommand(debuggee, 'WebMCP.enable', resolve));
+await chrome.debugger.attach(debuggee, '1.3');
+await chrome.debugger.sendCommand(debuggee, 'WebMCP.enable');
