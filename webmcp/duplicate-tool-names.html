@@ -1,0 +1,27 @@
+<iframe id="iframe" src="about:blank"></iframe>
+<script type="module">
+  function waitForToolChange() {
+    return new Promise((resolve) => {
+      navigator.modelContext.addEventListener('toolchange', resolve, { once: true });
+    });
+  }
+
+  const tool = {
+    name: `tool_name`,
+    description: `tool description`,
+    execute: () => {},
+  };
+
+  // Register tool in top-level frame
+  window.navigator.modelContext.registerTool(tool);
+  await waitForToolChange();
+
+  // Register same tool in about:blank iframe
+  iframe.contentWindow.navigator.modelContext.registerTool(tool);
+  await waitForToolChange();
+
+  // Both tools are returned. To the agent, these look identical because the LLM
+  // receives a stateless JSON schema, losing all JavaScript window/frame references.
+  const tools = await navigator.modelContext.getTools();
+  console.log({ tools });
+</script>
