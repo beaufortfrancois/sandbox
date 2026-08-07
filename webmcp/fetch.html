@@ -1,0 +1,24 @@
+<pre id="output"></pre>
+<script>
+  document.modelContext.registerTool({
+    name: "fetch",
+    description: "Fetch the text content of a URL and stream the response.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "The URL to fetch" },
+      },
+      required: ["url"],
+    },
+    execute: async ({ url }, { signal }) => {
+      output.textContent = "";
+      // Abort the fetch request when tool execution is aborted by the user.
+      const response = await fetch(url, { signal });
+      const stream = response.body.pipeThrough(new TextDecoderStream());
+      for await (const chunk of stream) {
+        output.textContent += chunk;
+      }
+      return "Success";
+    },
+  });
+</script>
