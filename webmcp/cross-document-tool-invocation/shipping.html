@@ -44,7 +44,15 @@
       <button type="submit">Proceed to Billing</button>
     </form>
 
-    <!-- Load the WebMCP connection and automation handler -->
+    <!-- Load the WebMCP connection and register this page's tool step -->
     <script src="webmcp-client.js"></script>
+    <script>
+      connectToWorker({
+        FILL_SHIPPING: ({ street, city }) => {
+          document.querySelector('#street').value = street;
+          document.querySelector('#city').value = city;
+        },
+      });
+    </script>
   </body>
 </html>

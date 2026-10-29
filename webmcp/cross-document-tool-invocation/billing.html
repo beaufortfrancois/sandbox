@@ -39,7 +39,7 @@
       <button type="submit">Place Order</button>
     </form>
 
-    <!-- Dummy order submission function called by webmcp-client.js -->
+    <!-- Dummy order submission function -->
     <script>
       function placeOrder() {
         return new Promise((resolve) => {
@@ -51,7 +51,16 @@
       }
     </script>
 
-    <!-- Load the WebMCP connection and automation handler -->
+    <!-- Load the WebMCP connection and register this page's tool step -->
     <script src="webmcp-client.js"></script>
+    <script>
+      connectToWorker({
+        FILL_BILLING: async ({ cardNumber }) => {
+          document.querySelector('#card').value = cardNumber;
+          await placeOrder();
+          return { orderId: 'abc-98765' };
+        },
+      });
+    </script>
   </body>
 </html>
