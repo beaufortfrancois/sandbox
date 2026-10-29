@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Step 2: Payment Information</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 400px;
+        margin: 50px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Payment Information</h2>
+
+    <form id="billing-form" onsubmit="event.preventDefault(); placeOrder();">
+      <div class="form-group">
+        <label for="card">Credit Card Number</label>
+        <input type="text" id="card" placeholder="1111-2222-3333-4444" />
+      </div>
+
+      <button type="submit">Place Order</button>
+    </form>
+
+    <!-- Dummy order submission function -->
+    <script>
+      function placeOrder() {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            console.log('Order processed successfully!');
+            resolve();
+          }, 1000);
+        });
+      }
+    </script>
+
+    <!-- Load the WebMCP connection and register this page's tool step -->
+    <script src="webmcp-client.js"></script>
+    <script>
+      connectToWorker({
+        FILL_BILLING: async ({ cardNumber }) => {
+          document.querySelector('#card').value = cardNumber;
+          await placeOrder();
+          return { orderId: 'abc-98765' };
+        },
+      });
+    </script>
+  </body>
+</html>
